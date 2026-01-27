@@ -1,49 +1,71 @@
 ﻿<!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - CinemaManagement</title>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/CinemaManagement.styles.css" asp-append-version="true" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Beta Cinemas - Template Bài Tập</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">CinemaManagement</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
+    <header>
         <div class="container">
-            &copy; 2026 - CinemaManagement - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
+            <div class="logo">
+                <img src="https://betacinemas.vn/Assets/Common/logo/logo.png" alt="Beta Logo">
+            </div>
+            <nav>
+                <ul>
+                    <li><a href="#" class="active">LỊCH CHIẾU</a></li>
+                    <li><a href="#">HỆ THỐNG RẠP</a></li>
+                    <li><a href="phim.html">PHIM</a></li>
+                    <li><a href="thong-tin-rap.html">RẠP</a></li>
+                    <li><a href="gia-ve.html">GIÁ VÉ</a></li>
+                    <li><a href="tin-moi-va-uu-dai.html">TIN MỚI VÀ ƯU ĐÃI</a></li>
+                    <li><a href="#">NHƯỢNG QUYỀN</a></li>
+                </ul>
+            </nav>
+            <div class="user-actions">
+                <button class="btn-login">ĐĂNG NHẬP</button>
+            </div>
+        </div>
+    </header>
+
+    <section class="banner">
+        <img src="https://files.betacinemas.vn/files/ecm/2024/01/01/1702x621-110036-010124-44.jpg" alt="Banner">
+    </section>
+
+    @RenderBody()
+
+    <footer>
+        <div class="container footer-content">
+            <div class="footer-col">
+                <h4>GIỚI THIỆU</h4>
+                <ul>
+                    <li><a href="#">Về chúng tôi</a></li>
+                    <li><a href="#">Thỏa thuận sử dụng</a></li>
+                    <li><a href="#">Quy chế hoạt động</a></li>
+                    <li><a href="#">Chính sách bảo mật</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>GÓC ĐIỆN ẢNH</h4>
+                <ul>
+                    <li><a href="#">Thể loại phim</a></li>
+                    <li><a href="#">Bình luận phim</a></li>
+                    <li><a href="#">Blog điện ảnh</a></li>
+                </ul>
+            </div>
+            <div class="footer-col">
+                <h4>KẾT NỐI VỚI CHÚNG TÔI</h4>
+                <p>Hotline: 1900 6467</p>
+                <p>Email: marketing@betacinemas.vn</p>
+            </div>
+        </div>
+        <div class="footer-bottom">
+            <p>&copy; 2024 Beta Cinemas. All Rights Reserved. Design for School Project.</p>
         </div>
     </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
-    @await RenderSectionAsync("Scripts", required: false)
+
 </body>
 </html>
