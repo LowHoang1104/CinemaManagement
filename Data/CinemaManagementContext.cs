@@ -38,6 +38,8 @@ public partial class CinemaManagementContext : DbContext
 
     public virtual DbSet<User> Users { get; set; }
 
+    public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Booking>(entity =>
@@ -270,6 +272,29 @@ public partial class CinemaManagementContext : DbContext
                         j.ToTable("UserRoles");
                         j.HasIndex(new[] { "RoleId" }, "IX_UserRoles_RoleId");
                     });
+        });
+
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.ToTable("PasswordResetTokens");
+
+            entity.HasKey(e => e.TokenId).HasName("PK_PasswordResetTokens");
+
+            entity.Property(e => e.TokenId).ValueGeneratedNever();
+            entity.Property(e => e.OTPCode).HasMaxLength(6);
+            entity.Property(e => e.ExpiryTime).HasPrecision(6);
+            entity.Property(e => e.CreatedAt)
+                  .HasPrecision(6)
+                  .HasDefaultValueSql("now()");
+            entity.Property(e => e.IsUsed).HasDefaultValue(false);
+
+            entity.HasIndex(e => new { e.UserId, e.OTPCode }, "IX_PasswordResetTokens_User_OTP");
+            entity.HasIndex(e => e.ExpiryTime, "IX_PasswordResetTokens_ExpiryTime");
+
+            entity.HasOne(d => d.User).WithMany(p => p.PasswordResetTokens)
+                .HasForeignKey(d => d.UserId)
+                .OnDelete(DeleteBehavior.Cascade)
+                .HasConstraintName("FK_PasswordResetTokens_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);
