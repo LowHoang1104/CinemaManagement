@@ -8,7 +8,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<CinemaManagementContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("CinemaDb"))
+    options.UseNpgsql(builder.Configuration.GetConnectionString("MyCnn"))
 );
 
 builder.Services.AddApplicationServices();

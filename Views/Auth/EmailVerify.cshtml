@@ -1,0 +1,178 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quên mật khẩu | Beta Cinemas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS CƠ BẢN (Đồng bộ với trang Đăng Nhập) --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+
+        .auth-section {
+            padding: 60px 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('https://betacinemas.vn/Assets/Common/img/bg-login.jpg') no-repeat center center;
+            background-size: cover;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 40px 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .logo-small {
+            height: 50px;
+            margin-bottom: 20px;
+        }
+
+        .auth-title {
+            color: #0056b3;
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+
+        .auth-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        /* --- FORM --- */
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                outline: none;
+                transition: 0.3s;
+            }
+
+                .form-group input:focus {
+                    border-color: #0056b3;
+                    box-shadow: 0 0 5px rgba(0,86,179,0.2);
+                }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            transition: 0.3s;
+        }
+
+            .btn-submit:hover {
+                background: #004494;
+            }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #0056b3;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+            .back-link:hover {
+                text-decoration: underline;
+            }
+
+        /* --- THÔNG BÁO THÀNH CÔNG (ẨN MẶC ĐỊNH) --- */
+        #success-msg {
+            display: none;
+            color: #28a745;
+            background: #e9f7ef;
+            padding: 15px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+    <main class="auth-section">
+        <div class="auth-card">
+            <a href="index.html">
+                <img src="https://betacinemas.vn/Assets/Common/logo/logo.png" alt="Beta Logo" class="logo-small">
+            </a>
+
+            <h2 class="auth-title">Quên mật khẩu?</h2>
+            <p class="auth-desc">Vui lòng nhập email hoặc số điện thoại đã đăng ký. Chúng tôi sẽ gửi mã xác nhận để khôi phục mật khẩu của bạn.</p>
+
+            <div id="success-msg">Yêu cầu đã được gửi! Vui lòng kiểm tra hộp thư của bạn.</div>
+
+            <form id="forgot-form">
+                <div class="form-group">
+                    <label>Email / Số điện thoại</label>
+                    <input type="text" id="userInput" placeholder="Nhập Email hoặc SĐT" required>
+                </div>
+
+                <button type="submit" class="btn-submit">GỬI YÊU CẦU</button>
+            </form>
+
+            <a href="dang-nhap.html" class="back-link">← Quay lại đăng nhập</a>
+        </div>
+    </main>
+
+    <script>
+        document.getElementById('forgot-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.getElementById('userInput').value;
+
+            if(input) {
+                // Hiển thị thông báo thành công
+                document.getElementById('success-msg').style.display = 'block';
+                // Ẩn form đi cho chuyên nghiệp
+                document.getElementById('forgot-form').style.display = 'none';
+                document.querySelector('.auth-desc').style.display = 'none';
+            }
+        });
+    </script>
+
+</body>
+</html>

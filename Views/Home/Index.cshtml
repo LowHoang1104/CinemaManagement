@@ -3,64 +3,8 @@
 }
 
 <main class="container">
-    <h2 class="section-title">PHIM ĐANG CHIẾU</h2>
-    <div class="movie-grid">
-
-        <div class="movie-card">
-            <div class="movie-img">
-                <img src="https://files.betacinemas.vn/files/media/images/2024/01/01/poster-teaser-nha-ba-nu-110545-010124.jpg" alt="Phim">
-                <div class="overlay">
-                    <button class="btn-ticket">MUA VÉ</button>
-                </div>
-            </div>
-            <div class="movie-info">
-                <h3>NHÀ BÀ NỮ</h3>
-                <p>Thể loại: Tâm lý, Hài</p>
-                <p>Thời lượng: 120 phút</p>
-            </div>
-        </div>
-
-        <div class="movie-card">
-            <div class="movie-img">
-                <img src="https://files.betacinemas.vn/files/media/images/2024/01/01/400x633-110615-010124.jpg" alt="Phim">
-                <div class="overlay">
-                    <button class="btn-ticket">MUA VÉ</button>
-                </div>
-            </div>
-            <div class="movie-info">
-                <h3>MAI</h3>
-                <p>Thể loại: Tâm lý, Tình cảm</p>
-                <p>Thời lượng: 130 phút</p>
-            </div>
-        </div>
-
-        <div class="movie-card">
-            <div class="movie-img">
-                <img src="https://files.betacinemas.vn/files/media/images/2024/01/01/poster-lat-mat-110645-010124.jpg" alt="Phim">
-                <div class="overlay">
-                    <button class="btn-ticket">MUA VÉ</button>
-                </div>
-            </div>
-            <div class="movie-info">
-                <h3>LẬT MẶT 7</h3>
-                <p>Thể loại: Hành động, Gia đình</p>
-                <p>Thời lượng: 115 phút</p>
-            </div>
-        </div>
-
-        <div class="movie-card">
-            <div class="movie-img">
-                <img src="https://files.betacinemas.vn/files/media/images/2024/01/01/400x633-110712-010124.jpg" alt="Phim">
-                <div class="overlay">
-                    <button class="btn-ticket">MUA VÉ</button>
-                </div>
-            </div>
-            <div class="movie-info">
-                <h3>DUNE: PHẦN 2</h3>
-                <p>Thể loại: Khoa học viễn tưởng</p>
-                <p>Thời lượng: 166 phút</p>
-            </div>
-        </div>
-
-    </div>
+    <section class="banner">
+        <img src="./asset/img/1702x621-2-174231-190126-68.jpg" alt="Banner">
+    </section>
+    @await Html.PartialAsync("_MovieListPartialView")
 </main>

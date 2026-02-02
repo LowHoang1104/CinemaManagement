@@ -1,0 +1,196 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xác thực OTP | Beta Cinemas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS GIAO DIỆN --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7f9;
+        }
+
+        .auth-section {
+            padding: 60px 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('https://betacinemas.vn/Assets/Common/img/bg-login.jpg') no-repeat center center;
+            background-size: cover;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 40px 30px;
+            border-radius: 15px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            text-align: center;
+        }
+
+        .auth-title {
+            color: #0056b3;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .auth-desc {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 25px;
+        }
+
+            .auth-desc span {
+                color: #0056b3;
+                font-weight: bold;
+            }
+
+        /* --- Ô NHẬP OTP RỜI --- */
+        .otp-inputs {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 30px;
+        }
+
+            .otp-inputs input {
+                width: 50px;
+                height: 60px;
+                text-align: center;
+                font-size: 24px;
+                font-weight: bold;
+                border: 2px solid #ddd;
+                border-radius: 8px;
+                outline: none;
+                transition: all 0.3s;
+            }
+
+                .otp-inputs input:focus {
+                    border-color: #0056b3;
+                    box-shadow: 0 0 8px rgba(0,86,179,0.2);
+                }
+
+        /* --- NÚT BẤM --- */
+        .btn-verify {
+            width: 100%;
+            padding: 14px;
+            background: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .resend-box {
+            margin-top: 25px;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .resend-link {
+            color: #0056b3;
+            text-decoration: none;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+            .resend-link.disabled {
+                color: #ccc;
+                cursor: not-allowed;
+            }
+
+        #timer {
+            color: #d9534f;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <main class="auth-section">
+        <div class="auth-card">
+            <h2 class="auth-title">XÁC THỰC OTP</h2>
+            <p class="auth-desc">Mã xác thực đã được gửi đến <br><span>098****123</span></p>
+
+            <form id="otp-form">
+                <div class="otp-inputs">
+                    <input type="text" maxlength="1" oninput="moveNext(this, 1)" onkeydown="moveBack(this, 1)">
+                    <input type="text" maxlength="1" oninput="moveNext(this, 2)" onkeydown="moveBack(this, 2)">
+                    <input type="text" maxlength="1" oninput="moveNext(this, 3)" onkeydown="moveBack(this, 3)">
+                    <input type="text" maxlength="1" oninput="moveNext(this, 4)" onkeydown="moveBack(this, 4)">
+                    <input type="text" maxlength="1" oninput="moveNext(this, 5)" onkeydown="moveBack(this, 5)">
+                    <input type="text" maxlength="1" oninput="moveNext(this, 6)" onkeydown="moveBack(this, 6)">
+                </div>
+
+                <button type="submit" class="btn-verify">XÁC NHẬN</button>
+            </form>
+
+            <div class="resend-box">
+                Bạn không nhận được mã? <br>
+                Gửi lại sau <span id="timer">01:59</span>
+            </div>
+
+            <a href="dang-nhap.html" style="display:block; margin-top:20px; color:#999; text-decoration:none; font-size:13px;">Hủy giao dịch</a>
+        </div>
+    </main>
+
+    <script>
+        // Tự động nhảy sang ô tiếp theo
+        function moveNext(current, index) {
+            if (current.value.length >= 1 && index < 6) {
+                document.querySelectorAll('.otp-inputs input')[index].focus();
+            }
+        }
+
+        // Tự động quay lại ô trước khi bấm Backspace
+        function moveBack(current, index) {
+            if (event.keyCode === 8 && current.value.length === 0 && index > 1) {
+                document.querySelectorAll('.otp-inputs input')[index - 2].focus();
+            }
+        }
+
+        // Bộ đếm ngược (Countdown Timer)
+        let timeLimit = 119; // 1 phút 59 giây
+        const timerDisplay = document.getElementById('timer');
+
+        const countdown = setInterval(() => {
+            let minutes = Math.floor(timeLimit / 60);
+            let seconds = timeLimit % 60;
+
+            seconds = seconds < 10 ? '0' + seconds : seconds;
+            timerDisplay.innerHTML = `0${minutes}:${seconds}`;
+
+            if (timeLimit <= 0) {
+                clearInterval(countdown);
+                document.querySelector('.resend-box').innerHTML = 'Bạn có thể <span class="resend-link">Gửi lại mã</span> ngay bây giờ.';
+            }
+            timeLimit--;
+        }, 1000);
+
+        // Xử lý submit
+        document.getElementById('otp-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            alert('Xác thực mã OTP thành công!');
+            window.location.href = 'index.html'; // Chuyển về trang chủ
+        });
+    </script>
+
+</body>
+</html>

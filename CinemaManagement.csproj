@@ -19,6 +19,7 @@
 
 	<ItemGroup>
 	  <Folder Include="Common\" />
+	  <Folder Include="wwwroot\asset\img\movie\" />
 	</ItemGroup>
 
 </Project>

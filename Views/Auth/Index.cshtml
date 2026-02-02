@@ -1,0 +1,284 @@
+﻿<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng nhập & Đăng ký | Beta Cinemas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        /* --- CSS CƠ BẢN --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 15px;
+        }
+
+        /* --- HEADER --- */
+        header {
+            background: #fff;
+            padding: 15px 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .header-flex {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo img {
+            height: 45px;
+        }
+
+        /* --- PHẦN NỀN VÀ KHUNG AUTH --- */
+        .auth-section {
+            padding: 60px 0;
+            min-height: calc(100vh - 80px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('https://betacinemas.vn/Assets/Common/img/bg-login.jpg') no-repeat center center;
+            background-size: cover;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 40px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        /* --- NÚT SWITCH (TRƯỢT Y HỆT BETA) --- */
+        .auth-toggle {
+            width: 100%;
+            height: 50px;
+            background: #e9ecef;
+            border-radius: 30px;
+            display: flex;
+            position: relative;
+            margin-bottom: 30px;
+            padding: 5px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 2;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+
+            .toggle-btn.active {
+                color: #fff;
+            }
+
+        .toggle-slider {
+            position: absolute;
+            width: calc(50% - 5px);
+            height: calc(100% - 10px);
+            background: #0056b3;
+            border-radius: 25px;
+            top: 5px;
+            left: 5px;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1;
+        }
+
+        /* Hiệu ứng trượt sang phải */
+        .slide-right {
+            transform: translateX(100%);
+        }
+
+        /* --- FORM --- */
+        .form-content {
+            display: none;
+        }
+
+            .form-content.active {
+                display: block;
+                animation: fadeIn 0.5s ease;
+            }
+
+        @@keyframes fadeIn {
+            from
+
+        {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 6px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                outline: none;
+                transition: border 0.3s;
+            }
+
+                .form-group input:focus {
+                    border-color: #0056b3;
+                }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: #0056b3;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        .forgot-pass {
+            display: block;
+            text-align: right;
+            margin-top: 10px;
+            color: #0056b3;
+            text-decoration: none;
+            font-size: 13px;
+        }
+
+        .social-login {
+            text-align: center;
+            margin-top: 25px;
+            border-top: 1px solid #eee;
+            padding-top: 20px;
+        }
+
+        .btn-fb {
+            background: #3b5998;
+            color: white;
+            border: none;
+            padding: 10px;
+            width: 100%;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+
+    <main class="auth-section">
+        <div class="auth-card">
+
+            <div class="auth-toggle">
+                <div class="toggle-slider" id="slider"></div>
+                <button class="toggle-btn active" onclick="showForm('login', this)">ĐĂNG NHẬP</button>
+                <button class="toggle-btn" onclick="showForm('register', this)">ĐĂNG KÝ</button>
+            </div>
+
+            <div id="login-form" class="form-content active">
+                <form>
+                    <div class="form-group">
+                        <label>Email hoặc Số điện thoại</label>
+                        <input type="text" placeholder="Tài khoản của bạn">
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu</label>
+                        <input type="password" placeholder="********">
+                    </div>
+                    <button type="button" class="btn-submit">ĐĂNG NHẬP</button>
+                    <a href="forgotpassword.html" class="forgot-pass">Quên mật khẩu?</a>
+                </form>
+                <div class="social-login">
+                    <p style="font-size: 13px; color: #888; margin-bottom: 15px;">Hoặc đăng nhập bằng</p>
+                    <button class="btn-fb">FACEBOOK</button>
+                </div>
+            </div>
+
+            <div id="register-form" class="form-content">
+                <form>
+                    <div class="form-group">
+                        <label>Họ tên *</label>
+                        <input type="text" placeholder="Nhập họ và tên">
+                    </div>
+                    <div class="form-group">
+                        <label>Số điện thoại *</label>
+                        <input type="text" placeholder="Nhập số điện thoại">
+                    </div>
+                    <div class="form-group">
+                        <label>Email *</label>
+                        <input type="email" placeholder="Nhập địa chỉ email">
+                    </div>
+                    <div class="form-group">
+                        <label>Mật khẩu *</label>
+                        <input type="password" placeholder="Tạo mật khẩu">
+                    </div>
+                    <div style="font-size: 12px; margin-bottom: 15px;">
+                        <input type="checkbox"> Tôi đồng ý với <a href="#" style="color: #0056b3;">điều khoản của Beta</a>
+                    </div>
+                    <button type="button" class="btn-submit" style="background: #28a745;">ĐĂNG KÝ TÀI KHOẢN</button>
+                </form>
+            </div>
+
+        </div>
+    </main>
+
+    <script>
+        function showForm(type, btn) {
+            const slider = document.getElementById('slider');
+            const loginForm = document.getElementById('login-form');
+            const registerForm = document.getElementById('register-form');
+            const buttons = document.querySelectorAll('.toggle-btn');
+
+            // Xóa class active ở tất cả các nút
+            buttons.forEach(b => b.classList.remove('active'));
+            // Thêm active cho nút vừa nhấn
+            btn.classList.add('active');
+
+            if (type === 'login') {
+                slider.classList.remove('slide-right');
+                loginForm.classList.add('active');
+                registerForm.classList.remove('active');
+            } else {
+                slider.classList.add('slide-right');
+                registerForm.classList.add('active');
+                loginForm.classList.remove('active');
+            }
+        }
+    </script>
+
+</body>
+</html>
