@@ -1,5 +1,6 @@
-using CinemaManagement;
+﻿using CinemaManagement;
 using CinemaManagement.Data;
+using CinemaManagement.Hubs;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -8,11 +9,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<CinemaManagementContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("CinemaDb"))
+    options.UseNpgsql(builder.Configuration.GetConnectionString("MyCnn"))
 );
 
 builder.Services.AddApplicationServices();
 builder.Services.AddSignalR();
+
+// Đăng ký SeatNotifier để inject vào BookingService
+builder.Services.AddScoped<ISeatNotifier, SeatNotifier>();
 
 var app = builder.Build();
 
@@ -25,6 +29,9 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=AdminUsers}/{action=Index}/{id?}");
+
+// Map SignalR Hub
+app.MapHub<SeatHub>("/hubs/seat");
 
 app.Run();
