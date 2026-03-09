@@ -205,7 +205,7 @@ namespace CinemaManagement.Controllers
                     }
                     else
                     {
-                        // Các lỗi khác (hiếm xảy ra) → gắn vào string.Empty nếu không xác định được
+                        // Các lỗi khác gắn vào string.Empty nếu không xác định được
                         ModelState.AddModelError(string.Empty, error);
                     }
                 }
@@ -265,7 +265,7 @@ namespace CinemaManagement.Controllers
             }
             else
             {
-                // fallback: compute reasonable expiry so user sees countdown instead of immediate expired state
+                // thời gian xác thực otp
                 expiryUtc = DateTime.UtcNow.AddMinutes(5);
             }
 
