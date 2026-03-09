@@ -1,0 +1,9 @@
+﻿@{
+    ViewBag.Title = "Admin Panel";
+}
+
+<h1 style="color:red">Đăng nhập ADMIN thành công</h1>
+
+<p>Xin chào: @User.Identity.Name</p>
+<p>Email: @User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</p>
+<p>Role: Admin</p>

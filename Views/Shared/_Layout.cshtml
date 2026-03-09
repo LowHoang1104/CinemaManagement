@@ -20,7 +20,7 @@
     <!-- Cinema Selector Dropdown -->
  <div class="cinema-selector">
    <button class="cinema-selector-btn" id="cinemaSelectorBtn">
-  <span id="selectedCinemaName">Chọn cơ sở</span>
+  <span id="selectedCinemaName">Ch�?n cơ sở</span>
      <span class="arrow">▼</span>
        </button>
      <div class="cinema-dropdown" id="cinemaDropdown">
@@ -46,18 +46,18 @@
       <nav>
        <ul>
    <li><a href="@Url.Action("Index", "Home")" class="active">LỊCH CHIẾU</a></li>
-       <li><a href="#">HỆ THỐNG RẠP</a></li>
+       <li><a href="#">HỆ TH�?NG RẠP</a></li>
       <li><a href="#">PHIM</a></li>
      <li><a href="#">RẠP</a></li>
-             <li><a href="#">GIÁ VÉ</a></li>
-<li><a href="#">TIN MỚI VÀ ƯU ĐÃI</a></li>
+             <li><a href="#">GI�? VÉ</a></li>
+<li><a href="#">TIN MỚI VÀ ƯU �?ÃI</a></li>
    <li><a href="#">NHƯỢNG QUYỀN</a></li>
           </ul>
             </nav>
- <div class="user-actions">
-   <button class="btn-login"><a asp-action="Index" asp-controller="Auth">ĐĂNG NHẬP</a></button>
-           <button class="btn-login">ĐĂNG KÝ</button>
-        </div>
+            <div class="user-actions">
+                <button class="btn-login" type="button" onclick="window.location.href='@Url.Action("Login", "Auth")'">�?ĂNG NHẬP</button>
+
+            </div>
         </div>
     </header>
 
@@ -68,14 +68,14 @@
      <div class="footer-col">
         <h4>GIỚI THIỆU</h4>
    <ul>
-        <li><a href="#">Về chúng tôi</a></li>
-   <li><a href="#">Thỏa thuận sử dụng</a></li>
+        <li><a href="#">V�? chúng tôi</a></li>
+   <li><a href="#">Th�?a thuận sử dụng</a></li>
           <li><a href="#">Quy chế hoạt động</a></li>
        <li><a href="#">Chính sách bảo mật</a></li>
       </ul>
      </div>
    <div class="footer-col">
-    <h4>GÓC ĐIỆN ẢNH</h4>
+    <h4>GÓC �?IỆN ẢNH</h4>
   <ul>
      <li><a href="#">Thể loại phim</a></li>
        <li><a href="#">Bình luận phim</a></li>
@@ -83,7 +83,7 @@
        </ul>
 </div>
   <div class="footer-col">
-      <h4>KẾT NỐI VỚI CHÚNG TÔI</h4>
+      <h4>KẾT N�?I VỚI CHÚNG TÔI</h4>
    <p>Hotline: 1900 6467</p>
    <p>Email: marketing@betacinemas.vn</p>
     </div>
@@ -144,15 +144,15 @@ cinemaSelectorBtn.addEventListener('click', function(e) {
        return response.json();
             })
         .then(data => {
-            if (data.cinemaName && data.cinemaName !== 'Chưa chọn cơ sở') {
+            if (data.cinemaName && data.cinemaName !== 'Chưa ch�?n cơ sở') {
         selectedCinemaName.textContent = data.cinemaName;
      } else {
-    selectedCinemaName.textContent = 'Chọn cơ sở';
+    selectedCinemaName.textContent = 'Ch�?n cơ sở';
          }
     })
         .catch(error => {
            console.error('Error loading cinema:', error);
-         selectedCinemaName.textContent = 'Chọn cơ sở';
+         selectedCinemaName.textContent = 'Ch�?n cơ sở';
        });
  }
 
@@ -181,12 +181,12 @@ cinemaSelectorBtn.addEventListener('click', function(e) {
   window.location.reload();
           }, 300);
   } else {
-        alert('Lỗi: ' + (data.message || 'Không thể chọn cơ sở'));
+        alert('Lỗi: ' + (data.message || 'Không thể ch�?n cơ sở'));
       }
  })
   .catch(error => {
   console.error('Error saving cinema:', error);
-   alert('Có lỗi xảy ra khi chọn cơ sở');
+   alert('Có lỗi xảy ra khi ch�?n cơ sở');
    });
     }
   });
