@@ -17,6 +17,8 @@ public partial class ShowTime
 
     public decimal BasePrice { get; set; }
 
+    public string? Format { get; set; }
+
     public int Status { get; set; }
 
     public DateTime CreatedAt { get; set; }
@@ -37,3 +39,4 @@ public partial class ShowTime
 
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }
+  

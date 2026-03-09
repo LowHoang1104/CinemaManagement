@@ -9,6 +9,8 @@ public partial class Seat
 
     public Guid RoomId { get; set; }
 
+    public Guid SeatStatusId { get; set; }
+
     public string SeatCode { get; set; } = null!;
 
     public int RowLabel { get; set; }
@@ -16,8 +18,6 @@ public partial class Seat
     public int ColNumber { get; set; }
 
     public string SeatType { get; set; } = null!;
-
-    public bool IsActive { get; set; }
 
     public DateTime CreatedAt { get; set; }
 
@@ -28,6 +28,8 @@ public partial class Seat
     public Guid? LastUpdatedBy { get; set; }
 
     public virtual Room Room { get; set; } = null!;
+
+    public virtual SeatStatus SeatStatus { get; set; } = null!;
 
     public virtual ICollection<ShowTimeSeat> ShowTimeSeats { get; set; } = new List<ShowTimeSeat>();
 
