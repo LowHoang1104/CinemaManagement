@@ -1,4 +1,4 @@
-﻿using CinemaManagement;
+using CinemaManagement;
 using CinemaManagement.Data;
 using CinemaManagement.Hubs;
 using Microsoft.EntityFrameworkCore;
@@ -7,6 +7,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddAntiforgery(options => options.HeaderName = "RequestVerificationToken");
 
 builder.Services.AddDbContext<CinemaManagementContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("MyCnn"))

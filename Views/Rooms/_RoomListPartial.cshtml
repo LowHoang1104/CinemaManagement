@@ -1,0 +1,383 @@
+@using CinemaManagement.Models
+@model CinemaManagement.ViewModels.RoomListViewModel
+
+@functions {
+    string PageUrl(int p) {
+        var qs = new Dictionary<string, string?> {
+            ["page"]     = p.ToString(),
+            ["search"]   = Model.SearchTerm,
+            ["cinemaId"] = Model.CinemaIdFilter?.ToString(),
+            ["status"]   = Model.StatusFilter?.ToString(),
+            ["sortBy"]   = Model.SortBy,
+            ["sortDir"]  = Model.SortDir
+        };
+        var parts = qs
+            .Where(kv => !string.IsNullOrEmpty(kv.Value))
+            .Select(kv => $"{kv.Key}={Uri.EscapeDataString(kv.Value!)}")
+            .ToList();
+        return "/Rooms/Index?" + string.Join("&", parts);
+    }
+
+    string GetSortUrl(string field) {
+        string dir = (Model.SortBy == field && Model.SortDir == "asc") ? "desc" : "asc";
+        var qs = new Dictionary<string, string?> {
+            ["page"]     = "1",
+            ["search"]   = Model.SearchTerm,
+            ["cinemaId"] = Model.CinemaIdFilter?.ToString(),
+            ["status"]   = Model.StatusFilter?.ToString(),
+            ["sortBy"]   = field,
+            ["sortDir"]  = dir
+        };
+        var parts = qs
+            .Where(kv => !string.IsNullOrEmpty(kv.Value))
+            .Select(kv => $"{kv.Key}={Uri.EscapeDataString(kv.Value!)}")
+            .ToList();
+        return "/Rooms/Index?" + string.Join("&", parts);
+    }
+}
+
+@* Teleport sections for AJAX UI Sync *@
+<div id="teleport-ajax-clear-filter-wrapper" class="hidden">
+    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.CinemaIdFilter.HasValue || Model.StatusFilter.HasValue)
+    {
+        <a href="/Rooms/Index"
+           class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-400 transition-colors">
+            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+            Xóa bộ lọc
+        </a>
+    }
+</div>
+
+<div id="teleport-ajax-chips-wrapper" class="hidden">
+    @if (!string.IsNullOrWhiteSpace(Model.SearchTerm) || Model.CinemaIdFilter.HasValue || Model.StatusFilter.HasValue)
+    {
+        var cinemas = ViewData["CinemaSelectList"] as Microsoft.AspNetCore.Mvc.Rendering.SelectList;
+        
+        <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+            <span class="text-xs text-slate-400 font-medium">Đang lọc:</span>
+            @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+            {
+                <a href="/Rooms/Index?cinemaId=@(Model.CinemaIdFilter)&status=@(Model.StatusFilter)"
+                   class="inline-flex items-center gap-1 rounded-full bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+                    🔍 "@Model.SearchTerm"
+                    <span class="ml-0.5 text-indigo-400">×</span>
+                </a>
+            }
+            @if (Model.CinemaIdFilter.HasValue && cinemas != null)
+            {
+                var cName = cinemas.FirstOrDefault(c => c.Value == Model.CinemaIdFilter.ToString())?.Text;
+                <a href="/Rooms/Index?search=@Model.SearchTerm&status=@Model.StatusFilter"
+                   class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors">
+                    📍 @cName
+                    <span class="ml-0.5 text-blue-400">×</span>
+                </a>
+            }
+            @if (Model.StatusFilter.HasValue)
+            {
+                var sName = Model.StatusFilter switch { RoomStatus.Active => "Hoạt động", RoomStatus.Inactive => "Ngừng hoạt động", _ => "Khác" };
+                <a href="/Rooms/Index?search=@Model.SearchTerm&cinemaId=@Model.CinemaIdFilter"
+                   class="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors">
+                    @sName
+                    <span class="ml-0.5 text-emerald-400">×</span>
+                </a>
+            }
+            <span class="ml-1 text-xs text-slate-400">— Tìm thấy <strong class="text-slate-600">@Model.TotalItems</strong> phòng</span>
+            <a id="clearFilterBtn" href="/Rooms/Index" class="ml-auto text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">Xóa tất cả bộ lọc</a>
+        </div>
+    }
+</div>
+
+<div id="room-list-ajax-content">
+
+<div class="rounded-2xl border border-slate-200 bg-white shadow-sm" style="overflow:visible">
+    <table class="min-w-full divide-y divide-slate-200 text-sm">
+        <thead class="bg-slate-50">
+            <tr>
+                @* Tên phòng — sortable *@
+                <th class="px-4 py-3 text-left">
+                    <a href="@GetSortUrl("name")"
+                       class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-800 transition-colors">
+                        Tên phòng 
+                        @if (Model.SortBy == "name") {
+                            <span class="text-slate-400">@(Model.SortDir == "asc" ? "↑" : "↓")</span>
+                        } else {
+                            <span class="text-slate-400">↕</span>
+                        }
+                    </a>
+                </th>
+                @* Rạp chiếu — sortable *@
+                <th class="px-4 py-3 text-left">
+                    <a href="@GetSortUrl("cinema")"
+                       class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-800 transition-colors">
+                        Rạp chiếu
+                        @if (Model.SortBy == "cinema") {
+                            <span class="text-slate-400">@(Model.SortDir == "asc" ? "↑" : "↓")</span>
+                        } else {
+                            <span class="text-slate-400">↕</span>
+                        }
+                    </a>
+                </th>
+                @* Số ghế — sortable *@
+                <th class="px-4 py-3 text-center">
+                    <a href="@GetSortUrl("seats")"
+                       class="inline-flex items-center justify-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-800 transition-colors">
+                        Số ghế
+                        @if (Model.SortBy == "seats") {
+                            <span class="text-slate-400">@(Model.SortDir == "asc" ? "↑" : "↓")</span>
+                        } else {
+                            <span class="text-slate-400">↕</span>
+                        }
+                    </a>
+                </th>
+                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Kích thước
+                </th>
+                <th class="px-4 py-3 text-center text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Trạng thái
+                </th>
+                @* Ngày tạo — sortable *@
+                <th class="px-4 py-3 text-left">
+                    <a href="@GetSortUrl("date")"
+                       class="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wide text-slate-500 hover:text-slate-800 transition-colors">
+                        Ngày tạo
+                        @if (Model.SortBy == "date") {
+                            <span class="text-slate-400">@(Model.SortDir == "asc" ? "↑" : "↓")</span>
+                        } else {
+                            <span class="text-slate-400">↕</span>
+                        }
+                    </a>
+                </th>
+                <th class="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wide text-slate-500">
+                    Thao tác
+                </th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-slate-100 bg-white">
+            @if (!Model.Rooms.Any())
+            {
+                <tr>
+                    <td colspan="7" class="h-64 text-center align-middle">
+                        <div class="flex flex-col items-center justify-center space-y-3 text-slate-400">
+                            <div class="flex h-16 w-16 items-center justify-center rounded-full bg-slate-100">
+                                <svg class="h-8 w-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <circle cx="11" cy="11" r="7"/><line x1="16.65" y1="16.65" x2="21" y2="21"/>
+                                </svg>
+                            </div>
+                            <div>
+                                <p class="font-medium text-slate-500">Không tìm thấy phòng chiếu</p>
+                                <p class="text-sm text-slate-400 mt-1">Thử điều chỉnh bộ lọc hoặc từ khoá tìm kiếm</p>
+                            </div>
+                            @if (!string.IsNullOrEmpty(Model.SearchTerm) || Model.CinemaIdFilter.HasValue || Model.StatusFilter.HasValue)
+                            {
+                                <a href="/Rooms/Index"
+                                   class="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+                                    Xoá bộ lọc
+                                </a>
+                            }
+                        </div>
+                    </td>
+                </tr>
+            }
+            else
+            {
+                foreach (var room in Model.Rooms)
+                {
+                    var cinemaName = room.Cinema?.Name ?? "N/A";
+                    var status = (RoomStatus)room.Status;
+                    bool isActive = status == RoomStatus.Active;
+                    string badgeClass = isActive 
+                        ? "bg-emerald-50 text-emerald-700 border-emerald-200" 
+                        : "bg-slate-100 text-slate-600 border-slate-300";
+                    string label = isActive ? "Hoạt động" : "Ngừng hoạt động";
+
+                    <tr id="room-row-@room.RoomId" class="hover:bg-slate-50/70 transition-colors">
+                        <td class="px-4 py-3">
+                            <div id="room-name-@room.RoomId" class="font-semibold text-slate-900">@room.Name</div>
+                            <div class="font-mono text-[11px] text-slate-400 mt-0.5">
+                                @room.RoomId.ToString().Substring(0, 8)…
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-2 text-slate-700">
+                                <svg class="h-3.5 w-3.5 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>
+                                </svg>
+                                <span class="text-sm">@cinemaName</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="font-semibold text-slate-800">@(room.TotalRows * room.TotalCols)</span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span class="rounded-md bg-slate-100 px-2 py-0.5 font-mono text-xs text-slate-600">
+                                @room.TotalRows × @room.TotalCols
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-center">
+                            <span id="status-badge-@room.RoomId" class="@($"inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold {badgeClass}")">
+                                @label
+                            </span>
+                        </td>
+                        <td class="px-4 py-3">
+                            <span class="text-sm text-slate-600">
+                                @room.CreatedAt.ToString("dd/MM/yyyy")
+                            </span>
+                        </td>
+                        <td class="px-4 py-3 text-right">
+                            <div class="relative inline-block text-left" data-action-root>
+                                <button type="button"
+                                        class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 hover:text-slate-700 transition-colors"
+                                        onclick="toggleActionMenu('room-menu-@room.RoomId', event)">
+                                    <span class="sr-only">Mở menu</span>
+                                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="currentColor">
+                                        <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
+                                    </svg>
+                                </button>
+                                <div id="room-menu-@room.RoomId"
+                                     class="invisible absolute right-0 z-30 mt-2 w-56 origin-top-right scale-95 transform rounded-2xl border border-slate-200 bg-white/95 py-1.5 text-sm text-slate-700 opacity-0 shadow-xl backdrop-blur-sm transition-all duration-150">
+                                    <button type="button"
+                                            onclick="navigateTo('@Url.Action("SeatMap", "Rooms", new { id = room.RoomId })')"
+                                            class="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-slate-50 transition-colors group">
+                                        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 group-hover:bg-indigo-100 group-hover:text-indigo-600 transition-colors">
+                                            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+                                            </svg>
+                                        </span>
+                                        <span class="font-medium">Xem sơ đồ ghế</span>
+                                    </button>
+                                    <button type="button"
+                                            onclick="openEditModal('@room.RoomId')"
+                                            class="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-slate-50 transition-colors group">
+                                        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 group-hover:bg-amber-100 group-hover:text-amber-600 transition-colors">
+                                            <svg class="h-3.5 w-3.5" stroke="currentColor" fill="none" stroke-width="2.5" viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round">
+                                                <path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z"/>
+                                            </svg>
+                                        </span>
+                                        <span class="font-medium">Chỉnh sửa</span>
+                                    </button>
+                                    <button type="button"
+                                            onclick="navigateTo('@Url.Action("SeatMap", "Rooms", new { id = room.RoomId, editMode = true })')"
+                                            class="flex w-full items-center gap-3 px-3 py-2 text-left hover:bg-slate-50 transition-colors group">
+                                        <span class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-100 text-slate-500 group-hover:bg-blue-100 group-hover:text-blue-600 transition-colors">
+                                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                <rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect>
+                                            </svg>
+                                        </span>
+                                        <span class="font-medium">Biên tập sơ đồ ghế</span>
+                                    </button>
+                                    <div class="my-1 h-px bg-slate-100"></div>
+                                    <div id="status-toggle-container-@room.RoomId">
+                                        @if (isActive)
+                                        {
+                                            <button type="button"
+                                                    class="flex w-full items-center gap-3 px-3 py-2 text-left text-rose-600 hover:bg-rose-50 transition-colors group"
+                                                    onclick="openStatusModal('deactivate', '@room.RoomId', '@room.Name')">
+                                                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-rose-50 text-rose-500 group-hover:bg-rose-100 transition-colors">
+                                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                        <rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>
+                                                    </svg>
+                                                </span>
+                                                <span class="font-medium">Ngừng hoạt động</span>
+                                            </button>
+                                        }
+                                        else
+                                        {
+                                            <button type="button"
+                                                    class="flex w-full items-center gap-3 px-3 py-2 text-left text-emerald-600 hover:bg-emerald-50 transition-colors group"
+                                                    onclick="openStatusModal('activate', '@room.RoomId', '@room.Name')">
+                                                <span class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 group-hover:bg-emerald-100 transition-colors">
+                                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                                    </svg>
+                                                </span>
+                                                <span class="font-medium">Kích hoạt</span>
+                                            </button>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- Pagination Controls -->
+@if (Model.TotalPages > 0)
+{
+    int startIdx = (Model.CurrentPage - 1) * Model.PageSize + 1;
+    int endIdx   = Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalItems);
+    if (Model.TotalItems == 0) { startIdx = 0; endIdx = 0; }
+    
+    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 pt-6 border-t border-slate-100">
+        <!-- Left: Record count info -->
+        <span class="text-sm text-slate-500 font-medium">
+            Hiển thị <span class="font-bold text-slate-700">@startIdx-@endIdx</span> trên <span class="font-bold text-slate-700">@Model.TotalItems</span> phòng chiếu
+        </span>
+
+        <!-- Right: Page buttons -->
+        @if (Model.TotalPages > 1)
+        {
+            <div class="flex items-center gap-1">
+                @if (Model.CurrentPage > 1)
+                {
+                    <a href="@PageUrl(Model.CurrentPage - 1)" class="flex items-center gap-1 px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Trước
+                    </a>
+                }
+                else
+                {
+                    <span class="flex items-center gap-1 px-3 py-2 border border-slate-100 rounded-xl text-sm font-bold text-slate-300 bg-white cursor-not-allowed">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                        </svg>
+                        Trước
+                    </span>
+                }
+
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    if (i == Model.CurrentPage)
+                    {
+                        <span class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-200 min-w-[40px] text-center">@i</span>
+                    }
+                    else if (i == 1 || i == Model.TotalPages || (i >= Model.CurrentPage - 1 && i <= Model.CurrentPage + 1))
+                    {
+                        <a href="@PageUrl(i)" class="px-4 py-2 border border-slate-200 text-slate-600 text-sm font-bold rounded-xl bg-white hover:bg-slate-50 hover:border-slate-300 transition-all min-w-[40px] text-center">@i</a>
+                    }
+                    else if (i == Model.CurrentPage - 2 || i == Model.CurrentPage + 2)
+                    {
+                        <span class="px-2 py-2 text-slate-400 text-sm font-bold">...</span>
+                    }
+                }
+
+                @if (Model.CurrentPage < Model.TotalPages)
+                {
+                    <a href="@PageUrl(Model.CurrentPage + 1)" class="flex items-center gap-1 px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all">
+                        Sau
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </a>
+                }
+                else
+                {
+                    <span class="flex items-center gap-1 px-3 py-2 border border-slate-100 rounded-xl text-sm font-bold text-slate-300 bg-white cursor-not-allowed">
+                        Sau
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                        </svg>
+                    </span>
+                }
+            </div>
+        }
+    </div>
+}
+</div>

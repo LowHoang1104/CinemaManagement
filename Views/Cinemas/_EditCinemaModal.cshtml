@@ -1,0 +1,95 @@
+@model CinemaManagement.ViewModels.Cinema.EditCinemaVm
+
+<div class="modal fade" id="cinemaEditModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content !border-0 !rounded-[2.5rem] overflow-hidden shadow-2xl bg-white text-slate-900 font-sans p-10 relative">
+            
+            @* Close Button *@
+            <button type="button" class="absolute top-8 right-8 text-slate-400 hover:text-slate-900 transition-colors" data-bs-dismiss="modal">
+                 <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+
+            @* -- Header -- *@
+            <div class="flex items-center gap-6 mb-10">
+                <div class="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-orange-50 text-orange-400 shadow-sm ring-8 ring-white">
+                    <svg class="h-10 w-10 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                    </svg>
+                </div>
+                <div>
+                     <h1 class="text-3xl font-black text-slate-900 tracking-tight">Chỉnh sửa rạp chiếu</h1>
+                     <p class="text-slate-500 mt-1 font-medium">Cập nhật thông tin chi tiết cho rạp chiếu phim</p>
+                </div>
+            </div>
+
+            <form id="editCinemaForm" asp-action="Edit" method="post" class="space-y-4">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="CinemaId" />
+
+                @* Cinema ID (Read-only) *@
+                <div class="space-y-2">
+                    <label class="flex items-center gap-2 text-lg font-bold text-slate-700">
+                        <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                        Mã Rạp (Cinema ID)
+                    </label>
+                    <div class="relative group">
+                        <input type="text" value="@Model.CinemaId" disabled
+                               class="w-full px-6 py-3 rounded-xl bg-slate-50 border border-slate-100 text-slate-500 font-mono text-xs shadow-inner cursor-not-allowed transition-colors" />
+                    </div>
+                </div>
+
+                @* Cinema Name *@
+                <div class="space-y-2">
+                    <label class="flex items-center text-lg gap-2 font-bold text-slate-700">
+                        <svg class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                        Tên rạp chiếu <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="relative group">
+                        <input asp-for="Name" placeholder="Nhập tên rạp chiếu"
+                               class="w-full px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 hover:border-slate-300 transition-all outline-none shadow-sm" />
+                    </div>
+                    <span asp-validation-for="Name" class="text-xs font-bold text-rose-500 pl-1"></span>
+                </div>
+
+                @* Address *@
+                <div class="space-y-2">
+                    <label class="flex items-center text-lg gap-2 font-bold text-slate-700">
+                        <svg class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Địa chỉ <span class="text-rose-500">*</span>
+                    </label>
+                    <div class="relative group">
+                        <textarea asp-for="Address" placeholder="Nhập địa chỉ đầy đủ" rows="3"
+                                  class="w-full px-6 py-3 rounded-xl bg-white border border-slate-200 text-slate-900 font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 hover:border-slate-300 transition-all outline-none shadow-sm resize-none"></textarea>
+                    </div>
+                    <span asp-validation-for="Address" class="text-xs font-bold text-rose-500 pl-1"></span>
+                </div>
+
+                @* Warning Note *@
+                <div class="bg-indigo-50/50 rounded-xl p-8 border border-indigo-100/30 flex items-center gap-6 text-indigo-900">
+                    <div class="flex-shrink-0 h-14 w-14 rounded-2xl bg-white flex items-center justify-center text-indigo-500 shadow-sm ring-1 ring-indigo-100/50">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <p class="text-base font-bold leading-relaxed">
+                        Trạng thái hoạt động được quản lý tại trang <strong class="text-indigo-600 underline decoration-indigo-300 decoration-2 underline-offset-4 cursor-pointer hover:text-indigo-800 transition-all font-black">Danh sách rạp</strong>. Tại đây chỉ chỉnh sửa các thông tin cơ bản.
+                    </p>
+                </div>
+
+                @* Action Buttons *@
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6">
+                    <button type="submit" class="w-full py-4 px-8 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-black flex items-center justify-center gap-4 transition-all shadow-xl shadow-indigo-100 active:scale-95 uppercase tracking-widest ring-1 ring-white/20">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+                        Lưu thay đổi
+                    </button>
+                    <button type="button" data-bs-dismiss="modal" class="w-full py-4 px-8 rounded-xl bg-white border border-slate-200 text-slate-400 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 text-sm font-black flex items-center justify-center gap-4 transition-all active:scale-95 uppercase tracking-widest">
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                        Hủy
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@* Script for validation scripts *@
+<script src="/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>

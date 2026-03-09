@@ -16,6 +16,8 @@ namespace CinemaManagement
             services.AddScoped<IAdminUserService, AdminUserService>();
             services.AddScoped<IExportService, ExportService>();   
 
+            services.AddScoped<ICinemaService, CinemaService>();
+
             return services;
         }
     }

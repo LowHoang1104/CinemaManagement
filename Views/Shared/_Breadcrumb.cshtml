@@ -1,0 +1,25 @@
+﻿@model IEnumerable<(string Title, string? Action, string? Controller)>
+
+<nav aria-label="breadcrumb" class="mb-3">
+    <ol class="breadcrumb mb-0">
+        @foreach (var item in Model)
+        {
+            if (!string.IsNullOrEmpty(item.Action))
+            {
+                <li class="breadcrumb-item">
+                    <a asp-action="@item.Action"
+                       asp-controller="@item.Controller"
+                       class="text-decoration-none">
+                        @item.Title
+                    </a>
+                </li>
+            }
+            else
+            {
+                <li class="breadcrumb-item active" aria-current="page">
+                    @item.Title
+                </li>
+            }
+        }
+    </ol>
+</nav>

@@ -1,0 +1,220 @@
+@model CinemaManagement.ViewModels.ShowTimeListViewModel
+
+@functions {
+    // Build a page URL that preserves the current filter query string params
+    string PageUrl(int p) {
+        var qs = new Dictionary<string, string?> {
+            ["page"]     = p.ToString(),
+            ["search"]   = Model.SearchTerm,
+            ["date"]     = Model.DateFilter?.ToString("yyyy-MM-dd"),
+            ["cinemaId"] = Model.CinemaIdFilter?.ToString(),
+            ["displayStatus"] = Model.DisplayStatusFilter?.ToString()
+        };
+        var parts = qs
+            .Where(kv => !string.IsNullOrEmpty(kv.Value))
+            .Select(kv => $"{kv.Key}={Uri.EscapeDataString(kv.Value!)}")
+            .ToList();
+        return "/ShowTimes/Index?" + string.Join("&", parts);
+    }
+}
+
+    <!-- ShowTime Cards -->
+    <div class="space-y-4">
+        @if (!Model.ShowTimes.Any())
+        {
+            <div class="bg-white border border-slate-200 rounded-2xl p-16 text-center">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-slate-300 mx-auto mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+                <p class="text-slate-500 font-semibold text-lg">Không tìm thấy suất chiếu nào</p>
+                <p class="text-slate-400 text-sm mt-1">Thử thay đổi bộ lọc hoặc <a href="/ShowTimes/Index" class="text-slate-600 underline">xóa bộ lọc</a></p>
+            </div>
+        }
+        @foreach (var item in Model.ShowTimes)
+        {
+            var ageRatingLabel = item.AgeRating switch
+            {
+                0   => "P",
+                13  => "T13",
+                16  => "T16",
+                18  => "T18",
+                _   => item.AgeRating?.ToString()
+            };
+            var ageRatingClass = item.AgeRating switch
+            {
+                0   => "bg-green-100 text-green-700",
+                13  => "bg-blue-100 text-blue-700",
+                16  => "bg-yellow-100 text-yellow-700",
+                18  => "bg-red-100 text-red-700",
+                _   => "bg-slate-100 text-slate-600"
+            };
+            <div class="bg-white border border-slate-200 rounded-2xl p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-6 group hover:border-slate-300 hover:shadow-lg transition-all">
+                <div class="flex-1">
+                    <h3 class="text-xl font-bold text-slate-800 mb-2 truncate">@item.MovieTitle</h3>
+                    <div class="flex flex-wrap items-center gap-x-3 gap-y-1 mb-2 text-slate-500 text-sm">
+                        <span class="flex items-center gap-1">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                            </svg>
+                            @item.CinemaName
+                        </span>
+                        <span>•</span>
+                        <span>@item.RoomName - Standard</span>
+                        @if (ageRatingLabel != null)
+                        {
+                            <span>•</span>
+                            <span class="@ageRatingClass px-2 py-0.5 rounded font-bold text-xs">@ageRatingLabel</span>
+                        }
+                    </div>
+                    <div class="text-slate-500 text-sm flex flex-wrap items-center gap-x-4 gap-y-2">
+                        <div class="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="bg-slate-100 text-slate-700 px-2 py-0.5 rounded-lg font-bold">
+                                @item.StartAt.ToString("HH:mm") - @item.EndAt.ToString("HH:mm")
+                            </span>
+                            <span class="text-slate-400 font-medium">@item.StartAt.ToString("dd/MM/yyyy")</span>
+                        </div>
+                        <div class="flex items-center gap-1.5">
+                            <span class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded-lg italic flex items-center gap-1.5 text-xs font-bold">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                </svg>
+                                +15m cleaning (until @item.CleaningEndsAt.ToString("HH:mm"))
+                            </span>
+                        </div>
+                        <span class="font-bold text-slate-700">Giá: @item.BasePrice.ToString("#,##0", System.Globalization.CultureInfo.InvariantCulture) VNĐ</span>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-4 w-full md:w-auto mt-4 md:mt-0 pt-4 md:pt-0 border-t md:border-t-0 border-slate-100">
+                    <div>
+                        @switch (item.DisplayStatus)
+                        {
+                            case 0: // Cancelled
+                                <span class="bg-red-100 text-red-600 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap">Đã hủy</span>
+                                break;
+                            case 1: // Upcoming
+                                <span class="bg-blue-100 text-blue-600 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap">Sắp chiếu</span>
+                                break;
+                            case 2: // Now Showing
+                                <span class="bg-green-100 text-green-700 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap flex items-center gap-1.5">
+                                    <span class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></span>Đang chiếu
+                                </span>
+                                break;
+                            case 3: // Ended
+                                <span class="bg-gray-100 text-gray-500 px-3 py-1.5 rounded-full text-xs font-bold whitespace-nowrap">Đã kết thúc</span>
+                                break;
+                        }
+                    </div>
+                    <div class="flex items-center gap-2">
+                        @{
+                            var isRestricted = item.DisplayStatus != 1;
+                            var restrictedClasses = isRestricted ? "opacity-30 cursor-not-allowed pointer-events-none" : "";
+                        }
+                        <button type="button" onclick="openDetailsModal('@item.ShowTimeId')" class="p-2 border border-slate-200 rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 hover:border-indigo-200 transition-all font-bold group/btn relative">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            </svg>
+                            <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">Xem chi tiết</span>
+                        </button>
+                        <button type="button" onclick="openEditModal('@item.ShowTimeId', false)" @(isRestricted ? "disabled" : "")
+                                class="p-2 border border-slate-200 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-50 transition-all font-bold group/btn relative @restrictedClasses">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                            <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">Chỉnh sửa</span>
+                        </button>
+                        <button type="button" onclick="openCancelModal('@item.ShowTimeId', '@item.MovieTitle', '@item.StartAt.ToString("HH:mm")', '@item.StartAt.ToString("dd/MM/yyyy")')" @(isRestricted ? "disabled" : "")
+                                class="p-2 border border-slate-200 rounded-xl text-slate-400 hover:text-red-600 hover:bg-red-50 hover:border-red-200 transition-all font-bold group/btn relative @restrictedClasses">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span class="absolute -top-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover/btn:opacity-100 transition-opacity pointer-events-none whitespace-nowrap">Hủy suất chiếu</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <!-- Pagination -->
+    @if (Model.TotalPages > 0)
+    {
+        int start = (Model.CurrentPage - 1) * Model.PageSize + 1;
+        int end   = Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalItems);
+        if (Model.TotalItems == 0) { start = 0; end = 0; }
+        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 pt-6 border-t border-slate-100">
+            <!-- Left: count text -->
+            <span class="text-sm text-slate-500 font-medium">
+                Hiển thị <span class="font-bold text-slate-700">@start-@end</span> trên <span class="font-bold text-slate-700">@Model.TotalItems</span> suất chiếu
+            </span>
+            <!-- Right: page buttons -->
+            @if (Model.TotalPages > 1)
+            {
+                <div class="flex items-center gap-1">
+                    <!-- Trước -->
+                    @if (Model.CurrentPage > 1)
+                    {
+                        <a href="@PageUrl(Model.CurrentPage - 1)"
+                           class="flex items-center gap-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-600 bg-white hover:bg-slate-50 transition-all">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Trước
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="flex items-center gap-1 px-3 py-2 border border-slate-100 rounded-lg text-sm font-bold text-slate-300 bg-white cursor-not-allowed">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+                            </svg>
+                            Trước
+                        </span>
+                    }
+
+                    <!-- Page numbers -->
+                    @for (int pg = 1; pg <= Model.TotalPages; pg++)
+                    {
+                        if (pg == Model.CurrentPage)
+                        {
+                            <span class="px-3.5 py-2 bg-slate-900 text-white text-sm font-bold rounded-lg min-w-[40px] text-center">@pg</span>
+                        }
+                        else if (pg == 1 || pg == Model.TotalPages || (pg >= Model.CurrentPage - 1 && pg <= Model.CurrentPage + 1))
+                        {
+                            <a href="@PageUrl(pg)"
+                               class="px-3.5 py-2 border border-slate-200 text-slate-600 text-sm font-bold rounded-lg bg-white hover:bg-slate-50 transition-all min-w-[40px] text-center">@pg</a>
+                        }
+                        else if (pg == Model.CurrentPage - 2 || pg == Model.CurrentPage + 2)
+                        {
+                            <span class="px-1.5 py-2 text-slate-400 text-sm font-bold">…</span>
+                        }
+                    }
+
+                    <!-- Sau -->
+                    @if (Model.CurrentPage < Model.TotalPages)
+                    {
+                        <a href="@PageUrl(Model.CurrentPage + 1)"
+                           class="flex items-center gap-1 px-3 py-2 border border-slate-200 rounded-lg text-sm font-bold text-slate-600 bg-white hover:bg-slate-50 transition-all">
+                            Sau
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </a>
+                    }
+                    else
+                    {
+                        <span class="flex items-center gap-1 px-3 py-2 border border-slate-100 rounded-lg text-sm font-bold text-slate-300 bg-white cursor-not-allowed">
+                            Sau
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+                            </svg>
+                        </span>
+                    }
+                </div>
+            }
+        </div>
+    }
