@@ -1,0 +1,14 @@
+﻿@{
+    ViewBag.Title = "Customer Panel";
+}
+
+<h1 style="color:green">Đăng nhập CUSTOMER thành công</h1>
+
+<p>Xin chào: @User.Identity.Name</p>
+<p>Email: @User.FindFirst(System.Security.Claims.ClaimTypes.Email)?.Value</p>
+<p>Role: Customer</p>
+<p>
+    <a asp-controller="Auth" asp-action="Profile" style="display:inline-block;padding:8px 12px;background:#0b5cb6;color:#fff;border-radius:6px;text-decoration:none;font-weight:700;">
+        Thông tin tài khoản
+    </a>
+</p>
