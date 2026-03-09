@@ -58,7 +58,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a asp-controller="User" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" ? "active" : "")">
+                <a asp-controller="AdminUsers" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "AdminUsers" ? "active" : "")">
                     <span class="nav-icon"><i class="bi bi-people"></i></span>
                     <span class="nav-text">Users</span>
                 </a>
@@ -74,7 +74,7 @@
                 </a>
             </li>
             <li class="nav-item">
-                <a asp-controller="Report" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Report" ? "active" : "")">
+                <a asp-controller="ManagerReports" asp-action="Dashboard" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "ManagerReports" ? "active" : "")">
                     <span class="nav-icon"><i class="bi bi-bar-chart-line"></i></span>
                     <span class="nav-text">Reports</span>
                 </a>

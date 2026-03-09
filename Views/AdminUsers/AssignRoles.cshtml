@@ -1,120 +1,54 @@
 ﻿@model CinemaManagement.ViewModels.Admin.AssignRolesVm
 @{
     ViewData["Title"] = "Assign Roles";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
 }
 
-<style>
-    .form-wrap {
-        max-width: 520px;
-        margin: 32px auto;
-        padding: 0 16px;
-    }
+<div class="mb-4">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a asp-controller="AdminUsers" asp-action="Index">User Management</a></li>
+            <li class="breadcrumb-item active">Assign Roles</li>
+        </ol>
+    </nav>
+    <h4 class="fw-bold mb-0">Assign Roles</h4>
+</div>
 
-    .card {
-        background: #fff;
-        border-radius: 10px;
-        box-shadow: 0 2px 12px rgba(0,0,0,.1);
-        padding: 28px 32px;
-    }
-
-        .card h3 {
-            margin: 0 0 6px;
-            color: #c0392b;
-        }
-
-        .card .sub {
-            font-size: 13px;
-            color: #888;
-            margin-bottom: 20px;
-        }
-
-    .role-list {
-        list-style: none;
-        padding: 0;
-        margin: 0 0 20px;
-    }
-
-        .role-list li {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            background: #f8f9fa;
-        }
-
-            .role-list li:hover {
-                background: #eaf0fb;
-            }
-
-        .role-list input[type=checkbox] {
-            width: 17px;
-            height: 17px;
-            accent-color: #e50914;
-            cursor: pointer;
-        }
-
-        .role-list label {
-            font-size: 14px;
-            color: #333;
-            cursor: pointer;
-            font-weight: 500;
-        }
-
-    .btn-row {
-        display: flex;
-        gap: 10px;
-    }
-
-    .btn {
-        padding: 8px 20px;
-        border-radius: 5px;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 600;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-    }
-
-    .btn-primary {
-        background: #e50914;
-        color: #fff;
-    }
-
-    .btn-secondary {
-        background: #95a5a6;
-        color: #fff;
-    }
-</style>
-
-<div class="form-wrap">
-    <div class="card">
-        <h3>Assign Roles</h3>
-        <p class="sub">User: <strong>@Model.Email</strong></p>
-
-        <form method="post" action="/AdminUsers/AssignRoles">
-            @Html.AntiForgeryToken()
-            <input type="hidden" name="userId" value="@Model.UserId" />
-
-            <ul class="role-list">
-                @foreach (var role in Model.Roles)
-                {
-                    <li>
-                        <input type="checkbox" id="role_@role.RoleId"
-                               name="selectedRoleIds" value="@role.RoleId"
-                               @(role.Selected ? "checked" : "") />
-                        <label for="role_@role.RoleId">@role.Name</label>
-                    </li>
-                }
-            </ul>
-
-            <div class="btn-row">
-                <button type="submit" class="btn btn-primary">Save</button>
-                <a href="/AdminUsers" class="btn btn-secondary">Back</a>
+<div class="row justify-content-center">
+    <div class="col-lg-5">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-bottom py-3">
+                <h6 class="mb-0 fw-semibold"><i class="bi bi-shield-check me-2 text-primary"></i>Role Assignment</h6>
+                <small class="text-muted">User: <strong>@Model.Email</strong></small>
             </div>
-        </form>
+            <div class="card-body p-4">
+                <form method="post" action="/AdminUsers/AssignRoles">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" name="userId" value="@Model.UserId" />
+
+                    <div class="d-flex flex-column gap-2 mb-4">
+                        @foreach (var role in Model.Roles)
+                        {
+                            <div class="form-check p-3 rounded border d-flex align-items-center gap-2 @(role.Selected ? "border-primary bg-primary bg-opacity-10" : "")"
+                                 style="background:@(role.Selected ? "" : "#f8f9fa")">
+                                <input class="form-check-input" type="checkbox" id="role_@role.RoleId"
+                                       name="selectedRoleIds" value="@role.RoleId"
+                                       @(role.Selected ? "checked" : "") />
+                                <label class="form-check-label fw-medium" for="role_@role.RoleId">
+                                    <i class="bi bi-person-badge me-2 text-muted"></i>@role.Name
+                                </label>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary flex-fill">
+                            <i class="bi bi-check-lg me-1"></i>Save Roles
+                        </button>
+                        <a asp-controller="AdminUsers" asp-action="Index" class="btn btn-outline-secondary">Back</a>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 </div>
