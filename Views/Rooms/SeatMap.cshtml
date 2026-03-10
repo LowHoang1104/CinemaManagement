@@ -1,15 +1,21 @@
 @model CinemaManagement.Models.Room
 @{
-    ViewData["Title"] = Model.Name + " - 4DX";
+    ViewData["Title"] = Model.Name;
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
     // 1. Thống kê dữ liệu (Trực tiếp từ Entity)
+    var activeStatus = CinemaManagement.Data.SeatStatusConstants.Active;
+    var inactiveStatus = CinemaManagement.Data.SeatStatusConstants.Inactive;
+    var maintenanceStatus = CinemaManagement.Data.SeatStatusConstants.Maintenance;
+
     var totalSeats = Model.Seats?.Count ?? 0;
-    var activeSeats = Model.Seats?.Count(s => s.IsActive) ?? 0;
-    var inactiveSeats = Model.Seats?.Count(s => !s.IsActive) ?? 0;
-    var standardSeats = Model.Seats?.Count(s => s.IsActive && s.SeatType == "Standard") ?? 0;
-    var vipSeats = Model.Seats?.Count(s => s.IsActive && s.SeatType == "VIP") ?? 0;
-    var coupleSeats = Model.Seats?.Count(s => s.IsActive && s.SeatType == "Couple") ?? 0;
+    var activeSeats = Model.Seats?.Count(s => s.SeatStatusId == activeStatus) ?? 0;
+    var inactiveSeats = Model.Seats?.Count(s => s.SeatStatusId == inactiveStatus) ?? 0;
+    var maintenanceSeats = Model.Seats?.Count(s => s.SeatStatusId == maintenanceStatus) ?? 0;
+
+    var standardSeats = Model.Seats?.Count(s => s.SeatStatusId == activeStatus && s.SeatType == "Standard") ?? 0;
+    var vipSeats = Model.Seats?.Count(s => s.SeatStatusId == activeStatus && s.SeatType == "VIP") ?? 0;
+    var coupleSeats = Model.Seats?.Count(s => s.SeatStatusId == activeStatus && s.SeatType == "Couple") ?? 0;
 
     // 2. Chuyển Seats list thành Dictionary để truy xuất siêu tốc O(1) khi vẽ Grid.
     // Dùng GroupBy để phòng trường hợp DB sinh ra 2 record trùng tọa độ (Row, Col) gây lỗi ArgumentException.
@@ -123,8 +129,13 @@
                         </div>
 
                         <div class="bg-slate-50 p-4 rounded-xl border border-slate-200">
-                            <p class="text-sm font-semibold text-slate-600 flex items-center gap-2 mb-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="10" x="4" y="7" rx="5"/><circle cx="16" cy="12" r="1"/></svg> Không hoạt động</p>
+                            <p class="text-sm font-semibold text-slate-600 flex items-center gap-2 mb-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="16" height="10" x="4" y="7" rx="5"/><circle cx="16" cy="12" r="1"/></svg> Lối đi / Trống</p>
                             <p class="text-3xl font-bold text-slate-800" id="stat-inactive">@inactiveSeats</p>
+                        </div>
+
+                        <div class="bg-orange-50/50 p-4 rounded-xl border border-orange-200">
+                            <p class="text-sm font-semibold text-orange-700 flex items-center gap-2 mb-2"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Bảo trì</p>
+                            <p class="text-3xl font-bold text-orange-800" id="stat-maintenance">@maintenanceSeats</p>
                         </div>
 
                         <div class="bg-green-50/50 p-4 rounded-xl border border-green-200">
@@ -177,8 +188,12 @@
                     <p class="text-sm font-bold text-pink-600" id="mini-stat-couple">@coupleSeats</p>
                 </div>
                 <div class="px-3 py-1 border-r border-slate-200 last:border-0 text-center">
-                    <p class="text-[10px] uppercase font-bold text-slate-400">Inactive</p>
+                    <p class="text-[10px] uppercase font-bold text-slate-400">Lối đi</p>
                     <p class="text-sm font-bold text-slate-500" id="mini-stat-inactive">@inactiveSeats</p>
+                </div>
+                <div class="px-3 py-1 border-r border-slate-200 last:border-0 text-center">
+                    <p class="text-[10px] uppercase font-bold text-slate-400">Bảo trì</p>
+                    <p class="text-sm font-bold text-orange-600" id="mini-stat-maintenance">@maintenanceSeats</p>
                 </div>
             </div>
         </div>
@@ -201,18 +216,21 @@
             <div class="flex items-center gap-3 w-full overflow-x-auto no-scrollbar">
                 <span class="text-sm font-semibold text-slate-700 whitespace-nowrap hidden sm:block">Công cụ (Chọn để tô):</span>
                 <div class="flex items-center gap-2 p-1.5 bg-slate-50 border border-slate-200 rounded-lg shrink-0" id="type-selector">
-                    <button type="button" class="btn-type px-3 py-1.5 text-xs font-semibold rounded border-2 border-green-500 bg-green-50 text-green-700 flex items-center gap-1.5 transition-all shadow-sm shrink-0" data-type="Standard" data-active="true">
+                    <button type="button" class="btn-type px-3 py-1.5 text-xs font-semibold rounded border-2 border-green-500 bg-green-50 text-green-700 flex items-center gap-1.5 transition-all shadow-sm shrink-0" data-type="Standard" data-status-id="@activeStatus">
                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 19v-4a2 2 0 0 0-2-2h-3"/><path d="M4 19v-4a2 2 0 0 1 2-2h3"/><path d="M12 19v-4"/><path d="M6 13V9a4 4 0 0 1 8 0v4"/></svg> Standard
                     </button>
-                    <button type="button" class="btn-type px-3 py-1.5 text-xs font-semibold rounded border-2 border-transparent text-slate-500 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-1.5 transition-all shrink-0" data-type="VIP" data-active="true">
+                    <button type="button" class="btn-type px-3 py-1.5 text-xs font-semibold rounded border-2 border-transparent text-slate-500 hover:bg-amber-50 hover:text-amber-700 flex items-center gap-1.5 transition-all shrink-0" data-type="VIP" data-status-id="@activeStatus">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m2 4 3 12h14l3-12-6 7-4-7-4 7-6-7zm3 16h14"/></svg> VIP
                     </button>
-                    <button type="button" class="btn-type px-3 py-1.5 text-xs font-semibold rounded border-2 border-transparent text-slate-500 hover:bg-pink-50 hover:text-pink-700 flex items-center gap-1.5 transition-all shrink-0" data-type="Couple" data-active="true">
+                    <button type="button" class="btn-type px-3 py-1.5 text-xs font-semibold rounded border-2 border-transparent text-slate-500 hover:bg-pink-50 hover:text-pink-700 flex items-center gap-1.5 transition-all shrink-0" data-type="Couple" data-status-id="@activeStatus">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="14" x="2" y="5" rx="2"/><path d="M2 19h20"/><path d="M12 19v-4"/><path d="M7 15H5"/><path d="M19 15h-2"/><path d="M8 8v4"/><path d="M16 8v4"/></svg> Couple
                     </button>
                     <div class="w-px h-5 bg-slate-300 mx-1"></div>
-                    <button type="button" class="btn-type px-3 py-1.5 text-xs font-semibold rounded border-2 border-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-800 flex items-center gap-1.5 transition-all shrink-0" data-type="None" data-active="false">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg> Không hoạt động
+                    <button type="button" class="btn-type px-3 py-1.5 text-xs font-semibold rounded border-2 border-transparent text-slate-500 hover:bg-slate-200 hover:text-slate-800 flex items-center gap-1.5 transition-all shrink-0" data-type="None" data-status-id="@inactiveStatus">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" x2="6" y1="6" y2="18"/><line x1="6" x2="18" y1="6" y2="18"/></svg> Lối đi
+                    </button>
+                    <button type="button" class="btn-type px-3 py-1.5 text-xs font-semibold rounded border-2 border-transparent text-slate-500 hover:bg-orange-50 hover:text-orange-700 flex items-center gap-1.5 transition-all shrink-0" data-type="None" data-status-id="@maintenanceStatus">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg> Bảo trì
                     </button>
                 </div>
             </div>
@@ -246,12 +264,19 @@
                                         string outerClass = "";
                                         string bgClass = "";
                                         string iconPath = "";
+                                        bool isActive = seat.SeatStatusId == activeStatus;
+                                        bool isMaintenance = seat.SeatStatusId == maintenanceStatus;
 
-                                        if (!seat.IsActive) {
+                                        if (isMaintenance) {
+                                            outerClass = "border-orange-300 bg-orange-50 text-orange-500";
+                                            bgClass = "bg-orange-100/50";
+                                            iconPath = @"<path d=""M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z""/>";
+                                        }
+                                        else if (!isActive) {
                                             outerClass = "border-slate-300 bg-slate-100 text-slate-400";
                                             bgClass = "bg-slate-200/50";
                                             iconPath = @"<rect width=""16"" height=""10"" x=""4"" y=""7"" rx=""5""/><circle cx=""12"" cy=""12"" r=""1""/>";
-                                        } 
+                                        }
                                         else if (seat.SeatType == "VIP") {
                                             outerClass = "border-amber-400 bg-amber-50 text-amber-600 hover:ring-2 hover:ring-amber-500 hover:ring-offset-1";
                                             bgClass = "bg-amber-100";
@@ -269,11 +294,15 @@
                                         }
 
                                         <button type="button" 
-                                                class="seat-btn w-10 h-10 rounded-md border transition-all shadow-sm cursor-pointer relative overflow-hidden flex flex-col items-center justify-center gap-0.5 @outerClass"
+                                                id="seat-@seat.SeatId"
+                                                class="seat-btn w-10 h-10 rounded-md border transition-all shadow-sm cursor-pointer @outerClass relative overflow-hidden flex flex-col items-center justify-center gap-0.5"
                                                 data-seat-id="@seat.SeatId"
+                                                data-row="@r"
+                                                data-col="@c"
                                                 data-seat-type="@seat.SeatType"
-                                                data-active="@seat.IsActive.ToString().ToLower()"
-                                                title='@($"{rowLabels[r - 1]}{c}") - @(seat.IsActive ? seat.SeatType : "Lối đi")'>
+                                                data-status-id="@seat.SeatStatusId"
+                                                title="@seat.SeatCode - @(isActive ? seat.SeatType : (seat.SeatStatusId == maintenanceStatus ? "Bảo trì" : "Lối đi"))"
+                                                @(ViewBag.EditMode == true ? "" : "disabled")>
                                             <div class="absolute inset-x-0 bottom-0 h-1/3 @bgClass -z-0"></div>
                                             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="svg-icon relative z-10 pointer-events-none opacity-80">
                                                 @Html.Raw(iconPath)
@@ -334,10 +363,13 @@
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // --- STATE & VARS ---
-            @* Using global toast system from layout *@
+            const activeStatusId = '@activeStatus.ToString().ToLower()';
+            const inactiveStatusId = '@inactiveStatus.ToString().ToLower()';
+            const maintenanceStatusId = '@maintenanceStatus.ToString().ToLower()';
+            
             let currentSelectedType = 'Standard';
-            let currentSelectedActive = true;
-            let changedSeats = []; // [{ Id: guid, SeatType: int, IsActive: bool }]
+            let currentSelectedStatusId = activeStatusId;
+            let changedSeats = []; // [{ Id: guid, SeatType: int, SeatStatusId: guid }]
             let isEditMode = @(ViewBag.EditMode?.ToString().ToLower() ?? "false");
             
 
@@ -363,7 +395,10 @@
                     mapFooter.classList.remove('hidden');
                     mapFooter.classList.add('flex');
 
-                    seats.forEach(s => s.style.pointerEvents = 'auto');
+                    seats.forEach(s => {
+                        s.style.pointerEvents = 'auto';
+                        s.removeAttribute('disabled');
+                    });
                 } else {
                     btnToggleEdit.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg> <span>Chỉnh sửa sơ đồ ghế</span>';
                     btnToggleEdit.classList.remove('bg-red-50', 'text-red-600', 'border-red-200', 'hover:bg-red-100');
@@ -373,8 +408,11 @@
                     editToolbar.classList.remove('flex');
                     mapFooter.classList.add('hidden');
                     mapFooter.classList.remove('flex');
-
-                    seats.forEach(s => s.style.pointerEvents = 'none');
+ 
+                    seats.forEach(s => {
+                        s.style.pointerEvents = 'none';
+                        s.setAttribute('disabled', 'disabled');
+                    });
                 }
             }
 
@@ -386,6 +424,7 @@
             // Stats elements
             const statActive = document.getElementById('stat-active');
             const statInactive = document.getElementById('stat-inactive');
+            const statMaintenance = document.getElementById('stat-maintenance');
             const statStd = document.getElementById('stat-std');
             const statVip = document.getElementById('stat-vip');
             const statCouple = document.getElementById('stat-couple');
@@ -429,20 +468,30 @@
                     });
                     
                     currentSelectedType = this.dataset.type;
-                    currentSelectedActive = this.dataset.active === 'true';
+                    currentSelectedStatusId = this.dataset.statusId.toLowerCase();
 
                     // Thêm viền màu tùy thuộc vào loại mới, remove default border/text
-                    this.classList.remove('border-transparent', 'text-slate-500', 'hover:bg-green-50', 'hover:text-green-700', 'hover:bg-amber-50', 'hover:text-amber-700', 'hover:bg-pink-50', 'hover:text-pink-700', 'hover:bg-slate-200', 'hover:text-slate-800');
+                    this.classList.remove('border-transparent', 'text-slate-500', 'hover:bg-green-50', 'hover:text-green-700', 'hover:bg-amber-50', 'hover:text-amber-700', 'hover:bg-pink-50', 'hover:text-pink-700', 'hover:bg-slate-200', 'hover:text-slate-800', 'hover:bg-orange-50', 'hover:text-orange-700');
                     this.classList.add('shadow-sm');
                     
-                    if(currentSelectedType === 'Standard') this.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
-                    if(currentSelectedType === 'VIP') this.classList.add('border-amber-500', 'bg-amber-50', 'text-amber-700');
-                    if(currentSelectedType === 'Couple') this.classList.add('border-pink-500', 'bg-pink-50', 'text-pink-700');
-                    if(currentSelectedType === 'None') this.classList.add('border-slate-400', 'bg-slate-200', 'text-slate-800');
+                    if(currentSelectedStatusId === activeStatusId) {
+                        if(currentSelectedType === 'Standard') this.classList.add('border-green-500', 'bg-green-50', 'text-green-700');
+                        if(currentSelectedType === 'VIP') this.classList.add('border-amber-500', 'bg-amber-50', 'text-amber-700');
+                        if(currentSelectedType === 'Couple') this.classList.add('border-pink-500', 'bg-pink-50', 'text-pink-700');
+                    } else if(currentSelectedStatusId === inactiveStatusId) {
+                        this.classList.add('border-slate-400', 'bg-slate-200', 'text-slate-800');
+                    } else if(currentSelectedStatusId === maintenanceStatusId) {
+                        this.classList.add('border-orange-500', 'bg-orange-50', 'text-orange-700');
+                    }
                     
                     // UI Feedback Tooltip (Mẹo)
                     const tip = document.querySelector('.italic span');
-                    if(tip) { tip.textContent = "Công cụ: " + (currentSelectedActive ? currentSelectedType : "Không hoạt động"); }
+                    if(tip) { 
+                        let toolName = currentSelectedType;
+                        if(currentSelectedStatusId === inactiveStatusId) toolName = "Lối đi";
+                        if(currentSelectedStatusId === maintenanceStatusId) toolName = "Bảo trì";
+                        tip.textContent = "Công cụ: " + toolName; 
+                    }
                 });
             });
 
@@ -471,19 +520,44 @@
             });
 
             function applySeatChange(element) {
+                const row = parseInt(element.dataset.row);
+                const col = parseInt(element.dataset.col);
+                
+                // --- PAIRING LOGIC (Odd-Even) ---
+                const partnerCol = (col % 2 !== 0) ? col + 1 : col - 1;
+                const partnerSeat = document.querySelector(`.seat-btn[data-row="${row}"][data-col="${partnerCol}"]`);
+
+                // CRITICAL BUG FIX: Pairing logic should trigger for ANY action if the seat is a Couple.
+                const isApplyingCouple = (currentSelectedType === 'Couple' && currentSelectedStatusId === activeStatusId);
+                const isCurrentlyCouple = (element.dataset.seatType === 'Couple' && element.dataset.statusId === activeStatusId);
+
+                if (isApplyingCouple || isCurrentlyCouple) {
+                    updateSingleSeat(element);
+                    if (partnerSeat) {
+                        updateSingleSeat(partnerSeat);
+                    }
+                } else {
+                    updateSingleSeat(element);
+                }
+                
+                updateChangeBadge();
+                recalculateStats();
+            }
+
+            function updateSingleSeat(element) {
                 const id = element.dataset.seatId;
                 let oldType = element.dataset.seatType;
-                let oldActive = element.dataset.active === 'true';
+                let oldStatusId = element.dataset.statusId.toLowerCase();
 
-                // Nếu không có sự khác biệt, bỏ qua toán tử
-                if (oldType === currentSelectedType && oldActive === currentSelectedActive) return;
+                // Nếu không có sự khác biệt về trạng thái thì không ghi nhận thay đổi
+                if (oldType === currentSelectedType && oldStatusId === currentSelectedStatusId) return;
 
                 // Set local DOM properties
                 element.dataset.seatType = currentSelectedType;
-                element.dataset.active = currentSelectedActive;
+                element.dataset.statusId = currentSelectedStatusId;
                 
                 // Thay đổi hiển thị CSS Layout
-                renderSeatUI(element, currentSelectedType, currentSelectedActive);
+                renderSeatUI(element, currentSelectedType, currentSelectedStatusId);
 
                 // Ghi log vào mảng thay đổi để gửi đi Backend Server 
                 let enumVal = 0; 
@@ -492,28 +566,30 @@
 
                 const idx = changedSeats.findIndex(s => s.Id === id);
                 if (idx > -1) {
-                    changedSeats[idx] = { Id: id, SeatType: enumVal, IsActive: currentSelectedActive };
+                    changedSeats[idx] = { Id: id, SeatType: enumVal, SeatStatusId: currentSelectedStatusId };
                 } else {
-                    changedSeats.push({ Id: id, SeatType: enumVal, IsActive: currentSelectedActive });
+                    changedSeats.push({ Id: id, SeatType: enumVal, SeatStatusId: currentSelectedStatusId });
                 }
-                
-                updateChangeBadge();
-                recalculateStats();
             }
 
             // --- DOM Class Manipulation Helpers ---
-            function renderSeatUI(el, type, active) {
+            function renderSeatUI(el, type, statusId) {
                 // Reset Classes
                 el.className = 'seat-btn w-10 h-10 rounded-md border transition-all shadow-sm cursor-pointer relative overflow-hidden flex flex-col items-center justify-center gap-0.5';
                 let svg = el.querySelector('svg');
                 let bgDiv = el.querySelector('div.absolute');
                 let codeText = el.querySelector('.seat-code').innerText;
 
-                if (!active) {
+                if (statusId === inactiveStatusId) {
                     el.classList.add('border-slate-300', 'bg-slate-100', 'text-slate-400');
                     bgDiv.className = 'absolute inset-x-0 bottom-0 h-1/3 bg-slate-200/50 -z-0';
                     svg.innerHTML = '<rect width="16" height="10" x="4" y="7" rx="5"/><circle cx="12" cy="12" r="1"/>';
                     el.title = codeText + " - Lối đi";
+                } else if (statusId === maintenanceStatusId) {
+                    el.classList.add('border-orange-300', 'bg-orange-50', 'text-orange-500');
+                    bgDiv.className = 'absolute inset-x-0 bottom-0 h-1/3 bg-orange-100/50 -z-0';
+                    svg.innerHTML = '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>';
+                    el.title = codeText + " - Bảo trì";
                 } else {
                     if (type === 'VIP') {
                         el.classList.add('border-amber-400', 'bg-amber-50', 'text-amber-600', 'hover:ring-2', 'hover:ring-amber-500');
@@ -543,43 +619,42 @@
 
             // Tự Động Tính Lại Số Header Không Cần Reload Trình Duyệt 
             function recalculateStats() {
-                let sAct = 0; let sIn = 0; let sStd = 0; let sVip = 0; let sCpl = 0;
+                let sAct = 0; let sIn = 0; let sMnt = 0; let sStd = 0; let sVip = 0; let sCpl = 0;
                 document.querySelectorAll('.seat-btn').forEach(s => {
-                    let act = s.dataset.active === 'true';
+                    let statusId = s.dataset.statusId.toLowerCase();
                     let typ = s.dataset.seatType;
-                    if (act) {
+                    if (statusId === activeStatusId) {
                         sAct++;
                         if (typ === 'Standard') sStd++;
                         if (typ === 'VIP') sVip++;
                         if (typ === 'Couple') sCpl++;
+                    } else if (statusId === maintenanceStatusId) {
+                        sMnt++;
                     } else {
                         sIn++;
                     }
                 });
 
-                // Update Main Header (nếu còn tồn tại trong DOM)
-                const elAct = document.getElementById('stat-active');
-                const elIn  = document.getElementById('stat-inactive');
-                const elStd = document.getElementById('stat-std');
-                const elVip = document.getElementById('stat-vip');
-                const elCpl = document.getElementById('stat-couple');
+                // Update Main Header
+                if (statActive) statActive.textContent = sAct;
+                if (statInactive) statInactive.textContent = sIn;
+                if (statMaintenance) statMaintenance.textContent = sMnt;
+                if (statStd) statStd.textContent = sStd;
+                if (statVip) statVip.textContent = sVip;
+                if (statCouple) statCouple.textContent = sCpl;
 
-                if (elAct) elAct.textContent = sAct;
-                if (elIn)  elIn.textContent  = sIn;
-                if (elStd) elStd.textContent  = sStd;
-                if (elVip) elVip.textContent  = sVip;
-                if (elCpl) elCpl.textContent  = sCpl;
-
-                // Update Mini Header (Dành cho Edit Mode)
+                // Update Mini Header (Edit Mode)
                 const mStd = document.getElementById('mini-stat-std');
                 const mVip = document.getElementById('mini-stat-vip');
                 const mCpl = document.getElementById('mini-stat-couple');
                 const mIn  = document.getElementById('mini-stat-inactive');
+                const mMnt = document.getElementById('mini-stat-maintenance');
 
                 if (mStd) mStd.textContent = sStd;
                 if (mVip) mVip.textContent = sVip;
                 if (mCpl) mCpl.textContent = sCpl;
                 if (mIn)  mIn.textContent  = sIn;
+                if (mMnt) mMnt.textContent  = sMnt;
             }
 
             // --- 4. Lưu SERVER ---

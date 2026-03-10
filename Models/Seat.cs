@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CinemaManagement.Models;
@@ -17,8 +17,6 @@ public partial class Seat
 
     public string SeatType { get; set; } = null!;
 
-    public bool IsActive { get; set; }
-
     public DateTime CreatedAt { get; set; }
 
     public Guid? CreatedBy { get; set; }
@@ -27,7 +25,11 @@ public partial class Seat
 
     public Guid? LastUpdatedBy { get; set; }
 
+    public Guid SeatStatusId { get; set; }
+
     public virtual Room Room { get; set; } = null!;
+
+    public virtual SeatStatus SeatStatus { get; set; } = null!;
 
     public virtual ICollection<ShowTimeSeat> ShowTimeSeats { get; set; } = new List<ShowTimeSeat>();
 
