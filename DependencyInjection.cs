@@ -18,6 +18,8 @@ namespace CinemaManagement
 
             services.AddScoped<ICinemaService, CinemaService>();
 
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IEmailService, EmailService>();
             return services;
         }
     }

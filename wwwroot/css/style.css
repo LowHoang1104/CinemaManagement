@@ -31,15 +31,20 @@ header .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    gap: 30px;
 }
 
 .logo img {
     height: 50px;
 }
 
+/* Navigation */
 nav ul {
     display: flex;
     list-style: none;
+    gap: 5px;
+    margin: 0;
+    padding: 0;
 }
 
 nav ul li a {
@@ -51,8 +56,16 @@ nav ul li a {
     transition: 0.3s;
 }
 
-nav ul li a:hover, nav ul li a.active {
+nav ul li a:hover,
+nav ul li a.active {
     color: #0056b3;
+}
+
+/* User actions */
+.user-actions {
+    display: flex;
+    gap: 10px;
+    align-items: center;
 }
 
 .btn-login {
@@ -63,6 +76,106 @@ nav ul li a:hover, nav ul li a.active {
     border-radius: 5px;
     cursor: pointer;
     font-weight: bold;
+}
+
+.btn-login:hover {
+    background-color: #003d82;
+}
+
+.btn-login a {
+    color: white;
+    text-decoration: none;
+}
+
+/* Cinema Selector */
+.cinema-selector {
+  position: relative;
+    margin-right: auto;
+}
+
+.cinema-selector-btn {
+  background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 8px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-width: 180px;
+    transition: all 0.3s ease;
+}
+
+.cinema-selector-btn:hover {
+    background-color: #efefef;
+    border-color: #0056b3;
+}
+
+.cinema-selector-btn .arrow {
+    font-size: 10px;
+ transition: transform 0.3s ease;
+}
+
+.cinema-dropdown.active ~ .cinema-selector-btn .arrow {
+    transform: rotate(180deg);
+}
+
+.cinema-dropdown {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    border: 1px solid #ddd;
+    border-top: none;
+    border-radius: 0 0 8px 8px;
+    min-width: 250px;
+    max-height: 0;
+    overflow: hidden;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    z-index: 1001;
+    margin-top: -1px;
+}
+
+.cinema-dropdown.active {
+    max-height: 400px;
+ opacity: 1;
+    visibility: visible;
+    overflow-y: auto;
+}
+
+.cinema-option {
+    display: block;
+    padding: 12px 20px;
+    color: #333;
+    text-decoration: none;
+  font-size: 13px;
+    border-bottom: 1px solid #f0f0f0;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.cinema-option:last-child {
+  border-bottom: none;
+}
+
+.cinema-option:hover {
+    background-color: #f9f9f9;
+    color: #0056b3;
+    padding-left: 25px;
+}
+
+.cinema-option-disabled {
+    display: block;
+    padding: 12px 20px;
+    color: #999;
+    text-align: center;
+    font-size: 13px;
+    cursor: default;
 }
 
 /* Banner */
@@ -83,7 +196,7 @@ nav ul li a:hover, nav ul li a.active {
 .section-title::after {
     content: '';
     width: 60px;
-    height: 3px;
+height: 3px;
     background: #0056b3;
     position: absolute;
     bottom: -10px;
@@ -145,7 +258,7 @@ nav ul li a:hover, nav ul li a.active {
     border: none;
     padding: 10px 25px;
     font-weight: bold;
-    cursor: pointer;
+ cursor: pointer;
     border-radius: 5px;
 }
 
@@ -183,7 +296,7 @@ footer {
 
 .footer-col h4 {
     margin-bottom: 20px;
-    border-left: 4px solid #0056b3;
+border-left: 4px solid #0056b3;
     padding-left: 10px;
 }
 
@@ -206,10 +319,48 @@ footer {
 }
 
 .footer-bottom {
-    text-align: center;
+  text-align: center;
     border-top: 1px solid #444;
     margin-top: 40px;
     padding-top: 20px;
     font-size: 13px;
     color: #888;
+}
+
+/* Selected Cinema Info */
+.selected-cinema-info {
+    background: linear-gradient(135deg, #0056b3 0%, #003d82 100%);
+    color: white;
+    padding: 10px 0;
+    margin-bottom: 0;
+}
+
+.cinema-info-content {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-size: 14px;
+}
+
+.cinema-label {
+    font-weight: 400;
+    opacity: 0.9;
+}
+
+.cinema-name {
+    font-weight: 700;
+    font-size: 16px;
+}
+
+.cinema-address {
+    opacity: 0.8;
+    font-style: italic;
+}
+
+@media (max-width: 768px) {
+    .cinema-info-content {
+        flex-direction: column;
+     align-items: flex-start;
+        gap: 5px;
+    }
 }

@@ -1,0 +1,277 @@
+﻿@model CinemaManagement.ViewModels.Auth.RegisterViewModel
+@{
+    ViewBag.Title = "Đăng ký";
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký | Beta Cinemas</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f4f7f9;
+            color: #333;
+        }
+
+        .auth-section {
+            padding: 60px 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: url('https://betacinemas.vn/Assets/Common/img/bg-login.jpg') no-repeat center center;
+            background-size: cover;
+        }
+
+        .auth-card {
+            width: 100%;
+            max-width: 450px;
+            background: rgba(255, 255, 255, 0.98);
+            padding: 40px 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .auth-toggle {
+            width: 100%;
+            height: 50px;
+            background: #e9ecef;
+            border-radius: 30px;
+            display: flex;
+            position: relative;
+            margin-bottom: 30px;
+            padding: 5px;
+        }
+
+        .toggle-btn {
+            flex: 1;
+            border: none;
+            background: transparent;
+            font-weight: bold;
+            font-size: 14px;
+            cursor: pointer;
+            z-index: 2;
+            color: #666;
+            transition: color 0.3s ease;
+        }
+
+            .toggle-btn.active {
+                color: #fff;
+            }
+
+        .toggle-slider {
+            position: absolute;
+            width: calc(50% - 5px);
+            height: calc(100% - 10px);
+            background: #0056b3;
+            border-radius: 25px;
+            top: 5px;
+            left: 5px;
+            transition: transform 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            z-index: 1;
+        }
+
+        .form-content {
+            display: none;
+        }
+
+            .form-content.active {
+                display: block;
+                animation: fadeIn 0.5s ease;
+            }
+
+        @@keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .text-danger {
+            color: #dc3545;
+            font-size: 13px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .checkbox-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 4px;
+        }
+
+        .checkbox-label {
+            margin: 0;
+            font-size: 14px;
+            color: #333;
+            cursor: pointer;
+            user-select: none; 
+        }
+
+        .checkbox-wrapper input[type="checkbox"] {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            accent-color: #0056b3; 
+            cursor: pointer;
+        }
+       
+        .checkbox-wrapper input[type="checkbox"] {
+            flex-shrink: 0;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+            .form-group label {
+                display: block;
+                margin-bottom: 6px;
+                font-weight: bold;
+                font-size: 13px;
+            }
+
+            .form-group input {
+                width: 100%;
+                padding: 12px;
+                border: 1px solid #ddd;
+                border-radius: 6px;
+                outline: none;
+                transition: border 0.3s;
+            }
+
+                .form-group input:focus {
+                    border-color: #0056b3;
+                }
+
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            background: #28a745;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 15px;
+            margin-top: 10px;
+        }
+
+        .switch-link {
+            color: #0056b3;
+            text-decoration: none;
+            font-weight: bold;
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+            .switch-link:hover {
+                text-decoration: underline;
+            }
+    </style>
+</head>
+<body>
+    <main class="auth-section">
+        <div class="auth-card">
+            <div class="auth-toggle">
+                <div class="toggle-slider" style="transform: translateX(100%);"></div>
+                <button class="toggle-btn" type="button" onclick="window.location.href='@Url.Action("Login", "Auth")'">ĐĂNG NHẬP</button>
+                <button class="toggle-btn active">ĐĂNG KÝ</button>
+            </div>
+
+            <div id="register-form" class="form-content active">
+                <form asp-action="Register" asp-controller="Auth" method="post">
+                    @Html.AntiForgeryToken()
+                    <div class="form-group">
+                        <label asp-for="FullName"></label>
+                        <input asp-for="FullName" class="form-control" placeholder="nhập họ và tên" autofocus />
+                        <span asp-validation-for="FullName" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="PhoneNumber"></label>
+                        <input asp-for="PhoneNumber" class="form-control" placeholder="0*********" />
+                        <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Email"></label>
+                        <input asp-for="Email" class="form-control" placeholder="example@gmail.com" />
+                        <span asp-validation-for="Email" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="Password"></label>
+                        <input asp-for="Password" class="form-control" type="password" placeholder="mật khẩu lớn hơn 6 kí tự (chứa ít nhất 1 chữ và 1 số)" />
+                        <span asp-validation-for="Password" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label asp-for="ConfirmPassword"></label>
+                        <input asp-for="ConfirmPassword" class="form-control" type="password" placeholder="nhập lại mật khẩu" />
+                        <span asp-validation-for="ConfirmPassword" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <div class="checkbox-wrapper">
+                            <input asp-for="AgreeTerms" type="checkbox" id="agreeTerms"
+                                   data-val="true"
+                                   data-val-required="Bạn phải đồng ý với điều khoản sử dụng" />
+                            <label for="agreeTerms" class="checkbox-label">
+                                Tôi đồng ý với <a href="#" style="color:#0056b3; text-decoration: underline;">Chính sách bảo mật & Điều khoản sử dụng của Beta</a>
+                            </label>
+                        </div>
+                        <span asp-validation-for="AgreeTerms" class="text-danger"></span>
+                    </div>
+
+                    <button type="submit" class="btn-submit">ĐĂNG KÝ TÀI KHOẢN</button>
+                </form>
+
+                <a href="@Url.Action("Login", "Auth")" class="switch-link">
+                    ← Đã có tài khoản? Đăng nhập ngay
+                </a>
+            </div>
+        </div>
+    </main>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Buộc validate checkbox khi submit
+            $('form').on('submit', function (e) {
+                if (!$('#agreeTerms').is(':checked')) {
+                    $('#agreeTerms').closest('.form-group').find('.text-danger').text('Bạn phải đồng ý với điều khoản sử dụng');
+                    e.preventDefault(); // ngăn submit
+                }
+            });
+
+            // Xóa lỗi khi tick
+            $('#agreeTerms').on('change', function () {
+                if ($(this).is(':checked')) {
+                    $(this).closest('.form-group').find('.text-danger').text('');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
