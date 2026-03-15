@@ -45,6 +45,7 @@ public class ShowTimeListViewModel
     public ShowTimeCreateViewModel CreateForm { get; set; } = new();
     public Dictionary<string, int> MovieDurations { get; set; } = new();
     public Dictionary<string, string> RoomLocations { get; set; } = new();
+    public SelectList Cinemas { get; set; } = null!;
 }
 
 public class ShowTimeCreateViewModel
@@ -113,8 +114,8 @@ public class ShowTimeDetailViewModel
 
     // Pricing
     public decimal BasePrice { get; set; }
-    public decimal VipPrice => BasePrice + 20_000m;
-    public decimal CouplePrice => BasePrice + 50_000m;
+    public decimal VipPrice => BasePrice + 5000m;
+    public decimal CouplePrice => BasePrice * 2;
 
     // Status
     public int Status { get; set; }

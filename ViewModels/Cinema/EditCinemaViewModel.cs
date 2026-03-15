@@ -1,6 +1,6 @@
-﻿namespace CinemaManagement.ViewModels.Cinema
+namespace CinemaManagement.ViewModels.Cinema
 {
-    public class EditCinemaVm
+    public class EditCinemaViewModel
     {
         public Guid CinemaId { get; set; }
 

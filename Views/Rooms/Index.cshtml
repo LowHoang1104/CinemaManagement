@@ -1,11 +1,12 @@
-@model CinemaManagement.ViewModels.RoomListViewModel
+@model CinemaManagement.ViewModels.Rooms.RoomListViewModel
 
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Quản lý phòng chiếu";
-    
+
     var cinemas = ViewData["CinemaSelectList"] as IEnumerable<SelectListItem> ?? Enumerable.Empty<SelectListItem>();
-    bool hasFilters = Model.CinemaIdFilter.HasValue || Model.StatusFilter.HasValue || !string.IsNullOrWhiteSpace(Model.SearchTerm);
+    bool hasFilters = Model.CinemaIdFilter.HasValue || Model.StatusFilter.HasValue ||
+!string.IsNullOrWhiteSpace(Model.SearchTerm);
 }
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -25,62 +26,86 @@
                 </p>
             </div>
             <a asp-action="Create"
-               class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2">
+                   class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-slate-700 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-900 focus-visible:ring-offset-2">
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+                    <line x1="12" y1="5" x2="12" y2="19" />
+                    <line x1="5" y1="12" x2="19" y2="12" />
                 </svg>
                 Thêm phòng mới
             </a>
         </div>
 
         @* ── Stats ── *@
-        <div class="grid grid-cols-2 gap-4 md:grid-cols-4 mt-8">
+        <div class="grid grid-cols-2 gap-4 lg:grid-cols-4 mt-8">
             @* Tổng phòng *@
-            <div class="flex items-center gap-3 rounded-xl border border-blue-200 bg-gradient-to-br from-blue-50 to-blue-100 px-4 py-4">
-                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-blue-200/60">
-                    <svg class="h-5 w-5 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M9 21V9"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-xs font-medium text-blue-600">Tổng phòng</p>
-                    <p class="text-2xl font-bold text-blue-900">@Model.TotalRooms</p>
+            <div
+                class="relative overflow-hidden rounded-[1rem] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500 shadow-sm border border-indigo-100/50">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" />
+                            <path d="M3 9h18M9 21V9" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Tổng số phòng</p>
+                        <p class="text-2xl font-black text-slate-900 leading-tight">@Model.TotalRooms</p>
+                    </div>
                 </div>
             </div>
             @* Hoạt động *@
-            <div class="flex items-center gap-3 rounded-xl border border-emerald-200 bg-gradient-to-br from-emerald-50 to-emerald-100 px-4 py-4">
-                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-emerald-200/60">
-                    <svg class="h-5 w-5 text-emerald-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="9"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-xs font-medium text-emerald-600">Đang hoạt động</p>
-                    <p class="text-2xl font-bold text-emerald-900">@Model.TotalActiveRooms</p>
-                </div>
-            </div>
-            @* Ngừng *@
-            <div class="flex items-center gap-3 rounded-xl border border-slate-200 bg-gradient-to-br from-slate-50 to-slate-100 px-4 py-4">
-                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-slate-200/60">
-                    <svg class="h-5 w-5 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="9"/><line x1="9" y1="9" x2="15" y2="15"/><line x1="15" y1="9" x2="9" y2="15"/>
-                    </svg>
-                </div>
-                <div>
-                    <p class="text-xs font-medium text-slate-500">Ngừng / Bảo trì</p>
-                    <p class="text-2xl font-bold text-slate-800">@Model.TotalInactiveRooms</p>
+            <div
+                class="relative overflow-hidden rounded-[1rem] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 shadow-sm border border-emerald-100/50">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" />
+                            <circle cx="12" cy="12" r="9" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Hoạt động</p>
+                        <p class="text-2xl font-black text-emerald-600 leading-tight">@Model.TotalActiveRooms</p>
+                    </div>
                 </div>
             </div>
-            @* Tổng ghế *@
-            <div class="flex items-center gap-3 rounded-xl border border-purple-200 bg-gradient-to-br from-purple-50 to-purple-100 px-4 py-4">
-                <div class="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg bg-purple-200/60">
-                    <svg class="h-5 w-5 text-purple-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3"/><path d="M2 11v5a2 2 0 002 2h16a2 2 0 002-2v-5a2 2 0 00-4 0v1H6v-1a2 2 0 00-4 0z"/>
-                    </svg>
+            @* Ngừng hoạt động *@
+            <div
+                class="relative overflow-hidden rounded-[1rem] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 shadow-sm border border-rose-100/50">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <circle cx="12" cy="12" r="9" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 9l-6 6M9 9l6 6" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Ngừng / Bảo trì
+                        </p>
+                        <p class="text-2xl font-black text-rose-600 leading-tight">@Model.TotalInactiveRooms</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="text-xs font-medium text-purple-600">Tổng số ghế</p>
-                    <p class="text-2xl font-bold text-purple-900">@Model.TotalSeats.ToString("N0")</p>
+            </div>
+            @* Tổng số ghế *@
+            <div
+                class="relative overflow-hidden rounded-[1rem] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md">
+                <div class="flex items-center gap-4">
+                    <div
+                        class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 shadow-sm border border-amber-100/50">
+                        <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                  d="M2 11v5a2 2 0 002 2h16a2 2 0 002-2v-5a2 2 0 00-4 0v1H6v-1a2 2 0 00-4 0z" />
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Tổng số ghế</p>
+                        <p class="text-2xl font-black text-amber-600 leading-tight">@Model.TotalSeats.ToString("N0")</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -94,674 +119,468 @@
                 <div class="relative">
                     <span class="pointer-events-none absolute inset-y-0 left-3 flex items-center text-slate-400">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <circle cx="11" cy="11" r="7"/><line x1="16.65" y1="16.65" x2="21" y2="21"/>
+                            <circle cx="11" cy="11" r="7" />
+                            <line x1="16.65" y1="16.65" x2="21" y2="21" />
                         </svg>
                     </span>
-                    <input type="text"
-                           id="searchInput"
-                           name="search"
-                           value="@Model.SearchTerm"
-                           placeholder="Tìm kiếm theo tên phòng, rạp chiếu..."
-                           autocomplete="off"
+                    <input type="text" id="searchInput" name="search" value="@Model.SearchTerm"
+                           placeholder="Tìm kiếm theo tên phòng, rạp chiếu..." autocomplete="off"
                            class="w-full rounded-lg border border-slate-200 bg-slate-50 py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none placeholder:text-slate-400 focus:border-indigo-400 focus:bg-white focus:ring-2 focus:ring-indigo-100 transition" />
                 </div>
 
                 @* Row 2: Selects + Buttons *@
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                     @* ── Cinema custom dropdown ── *@
-                        @{
-                            var cinemaCurrent = Model.CinemaIdFilter.HasValue
-                                ? (cinemas.FirstOrDefault(c => c.Value == Model.CinemaIdFilter.ToString())?.Text ?? "Tất cả rạp")
-                                : "Tất cả rạp";
-                        }
-                        <input type="hidden" name="cinemaId" id="cinemaIdInput" value="@(Model.CinemaIdFilter?.ToString() ?? "")" />
-                        <div class="relative flex-1" data-filter-dropdown>
-                            <button type="button" id="cinemaTrigger"
-                                    onclick="toggleFilterDropdown('cinemaPanel', event)"
-                                    class="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm hover:border-indigo-300 hover:bg-slate-50 transition-colors">
-                                <svg class="h-4 w-4 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/>
-                                </svg>
-                                <span id="cinemaLabel" class="flex-1 truncate text-left @(Model.CinemaIdFilter.HasValue ? "font-medium text-slate-900" : "text-slate-500")">@cinemaCurrent</span>
-                                @if (Model.CinemaIdFilter.HasValue)
-                                {
-                                    <span class="flex-shrink-0 rounded-full bg-indigo-100 p-0.5">
-                                        <svg class="h-3 w-3 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
-                                            <polyline points="2,6 5,9 10,3"/>
-                                        </svg>
-                                    </span>
-                                }
-                                <svg class="h-3.5 w-3.5 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                    <polyline points="6 9 12 15 18 9"/>
-                                </svg>
-                            </button>
+                    @{
+                        var cinemaCurrent = Model.CinemaIdFilter.HasValue
+                            ? (cinemas.FirstOrDefault(c => c.Value == Model.CinemaIdFilter.ToString())?.Text ?? "Tất cả rạp")
+                            : "Tất cả rạp";
+                    }
+                    <input type="hidden" name="cinemaId" id="cinemaIdInput"
+                           value="@(Model.CinemaIdFilter?.ToString() ?? "")" />
+                    <div class="relative flex-1" data-filter-dropdown>
+                        <button type="button" id="cinemaTrigger" onclick="toggleFilterDropdown('cinemaPanel', event)"
+                                class="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm hover:border-indigo-300 hover:bg-slate-50 transition-colors">
+                            <svg class="h-4 w-4 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2">
+                                <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" />
+                                <circle cx="12" cy="9" r="2.5" />
+                            </svg>
+                            <span id="cinemaLabel"
+                                  class="flex-1 truncate text-left @(Model.CinemaIdFilter.HasValue ? "font-medium text-slate-900" : "text-slate-500")">@cinemaCurrent</span>
+                            @if (Model.CinemaIdFilter.HasValue)
+                            {
+                                <span class="flex-shrink-0 rounded-full bg-indigo-100 p-0.5">
+                                    <svg class="h-3 w-3 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                         stroke="currentColor" stroke-width="2">
+                                        <polyline points="2,6 5,9 10,3" />
+                                    </svg>
+                                </span>
+                            }
+                            <svg class="h-3.5 w-3.5 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </button>
                         <div id="cinemaPanel"
                              class="filter-dropdown-panel absolute left-0 top-full z-50 mt-1 hidden w-full min-w-[200px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
                             @{
                                 var isAllCinema = !Model.CinemaIdFilter.HasValue;
                             }
-                            <button type="button" class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
+                            <button type="button"
+                                    class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
                                     onclick="selectFilterOpt('cinemaPanel','cinemaIdInput','cinemaLabel','','Tất cả rạp',false, this)">
-                                <span class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isAllCinema ? "" : "hidden")">
-                                    <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
+                                <span
+                                    class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isAllCinema ? "" : "hidden")">
+                                    <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                         stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="2,6 5,9 10,3" />
+                                    </svg>
                                 </span>
-                                <span class="filter-text @(isAllCinema ? "font-semibold text-indigo-700" : "text-slate-600")">Tất cả rạp</span>
-                            </button>
-                            <div class="h-px bg-slate-100 mx-2"></div>
-                            @foreach (var c in cinemas)
-                            {
-                                var isSel = c.Value == Model.CinemaIdFilter?.ToString();
-                                <button type="button" class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
-                                        onclick="selectFilterOpt('cinemaPanel','cinemaIdInput','cinemaLabel','@c.Value','@c.Text',true, this)">
-                                    <span class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isSel ? "" : "hidden")">
-                                        <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
-                                    </span>
-                                    <span class="filter-text @(isSel ? "font-semibold text-indigo-700" : "text-slate-600")">@c.Text</span>
+                                <span
+                                    class="filter-text @(isAllCinema ? "font-semibold text-indigo-700" : "text-slate-600")">Tất
+                                    cả rạp</span>
                                 </button>
-                            }
+                                <div class="h-px bg-slate-100 mx-2"></div>
+                                @foreach (var c in cinemas)
+                                {
+                                    var isSel = c.Value == Model.CinemaIdFilter?.ToString();
+                                    <button type="button"
+                                            class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
+                                            onclick="selectFilterOpt('cinemaPanel','cinemaIdInput','cinemaLabel','@c.Value','@c.Text',true, this)">
+                                        <span
+                                            class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isSel ? "" : "hidden")">
+                                            <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                                 stroke="currentColor" stroke-width="2.5">
+                                                <polyline points="2,6 5,9 10,3" />
+                                            </svg>
+                                        </span>
+                                        <span
+                                        class="filter-text @(isSel ? "font-semibold text-indigo-700" : "text-slate-600")">@c.Text</span>
+                                    </button>
+                                }
+                            </div>
                         </div>
-                    </div>
 
-                    @* ── Status custom dropdown ── *@
-                    @{
-                        var statusCurrent = Model.StatusFilter switch
-                        {
-                            RoomStatus.Active   => "Hoạt động",
-                            RoomStatus.Inactive => "Ngừng hoạt động",
-                            _                   => "Tất cả trạng thái"
-                        };
-                        var statusInputVal = Model.StatusFilter.HasValue ? ((int)Model.StatusFilter.Value).ToString() : "";
-                    }
-                    <input type="hidden" name="status" id="statusInput" value="@statusInputVal" />
-                    <div class="relative sm:w-52" data-filter-dropdown>
-                        <button type="button" id="statusTrigger"
-                                onclick="toggleFilterDropdown('statusPanel', event)"
-                                class="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm hover:border-indigo-300 hover:bg-slate-50 transition-colors">
-                            <svg class="h-4 w-4 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="12" cy="12" r="9"/><path d="M9 12l2 2 4-4"/>
-                            </svg>
-                            <span id="statusLabel" class="flex-1 truncate text-left @(Model.StatusFilter.HasValue ? "font-medium text-slate-900" : "text-slate-500")">@statusCurrent</span>
-                            @if (Model.StatusFilter.HasValue)
-                            {
-                                <span class="flex-shrink-0 rounded-full bg-indigo-100 p-0.5">
-                                    <svg class="h-3 w-3 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="2,6 5,9 10,3"/>
-                                    </svg>
-                                </span>
-                            }
-                            <svg class="h-3.5 w-3.5 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                <polyline points="6 9 12 15 18 9"/>
-                            </svg>
-                        </button>
-                        <div id="statusPanel"
-                             class="filter-dropdown-panel absolute left-0 top-full z-50 mt-1 hidden w-full min-w-[180px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
-                        @{ var isAllStatus = !Model.StatusFilter.HasValue; }
-                        <button type="button" class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
-                                onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','','Tất cả trạng thái',false, this)">
-                            <span class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isAllStatus ? "" : "hidden")">
-                                @if (isAllStatus) { <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg> }
-                            </span>
-                            <span class="filter-text @(isAllStatus ? "font-semibold text-indigo-700" : "text-slate-600")">Tất cả trạng thái</span>
-                        </button>
-                            <div class="h-px bg-slate-100 mx-2"></div>
+                        @* ── Status custom dropdown ── *@
                         @{
-                            var isActive = Model.StatusFilter == RoomStatus.Active;
-                            var isInactive = Model.StatusFilter == RoomStatus.Inactive;
-                        }
-                        <button type="button" class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
-                                onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','1','Hoạt động',true, this)">
-                            <span class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isActive ? "" : "hidden")">
-                                <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
-                            </span>
-                            <span class="filter-text flex items-center gap-2 @(isActive ? "font-semibold text-indigo-700" : "text-slate-600")">
-                                Hoạt động
-                            </span>
-                        </button>
-                        <button type="button" class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
-                                onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','0','Ngừng hoạt động',true, this)">
-                            <span class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isInactive ? "" : "hidden")">
-                                <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
-                            </span>
-                            <span class="filter-text flex items-center gap-2 @(isInactive ? "font-semibold text-indigo-700" : "text-slate-600")">
-                                Ngừng hoạt động
-                            </span>
-                        </button>
-                        </div>
-                    </div>
-
-                    @* Action Buttons *@
-                    <div class="flex gap-2 sm:flex-shrink-0">
-                        <button type="submit"
-                                class="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-800 transition-all active:scale-[0.98] whitespace-nowrap">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
-                            </svg>
-                            Lọc
-                        </button>
-                        <div id="ajax-clear-filter-wrapper">
-                            @if (hasFilters)
+                            var statusCurrent = Model.StatusFilter switch
                             {
-                                <a asp-action="Index"
-                                   class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-400 transition-colors">
-                                    <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                                RoomStatus.Active => "Hoạt động",
+                                RoomStatus.Inactive => "Ngừng hoạt động",
+                                _ => "Tất cả trạng thái"
+                            };
+                            var statusInputVal = Model.StatusFilter.HasValue ? ((int)Model.StatusFilter.Value).ToString() : "";
+                        }
+                        <input type="hidden" name="status" id="statusInput" value="@statusInputVal" />
+                        <div class="relative sm:w-52" data-filter-dropdown>
+                            <button type="button" id="statusTrigger" onclick="toggleFilterDropdown('statusPanel', event)"
+                                    class="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm hover:border-indigo-300 hover:bg-slate-50 transition-colors">
+                                <svg class="h-4 w-4 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="9" />
+                                    <path d="M9 12l2 2 4-4" />
+                                </svg>
+                                <span id="statusLabel"
+                                      class="flex-1 truncate text-left @(Model.StatusFilter.HasValue ? "font-medium text-slate-900" : "text-slate-500")">@statusCurrent</span>
+                                @if (Model.StatusFilter.HasValue)
+                                {
+                                    <span class="flex-shrink-0 rounded-full bg-indigo-100 p-0.5">
+                                        <svg class="h-3 w-3 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                             stroke="currentColor" stroke-width="2">
+                                            <polyline points="2,6 5,9 10,3" />
+                                        </svg>
+                                    </span>
+                                }
+                                <svg class="h-3.5 w-3.5 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none"
+                                     stroke="currentColor" stroke-width="2.5">
+                                    <polyline points="6 9 12 15 18 9" />
+                                </svg>
+                            </button>
+                            <div id="statusPanel"
+                                 class="filter-dropdown-panel absolute left-0 top-full z-50 mt-1 hidden w-full min-w-[180px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                                @{
+                                    var isAllStatus = !Model.StatusFilter.HasValue;
+                                }
+                                <button type="button"
+                                        class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
+                                        onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','','Tất cả trạng thái',false, this)">
+                                    <span
+                                        class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isAllStatus ? "" : "hidden")">
+                                        @if (isAllStatus)
+                                        {
+                                            <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                                 stroke="currentColor" stroke-width="2.5">
+                                                <polyline points="2,6 5,9 10,3" />
+                                            </svg>
+                                        }
+                                    </span>
+                                    <span
+                                        class="filter-text @(isAllStatus ? "font-semibold text-indigo-700" : "text-slate-600")">Tất
+                                        cả trạng thái</span>
+                                    </button>
+                                    <div class="h-px bg-slate-100 mx-2"></div>
+                                    @{
+                                        var isActive = Model.StatusFilter == RoomStatus.Active;
+                                        var isInactive = Model.StatusFilter == RoomStatus.Inactive;
+                                    }
+                                    <button type="button"
+                                            class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
+                                            onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','1','Hoạt động',true, this)">
+                                        <span
+                                            class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isActive ? "" : "hidden")">
+                                            <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                                 stroke="currentColor" stroke-width="2.5">
+                                                <polyline points="2,6 5,9 10,3" />
+                                            </svg>
+                                        </span>
+                                        <span
+                                            class="filter-text flex items-center gap-2 @(isActive ? "font-semibold text-indigo-700" : "text-slate-600")">
+                                            Hoạt động
+                                        </span>
+                                    </button>
+                                    <button type="button"
+                                            class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
+                                            onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','0','Ngừng hoạt động',true, this)">
+                                        <span
+                                            class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isInactive ? "" : "hidden")">
+                                            <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                                 stroke="currentColor" stroke-width="2.5">
+                                                <polyline points="2,6 5,9 10,3" />
+                                            </svg>
+                                        </span>
+                                        <span
+                                            class="filter-text flex items-center gap-2 @(isInactive ? "font-semibold text-indigo-700" : "text-slate-600")">
+                                            Ngừng hoạt động
+                                        </span>
+                                    </button>
+                                </div>
+                            </div>
+
+                            @* Action Buttons *@
+                            <div class="flex gap-2 sm:flex-shrink-0">
+                                <button type="submit"
+                                        class="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-800 transition-all active:scale-[0.98] whitespace-nowrap">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                                         stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L13 13.414V19a1 1 0 01-.553.894l-4 2A1 1 0 017 21v-7.586L3.293 6.707A1 1 0 013 6V4z" />
                                     </svg>
-                                    Xóa bộ lọc
-                                </a>
-                            }
+                                    Lọc
+                                </button>
+                                <div id="ajax-clear-filter-wrapper">
+                                    @if (hasFilters)
+                                    {
+                                        <a asp-action="Index"
+                                               class="inline-flex items-center gap-1.5 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-medium text-slate-600 hover:bg-slate-50 hover:border-slate-400 transition-colors">
+                                            <svg class="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                                 stroke-width="2.5">
+                                                <line x1="18" y1="6" x2="6" y2="18" />
+                                                <line x1="6" y1="6" x2="18" y2="18" />
+                                            </svg>
+                                            Xóa bộ lọc
+                                        </a>
+                                    }
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                </div>
-            </form>
+                    </form>
 
-            @* Active filter chips wrapper *@
-            <div id="ajax-chips-wrapper">
-                @if (hasFilters)
-                {
-                    <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
-                        <span class="text-xs text-slate-400 font-medium">Đang lọc:</span>
-                        @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                    @* Active filter chips wrapper *@
+                    <div id="ajax-chips-wrapper">
+                        @if (hasFilters)
                         {
-                            <a href="/Rooms/Index?cinemaId=@(Model.CinemaIdFilter)&status=@(Model.StatusFilter)"
-                               class="inline-flex items-center gap-1 rounded-full bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
-                                🔍 "@Model.SearchTerm"
-                                <span class="ml-0.5 text-indigo-400">×</span>
-                            </a>
-                        }
-                        @if (Model.CinemaIdFilter.HasValue)
-                        {
-                            var cName = cinemas.FirstOrDefault(c => c.Value == Model.CinemaIdFilter.ToString())?.Text;
-                            <a href="/Rooms/Index?search=@Model.SearchTerm&status=@Model.StatusFilter"
-                               class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors">
-                                📍 @cName
-                                <span class="ml-0.5 text-blue-400">×</span>
-                            </a>
-                        }
-                        @if (Model.StatusFilter.HasValue)
-                        {
-                            var sName = Model.StatusFilter switch { RoomStatus.Active => "Hoạt động", RoomStatus.Inactive => "Ngừng hoạt động", _ => "Khác" };
-                            <a href="/Rooms/Index?search=@Model.SearchTerm&cinemaId=@Model.CinemaIdFilter"
-                               class="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors">
-                                @sName
-                                <span class="ml-0.5 text-emerald-400">×</span>
-                            </a>
-                        }
-                        <span class="ml-1 text-xs text-slate-400">— Tìm thấy <strong class="text-slate-600">@Model.TotalItems</strong> phòng</span>
-                        <a id="clearFilterBtn" href="/Rooms/Index" class="ml-auto text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">Xóa tất cả bộ lọc</a>
-                    </div>
-                }
-            </div>
-        </div>
+                            <div class="mt-3 flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+                                <span class="text-xs text-slate-400 font-medium">Đang lọc:</span>
+                                @if (!string.IsNullOrWhiteSpace(Model.SearchTerm))
+                                {
+                                    <a href="/Rooms/Index?cinemaId=@(Model.CinemaIdFilter)&status=@(Model.StatusFilter)"
+                                           class="inline-flex items-center gap-1 rounded-full bg-indigo-50 border border-indigo-200 px-2.5 py-0.5 text-xs font-medium text-indigo-700 hover:bg-indigo-100 transition-colors">
+                                        🔍 "@Model.SearchTerm"
+                                        <span class="ml-0.5 text-indigo-400">×</span>
+                                    </a>
+                                }
+                                @if (Model.CinemaIdFilter.HasValue)
+                                {
+                                    var cName = cinemas.FirstOrDefault(c => c.Value == Model.CinemaIdFilter.ToString())?.Text;
+                                    <a href="/Rooms/Index?search=@Model.SearchTerm&status=@Model.StatusFilter"
+                                           class="inline-flex items-center gap-1 rounded-full bg-blue-50 border border-blue-200 px-2.5 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-100 transition-colors">
+                                        📍 @cName
+                                        <span class="ml-0.5 text-blue-400">×</span>
+                                    </a>
+                                }
+                                @if (Model.StatusFilter.HasValue)
+                                {
+                                    var sName = Model.StatusFilter switch
+                                    {
+                                        RoomStatus.Active => "Hoạt động",
+                                        RoomStatus.Inactive =>
+                       "Ngừng hoạt động",
+                                        _ => "Khác"
+                                    };
+                                    <a href="/Rooms/Index?search=@Model.SearchTerm&cinemaId=@Model.CinemaIdFilter"
+                                           class="inline-flex items-center gap-1 rounded-full bg-emerald-50 border border-emerald-200 px-2.5 py-0.5 text-xs font-medium text-emerald-700 hover:bg-emerald-100 transition-colors">
+                                        @sName
+                                        <span class="ml-0.5 text-emerald-400">×</span>
+                                    </a>
+                                }
+                                <span class="ml-1 text-xs text-slate-400">— Tìm thấy <strong
+                                    class="text-slate-600">@Model.TotalItems</strong> phòng</span>
+                                    <a id="clearFilterBtn" href="/Rooms/Index"
+                                           class="ml-auto text-xs font-bold text-slate-400 hover:text-slate-600 transition-colors">Xóa tất
+                                        cả bộ lọc</a>
+                                    </div>
+                                }
+                            </div>
+                        </div>
 
-        <div id="room-list-container" class="mt-8">
-            <partial name="_RoomListPartial" model="Model" />
-        </div>
+                        <div id="room-list-container" class="mt-8">
+                            @await Html.PartialAsync("_RoomListPartial", Model)
+                        </div>
 
-    </div>
-</div>
-
-@* Hidden form for status toggle *@
-<form id="statusChangeForm" method="post" asp-action="ToggleStatus" class="hidden">
-    @Html.AntiForgeryToken()
-    <input type="hidden" id="statusRoomId" name="id" />
-    <input type="hidden" id="statusTarget"  name="status" />
-</form>
-
-<!-- MODAL: NGỪNG HOẠT ĐỘNG -->
-<div id="modal-deactivate" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        <!-- Overlay -->
-        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" aria-hidden="true" onclick="closeStatusModal('deactivate')"></div>
-        
-        <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
-
-        <!-- Modal Content -->
-        <div class="relative inline-block transform overflow-hidden rounded-[2rem] bg-white px-6 pt-6 pb-6 text-left align-middle shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
-            <div class="absolute top-4 right-4">
-                <button type="button" onclick="closeStatusModal('deactivate')" class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <div class="flex flex-col items-center text-center mb-6 pt-2">
-                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 mb-4 shadow-sm">
-                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Ngừng hoạt động phòng</h3>
-                <p class="text-sm text-slate-500 mt-2">
-                    Xác nhận ngừng hoạt động <span id="deactivate-room-name" class="font-bold text-slate-900"></span>?
-                </p>
-            </div>
-
-            <div class="mb-6 rounded-2xl bg-amber-50/60 p-4 border border-amber-100/50">
-                <div class="flex items-center gap-2 mb-3 text-amber-700 font-bold text-[11px] uppercase tracking-widest">
-                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
-                    Lưu ý quan trọng
-                </div>
-                <ul class="space-y-2.5">
-                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug">
-                        <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>
-                        Thao tác có thể thất bại nếu đang có lịch chiếu
-                    </li>
-                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug">
-                        <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>
-                        Sẽ không thể tạo thêm lịch chiếu mới
-                    </li>
-                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug">
-                        <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>
-                        Có thể kích hoạt lại bất cứ lúc nào
-                    </li>
-                </ul>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <button type="button" onclick="closeStatusModal('deactivate')" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Hủy bỏ</button>
-                <button type="button" onclick="submitStatusChange()" class="rounded-xl bg-rose-600 px-4 py-3 text-[14px] font-bold text-white shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95">Xác nhận</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL: KÍCH HOẠT -->
-<div id="modal-activate" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title-activate" role="dialog" aria-modal="true">
-    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        <!-- Overlay -->
-        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" aria-hidden="true" onclick="closeStatusModal('activate')"></div>
-
-        <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
-
-        <!-- Modal Content -->
-        <div class="relative inline-block transform overflow-hidden rounded-[2rem] bg-white px-6 pt-6 pb-6 text-left align-middle shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
-            <div class="absolute top-4 right-4">
-                <button type="button" onclick="closeStatusModal('activate')" class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-
-            <div class="flex flex-col items-center text-center mb-6 pt-2">
-                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 border border-emerald-100 mb-4 shadow-sm">
-                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Kích hoạt phòng chiếu</h3>
-                <p class="text-sm text-slate-500 mt-2">
-                    Xác nhận kích hoạt <span id="activate-room-name" class="font-bold text-slate-900"></span>?
-                </p>
-            </div>
-
-            <div class="mb-8 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
-                <p class="text-[13px] text-emerald-800/80 leading-relaxed font-medium">
-                    Phòng sẽ sẵn sàng để tạo lịch chiếu và đặt vé ngay lập tức.
-                </p>
-            </div>
-
-            <div class="grid grid-cols-2 gap-3">
-                <button type="button" onclick="closeStatusModal('activate')" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Hủy bỏ</button>
-                <button type="button" onclick="submitStatusChange()" class="rounded-xl bg-emerald-600 px-4 py-3 text-[14px] font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95">Xác nhận</button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Edit Room Modal -->
-<div id="EditModal" class="fixed inset-0 z-[100] hidden opacity-0 transition-opacity duration-300 pointer-events-none" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity pointer-events-auto" aria-hidden="true" onclick="toggleEditModal(false)"></div>
-    <div class="fixed inset-0 overflow-y-auto pointer-events-none">
-        <div class="flex min-h-screen items-center justify-center p-4">
-            <div id="EditModalContent" class="relative w-full max-w-2xl transform overflow-hidden rounded-[2rem] bg-white text-left align-middle shadow-2xl transition-all translate-y-0 duration-300 pointer-events-auto flex flex-col max-h-[90vh]">
-                <div class="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-white flex-shrink-0">
-                    <div>
-                        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Chỉnh sửa phòng chiếu</h1>
-                        <p class="text-slate-500 text-xs mt-1">Cập nhật thông tin phòng chiếu</p>
-                    </div>
-                    <button type="button" onclick="toggleEditModal(false)" class="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-full">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
-                        </svg>
-                    </button>
-                </div>
-                <div id="EditModalBody" class="flex-1 overflow-y-auto custom-scrollbar min-h-[300px]">
-                    <div class="flex items-center justify-center py-20">
-                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
                     </div>
                 </div>
-                <div class="px-8 py-6 border-t border-slate-100 flex justify-end gap-3 bg-white flex-shrink-0">
-                    <button type="button" onclick="toggleEditModal(false)" class="px-8 py-3 bg-slate-10 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm shadow-sm active:scale-95">
-                        Hủy bỏ
-                    </button>
-                    <button type="submit" form="EditRoomForm" id="EditSubmitBtn" class="px-8 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 text-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-                        Cập nhật
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
+                @* Hidden form for status toggle *@
+                <form id="statusChangeForm" method="post" asp-action="ToggleStatus" class="hidden">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" id="statusRoomId" name="id" />
+                    <input type="hidden" id="statusTarget" name="status" />
+                </form>
+
+                <!-- MODAL: NGỪNG HOẠT ĐỘNG -->
+                <div id="modal-deactivate" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
+                     aria-modal="true">
+                    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+                        <!-- Overlay -->
+                        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" aria-hidden="true"
+                             onclick="closeStatusModal('deactivate')"></div>
+
+                        <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+
+                        <!-- Modal Content -->
+                        <div
+                            class="relative inline-block transform overflow-hidden rounded-[2rem] bg-white px-6 pt-6 pb-6 text-left align-middle shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
+                            <div class="absolute top-4 right-4">
+                                <button type="button" onclick="closeStatusModal('deactivate')"
+                                        class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
+                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                              d="M6 18L18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <div class="flex flex-col items-center text-center mb-6 pt-2">
+                                <div
+                                    class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 mb-4 shadow-sm">
+                                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                </div>
+                                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Ngừng hoạt động phòng</h3>
+                                <p class="text-sm text-slate-500 mt-2">
+                                    Xác nhận ngừng hoạt động <span id="deactivate-room-name" class="font-bold text-slate-900"></span>?
+                                </p>
+                            </div>
+
+                            <div class="mb-6 rounded-2xl bg-amber-50/60 p-4 border border-amber-100/50">
+                                <div
+                                    class="flex items-center gap-2 mb-3 text-amber-700 font-bold text-[11px] uppercase tracking-widest">
+                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                                    </svg>
+                                    Lưu ý quan trọng
+                                </div>
+                                <ul class="space-y-2.5">
+                                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug">
+                                        <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>
+                                        Thao tác có thể thất bại nếu đang có lịch chiếu
+                                    </li>
+                                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug">
+                                        <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>
+                                        Sẽ không thể tạo thêm lịch chiếu mới
+                                    </li>
+                                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug">
+                                        <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>
+                                        Có thể kích hoạt lại bất cứ lúc nào
+                                    </li>
+                                </ul>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <button type="button" onclick="closeStatusModal('deactivate')"
+                                        class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Hủy
+                                    bỏ</button>
+                                    <button type="button" onclick="submitStatusChange()"
+                                            class="rounded-xl bg-rose-600 px-4 py-3 text-[14px] font-bold text-white shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95">Xác
+                                        nhận</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- MODAL: KÍCH HOẠT -->
+                        <div id="modal-activate" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title-activate"
+                             role="dialog" aria-modal="true">
+                            <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+                                <!-- Overlay -->
+                                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" aria-hidden="true"
+                                     onclick="closeStatusModal('activate')"></div>
+
+                                <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
+
+                                <!-- Modal Content -->
+                                <div
+                                    class="relative inline-block transform overflow-hidden rounded-[2rem] bg-white px-6 pt-6 pb-6 text-left align-middle shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
+                                    <div class="absolute top-4 right-4">
+                                        <button type="button" onclick="closeStatusModal('activate')"
+                                                class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
+                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                      d="M6 18L18 6M6 6l12 12" />
+                                            </svg>
+                                        </button>
+                                    </div>
+
+                                    <div class="flex flex-col items-center text-center mb-6 pt-2">
+                                        <div
+                                            class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 border border-emerald-100 mb-4 shadow-sm">
+                                            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+                                            </svg>
+                                        </div>
+                                        <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Kích hoạt phòng chiếu</h3>
+                                        <p class="text-sm text-slate-500 mt-2">
+                                            Xác nhận kích hoạt <span id="activate-room-name" class="font-bold text-slate-900"></span>?
+                                        </p>
+                                    </div>
+
+                                    <div class="mb-8 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
+                                        <p class="text-[13px] text-emerald-800/80 leading-relaxed font-medium">
+                                            Phòng sẽ sẵn sàng để tạo lịch chiếu và đặt vé ngay lập tức.
+                                        </p>
+                                    </div>
+
+                                    <div class="grid grid-cols-2 gap-3">
+                                        <button type="button" onclick="closeStatusModal('activate')"
+                                                class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Hủy
+                                            bỏ</button>
+                                            <button type="button" onclick="submitStatusChange()"
+                                                    class="rounded-xl bg-emerald-600 px-4 py-3 text-[14px] font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95">Xác
+                                                nhận</button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Edit Room Modal -->
+                                <div id="EditModal" class="fixed inset-0 z-[100] hidden opacity-0 transition-opacity duration-300 pointer-events-none"
+                                     aria-labelledby="modal-title" role="dialog" aria-modal="true">
+                                    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity pointer-events-auto"
+                                         aria-hidden="true" onclick="toggleEditModal(false)"></div>
+                                    <div class="fixed inset-0 overflow-y-auto pointer-events-none">
+                                        <div class="flex min-h-screen items-center justify-center p-4">
+                                            <div id="EditModalContent"
+                                                 class="relative w-full max-w-2xl transform overflow-hidden rounded-[2rem] bg-white text-left align-middle shadow-2xl transition-all translate-y-0 duration-300 pointer-events-auto flex flex-col max-h-[90vh]">
+                                                <div
+                                                    class="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-white flex-shrink-0">
+                                                    <div>
+                                                        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Chỉnh sửa phòng chiếu</h1>
+                                                        <p class="text-slate-500 text-xs mt-1">Cập nhật thông tin phòng chiếu</p>
+                                                    </div>
+                                                    <button type="button" onclick="toggleEditModal(false)"
+                                                            class="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-full">
+                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                                             stroke="currentColor">
+                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
+                                                                  d="M6 18L18 6M6 6l12 12" />
+                                                        </svg>
+                                                    </button>
+                                                </div>
+                                                <div id="EditModalBody" class="flex-1 overflow-y-auto custom-scrollbar min-h-[300px]">
+                                                    <div class="flex items-center justify-center py-20">
+                                                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
+                                                    </div>
+                                                </div>
+                                                <div class="px-8 py-6 border-t border-slate-100 flex justify-end gap-3 bg-white flex-shrink-0">
+                                                    <button type="button" onclick="toggleEditModal(false)"
+                                                            class="px-8 py-3 bg-slate-10 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm shadow-sm active:scale-95">
+                                                        Hủy bỏ
+                                                    </button>
+                                                    <button type="submit" form="EditRoomForm" id="EditSubmitBtn"
+                                                            class="px-8 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 text-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
+                                                        Cập nhật
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
 
 @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
+    @await Html.PartialAsync("_ValidationScriptsPartial")
+    <script src="~/js/admin/room-index.js" asp-append-version="true"></script>
+
     <style>
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #cbd5e1; }
+        .custom-scrollbar::-webkit-scrollbar {
+        width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: #e2e8f0;
+        border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: #cbd5e1;
+        }
     </style>
-    <script>
-        const editModal = document.getElementById('EditModal');
-        const editModalContent = document.getElementById('EditModalContent');
-        const editModalBody = document.getElementById('EditModalBody');
-
-        function toggleEditModal(show) {
-            if (show) {
-                editModal.classList.remove('hidden', 'pointer-events-none');
-                setTimeout(() => {
-                    editModal.classList.remove('opacity-0');
-                    editModalContent.classList.remove('translate-y-0');
-                    editModalContent.classList.add('translate-y-[2rem]');
-                }, 10);
-                document.body.style.overflow = 'hidden';
-            } else {
-                editModal.classList.add('opacity-0');
-                editModalContent.classList.remove('translate-y-[2rem]');
-                editModalContent.classList.add('translate-y-0');
-                setTimeout(() => {
-                    editModal.classList.add('hidden', 'pointer-events-none');
-                    editModalBody.innerHTML = `
-                        <div class="flex items-center justify-center py-20">
-                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
-                        </div>
-                    `;
-                }, 300);
-                document.body.style.overflow = '';
-            }
-        }
-
-        async function openEditModal(id) {
-            closeActionMenus();
-            toggleEditModal(true);
-            try {
-                const response = await fetch(`/Rooms/Edit/${id}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                if (response.ok) {
-                    const html = await response.text();
-                    editModalBody.innerHTML = html;
-                    
-                    const scripts = editModalBody.querySelectorAll('script');
-                    scripts.forEach(oldScript => {
-                        const newScript = document.createElement('script');
-                        Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
-                        newScript.textContent = oldScript.textContent;
-                        oldScript.parentNode.replaceChild(newScript, oldScript);
-                    });
-                } else {
-                    editModalBody.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Lỗi không thể tải dữ liệu.</div>';
-                }
-            } catch (e) {
-                editModalBody.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Lỗi hệ thống.</div>';
-            }
-        }
-
-        // ══════════════════════════════════════════════════════════════
-        // Filter custom dropdowns
-        // ══════════════════════════════════════════════════════════════
-        let openFilterPanelId = null;
-
-        function toggleFilterDropdown(panelId, evt) {
-            if (evt) evt.stopPropagation();
-            const panel = document.getElementById(panelId);
-            const isHidden = panel.classList.contains('hidden');
-            closeFilterPanels();
-            if (isHidden) {
-                panel.classList.remove('hidden');
-                openFilterPanelId = panelId;
-            }
-        }
-
-        function selectFilterOpt(panelId, inputId, labelId, value, label, hasValue, btnElement) {
-            document.getElementById(inputId).value = value;
-            const labelEl = document.getElementById(labelId);
-            labelEl.textContent = label;
-            if (hasValue) {
-                labelEl.classList.remove('text-slate-500');
-                labelEl.classList.add('font-medium', 'text-slate-900');
-            } else {
-                labelEl.classList.add('text-slate-500');
-                labelEl.classList.remove('font-medium', 'text-slate-900');
-            }
-
-            if (btnElement) {
-                const panel = document.getElementById(panelId);
-                panel.querySelectorAll('.filter-tick').forEach(el => el.classList.add('hidden'));
-                panel.querySelectorAll('.filter-text').forEach(el => {
-                    el.classList.remove('font-semibold', 'text-indigo-700');
-                    el.classList.add('text-slate-600');
-                });
-                
-                const activeTick = btnElement.querySelector('.filter-tick');
-                if (activeTick) activeTick.classList.remove('hidden');
-                const activeText = btnElement.querySelector('.filter-text');
-                if (activeText) {
-                    activeText.classList.remove('text-slate-600');
-                    activeText.classList.add('font-semibold', 'text-indigo-700');
-                }
-            }
-
-            closeFilterPanels();
-        }
-
-        function closeFilterPanels() {
-            if (openFilterPanelId) {
-                document.getElementById(openFilterPanelId)?.classList.add('hidden');
-                openFilterPanelId = null;
-            }
-        }
-
-        // ══════════════════════════════════════════════════════════════
-        // Action menu (⋮)
-        // ══════════════════════════════════════════════════════════════
-        let openActionMenuId = null;
-
-        function toggleActionMenu(id, evt) {
-            evt.stopPropagation();
-            const menu = document.getElementById(id);
-            const isHidden = menu.classList.contains('invisible');
-            closeActionMenus();
-            if (isHidden) {
-                menu.classList.remove('invisible', 'opacity-0', 'scale-95');
-                openActionMenuId = id;
-            }
-        }
-
-        function closeActionMenus() {
-            if (openActionMenuId) {
-                const m = document.getElementById(openActionMenuId);
-                if (m) m.classList.add('invisible', 'opacity-0', 'scale-95');
-                openActionMenuId = null;
-            }
-        }
-
-        // Close all menus on outside click
-        document.addEventListener('click', function (e) {
-            if (!e.target.closest('[data-filter-dropdown]')) closeFilterPanels();
-            if (!e.target.closest('[data-action-root]'))    closeActionMenus();
-        });
-
-        function navigateTo(url) { window.location.href = url; }
-
-        let currentRoomId = null;
-        let currentRoomName = null;
-        let currentTargetStatus = null;
-
-        function openStatusModal(type, roomId, roomName) {
-            currentRoomId = roomId;
-            currentRoomName = roomName;
-            currentTargetStatus = (type === 'activate' ? 1 : 0);
-            
-            const modalId = 'modal-' + type;
-            const nameSpanId = type + '-room-name';
-            
-            const span = document.getElementById(nameSpanId);
-            if (span) span.textContent = roomName;
-            document.getElementById(modalId).classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            
-            closeActionMenus();
-        }
-
-        function closeStatusModal(type) {
-            const modalId = 'modal-' + type;
-            document.getElementById(modalId).classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        async function submitStatusChange() {
-            if (!currentRoomId || currentTargetStatus === null) return;
-            
-            const type = currentTargetStatus === 1 ? 'activate' : 'deactivate';
-            const modal = document.getElementById('modal-' + type);
-            const btn = modal.querySelector('button[onclick="submitStatusChange()"]');
-            const originalText = btn.textContent;
-            btn.disabled = true;
-            btn.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-2 border-white/60 border-t-white mx-auto"></div>';
-
-            try {
-                const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-                const formData = new FormData();
-                formData.append('id', currentRoomId);
-                formData.append('status', currentTargetStatus);
-                formData.append('__RequestVerificationToken', token);
-
-                const response = await fetch('/Rooms/ToggleStatus', {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    closeStatusModal(type);
-                    showToast('Thành công', data.message, 'success');
-                    updateUIAfterStatusChange(currentRoomId, data.newStatus);
-                } else {
-                    showToast('Lỗi', data.message, 'error');
-                }
-            } catch (error) {
-                console.error('ToggleStatus error:', error);
-                showToast('Lỗi', 'Lỗi kết nối khi thay đổi trạng thái.', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = originalText;
-            }
-        }
-
-        function updateUIAfterStatusChange(roomId, newStatus) {
-            const isActive = newStatus === 1;
-            const badge = document.getElementById(`status-badge-${roomId}`);
-            if (badge) {
-                badge.textContent = isActive ? 'Hoạt động' : 'Ngừng hoạt động';
-                badge.className = `inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${isActive ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-slate-100 text-slate-600 border-slate-300'}`;
-            }
-
-            const container = document.getElementById(`status-toggle-container-${roomId}`);
-            if (container) {
-                if (isActive) {
-                    container.innerHTML = `
-                        <button type="button"
-                                class="flex w-full items-center gap-3 px-3 py-2 text-left text-rose-600 hover:bg-rose-50 transition-colors group"
-                                onclick="openStatusModal('deactivate', '${roomId}', '${currentRoomName}')">
-                            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-rose-50 text-rose-500 group-hover:bg-rose-100 transition-colors">
-                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>
-                                </svg>
-                            </span>
-                            <span class="font-medium">Ngừng hoạt động</span>
-                        </button>
-                    `;
-                } else {
-                    container.innerHTML = `
-                        <button type="button"
-                                class="flex w-full items-center gap-3 px-3 py-2 text-left text-emerald-600 hover:bg-emerald-50 transition-colors group"
-                                onclick="openStatusModal('activate', '${roomId}', '${currentRoomName}')">
-                            <span class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-500 group-hover:bg-emerald-100 transition-colors">
-                                <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                    <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                </svg>
-                            </span>
-                            <span class="font-medium">Kích hoạt</span>
-                        </button>
-                    `;
-                }
-            }
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const container = document.getElementById('room-list-container');
-            const form = document.getElementById('roomFilterForm');
-
-            function fetchRooms(url) {
-                if (!container) return;
-                container.style.opacity = '0.5';
-                container.style.pointerEvents = 'none';
-                
-                fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(res => res.text())
-                .then(html => {
-                    const tempDiv = document.createElement('div');
-                    tempDiv.innerHTML = html;
-                    const listContent = tempDiv.querySelector('#room-list-ajax-content');
-                    container.innerHTML = listContent ? listContent.innerHTML : html;
-                    
-                    ['ajax-clear-filter-wrapper', 'ajax-chips-wrapper'].forEach(id => {
-                        const source = tempDiv.querySelector(`#teleport-${id}`);
-                        const target = document.getElementById(id);
-                        if (source && target) target.innerHTML = source.innerHTML;
-                    });
-
-                    window.history.pushState(null, '', url);
-                })
-                .catch(err => console.error("Error fetching rooms via AJAX:", err))
-                .finally(() => {
-                    container.style.opacity = '1';
-                    container.style.pointerEvents = 'auto';
-                });
-            }
-
-            if (form) {
-                form.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    const formData = new FormData(form);
-                    const params = new URLSearchParams();
-                    for (const [key, value] of formData.entries()) {
-                        if (value) params.append(key, value);
-                    }
-                    fetchRooms(`${form.action}?${params.toString()}`);
-                });
-            }
-
-            if (container) {
-                container.addEventListener('click', function (e) {
-                    const link = e.target.closest('a');
-                    if (link && link.href && link.pathname.includes('/Rooms')) {
-                        const url = new URL(link.href);
-                        const action = url.pathname.split('/').pop();
-                        const excludedActions = ['Edit', 'Details', 'Delete', 'ToggleStatus', 'Create'];
-                        if (!excludedActions.includes(action) && !link.hasAttribute('asp-action')) {
-                           e.preventDefault();
-                           fetchRooms(link.href);
-                        }
-                    }
-                });
-            }
-
-            window.addEventListener('popstate', () => {
-                fetchRooms(window.location.href);
-            });
-        });
-    </script>
 }
+

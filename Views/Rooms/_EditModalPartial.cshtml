@@ -1,14 +1,10 @@
-@model CinemaManagement.Models.Room
-
-@{
-    var cinemaName = ViewData["CinemaName"] as string;
-}
+@model CinemaManagement.ViewModels.Rooms.EditRoomViewModel
 
 <div class="bg-white">
     <form asp-action="Edit" method="post" id="EditRoomForm" class="px-8 py-6 space-y-6">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="RoomId" id="editRoomId" />
-        <input type="hidden" id="editCinemaId" value='@ViewData["CinemaId"]' />
+        <input type="hidden" asp-for="CinemaId" id="editCinemaId" />
 
         @* Validation summary *@
         @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
@@ -49,7 +45,7 @@
                 <div>
                     <label class="mb-1 block text-xs font-semibold text-slate-500">Rạp chiếu phim</label>
                     <div class="font-bold text-slate-700">
-                        📍 @cinemaName
+                        📍 @Model.CinemaName
                     </div>
                 </div>
 

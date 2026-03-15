@@ -37,14 +37,14 @@ namespace CinemaManagement.Services
             // 2. Sắp xếp (Sorting) + Stable Sorting (Chống nhảy trang)
             query = sortBy?.ToLower() switch
             {
-                "name" => sortDir == "desc" 
-                          ? query.OrderByDescending(c => c.Name).ThenByDescending(c => c.CinemaId) 
+                "name" => sortDir == "desc"
+                          ? query.OrderByDescending(c => c.Name).ThenByDescending(c => c.CinemaId)
                           : query.OrderBy(c => c.Name).ThenBy(c => c.CinemaId),
-                          
-                "rooms" => sortDir == "desc" 
-                           ? query.OrderByDescending(c => c.Rooms.Count).ThenByDescending(c => c.CinemaId) 
+
+                "rooms" => sortDir == "desc"
+                           ? query.OrderByDescending(c => c.Rooms.Count).ThenByDescending(c => c.CinemaId)
                            : query.OrderBy(c => c.Rooms.Count).ThenBy(c => c.CinemaId),
-                           
+
                 _ => query.OrderByDescending(c => c.CreatedAt).ThenByDescending(c => c.CinemaId)
             };
 
@@ -54,12 +54,12 @@ namespace CinemaManagement.Services
             return (items, totalItems);
         }
 
-        public async Task<CinemaStatsVm> GetStatsAsync()
+        public async Task<CinemaStatsViewModel> GetStatsAsync()
         {
             // Tối ưu hóa: Để SQL Server tự đếm, không kéo dữ liệu về RAM
             var baseQuery = _context.Cinemas.AsNoTracking();
-            
-            return new CinemaStatsVm
+
+            return new CinemaStatsViewModel
             {
                 TotalCinemas = await baseQuery.CountAsync(),
                 ActiveCinemas = await baseQuery.CountAsync(c => c.Status == 1),
@@ -79,7 +79,7 @@ namespace CinemaManagement.Services
             // 1. Chống trùng lặp (Kiểm tra không phân biệt hoa thường và khoảng trắng)
             bool isDuplicate = await _context.Cinemas
                 .AnyAsync(c => c.Name.Trim().ToLower() == request.Name.Trim().ToLower());
-                
+
             if (isDuplicate)
             {
                 // Ném lỗi Business Logic để Controller bắt
@@ -99,39 +99,40 @@ namespace CinemaManagement.Services
             _context.Cinemas.Add(cinema);
             await _context.SaveChangesAsync();
         }
-// Thêm tham số excludeCinemaId
-public async Task<bool> IsCinemaNameExistsAsync(string name, Guid? excludeCinemaId = null)
-{
-    if (string.IsNullOrWhiteSpace(name)) return false;
-    string trimmedName = name.Trim().ToLower();
-    
-    var query = _context.Cinemas.Where(c => c.Name.ToLower() == trimmedName);
-    
-    // Nếu đang Edit, bỏ qua ID của chính nó
-    if (excludeCinemaId.HasValue)
-    {
-        query = query.Where(c => c.CinemaId != excludeCinemaId.Value);
-    }
-    
-    return await query.AnyAsync();
-}
 
-public async Task UpdateAsync(UpdateCinemaRequest request, Guid? userId)
-{
-    // Check trùng tên (loại trừ chính nó) trước khi lưu
-    bool isDuplicate = await IsCinemaNameExistsAsync(request.Name, request.CinemaId);
-    if (isDuplicate) throw new InvalidOperationException($"Rạp chiếu phim mang tên '{request.Name}' đã tồn tại.");
+        // Thêm tham số excludeCinemaId
+        public async Task<bool> IsCinemaNameExistsAsync(string name, Guid? excludeCinemaId = null)
+        {
+            if (string.IsNullOrWhiteSpace(name)) return false;
+            string trimmedName = name.Trim().ToLower();
 
-    var cinema = await _context.Cinemas.FindAsync(request.CinemaId)
-                 ?? throw new Exception("Cinema not found");
+            var query = _context.Cinemas.Where(c => c.Name.ToLower() == trimmedName);
 
-    cinema.Name = request.Name;
-    cinema.Address = request.Address;
-    cinema.LastUpdatedAt = DateTime.UtcNow;
-    cinema.LastUpdatedBy = userId;
+            // Nếu đang Edit, bỏ qua ID của chính nó
+            if (excludeCinemaId.HasValue)
+            {
+                query = query.Where(c => c.CinemaId != excludeCinemaId.Value);
+            }
 
-    await _context.SaveChangesAsync();
-}
+            return await query.AnyAsync();
+        }
+
+        public async Task UpdateAsync(UpdateCinemaRequest request, Guid? userId)
+        {
+            // Check trùng tên (loại trừ chính nó) trước khi lưu
+            bool isDuplicate = await IsCinemaNameExistsAsync(request.Name, request.CinemaId);
+            if (isDuplicate) throw new InvalidOperationException($"Rạp chiếu phim mang tên '{request.Name}' đã tồn tại.");
+
+            var cinema = await _context.Cinemas.FindAsync(request.CinemaId)
+                         ?? throw new Exception("Cinema not found");
+
+            cinema.Name = request.Name;
+            cinema.Address = request.Address;
+            cinema.LastUpdatedAt = DateTime.UtcNow;
+            cinema.LastUpdatedBy = userId;
+
+            await _context.SaveChangesAsync();
+        }
 
         public async Task ActivateAsync(Guid id, Guid? userId)
         {
@@ -140,7 +141,9 @@ public async Task UpdateAsync(UpdateCinemaRequest request, Guid? userId)
 
             if (cinema.Status == 1) throw new Exception("Cinema already active");
 
-            if (!cinema.Rooms.Any()) throw new Exception("Cinema must have at least one room");
+            // Logic mới: Rạp phải có ít nhất 1 phòng đang hoạt động (Status = 1)
+            if (!cinema.Rooms.Any(r => r.Status == 1)) 
+                throw new Exception("Rạp phải có ít nhất một phòng đang hoạt động mới có thể mở cửa.");
 
             cinema.Status = 1;
             cinema.LastUpdatedAt = DateTime.UtcNow;
@@ -148,7 +151,6 @@ public async Task UpdateAsync(UpdateCinemaRequest request, Guid? userId)
 
             await _context.SaveChangesAsync();
         }
-
 
         public async Task DeactivateAsync(Guid id, Guid? userId)
         {
@@ -158,21 +160,26 @@ public async Task UpdateAsync(UpdateCinemaRequest request, Guid? userId)
             if (cinema.Status == 0)
                 throw new Exception("Cinema already inactive");
 
-            // TODO: check future showtimes, tickets...
+            // Logic mới: Kiểm tra nếu còn vé đã bán cho các suất chiếu trong tương lai
+            bool hasFutureTickets = await _context.Tickets
+                .AnyAsync(t => t.ShowTime.Room.CinemaId == id && t.ShowTime.StartAt > DateTime.UtcNow);
+
+            if (hasFutureTickets)
+                throw new Exception("Không thể đóng rạp vì vẫn còn vé đã bán cho các suất chiếu tương lai. Vui lòng xử lý hoàn tiền hoặc hủy suất chiếu trước khi đóng rạp.");
 
             cinema.Status = 0;
             cinema.LastUpdatedAt = DateTime.UtcNow;
             cinema.LastUpdatedBy = userId;
 
-            await _context.SaveChangesAsync();  
+            await _context.SaveChangesAsync();
         }
 
-        public async Task<CinemaDetailsVm?> GetCinemaDetailsAsync(Guid id)
+        public async Task<CinemaDetailsViewModel?> GetCinemaDetailsAsync(Guid id)
         {
             return await _context.Cinemas
                 .Include(c => c.Rooms)
                 .Where(c => c.CinemaId == id)
-                .Select(c => new CinemaDetailsVm
+                .Select(c => new CinemaDetailsViewModel
                 {
                     CinemaId = c.CinemaId,
                     Name = c.Name,
@@ -189,11 +196,11 @@ public async Task UpdateAsync(UpdateCinemaRequest request, Guid? userId)
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<EditCinemaVm?> GetEditByIdAsync(Guid id)
+        public async Task<EditCinemaViewModel?> GetEditByIdAsync(Guid id)
         {
             return await _context.Cinemas
                 .Where(c => c.CinemaId == id)
-                .Select(c => new EditCinemaVm
+                .Select(c => new EditCinemaViewModel
                 {
                     CinemaId = c.CinemaId,
                     Name = c.Name,
