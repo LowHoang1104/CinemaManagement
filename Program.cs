@@ -30,6 +30,8 @@ builder.Services.AddDbContext<CinemaManagementContext>(options =>
 );
 
 builder.Services.AddApplicationServices();
+builder.Services.Configure<TcpMovieAdminOptions>(builder.Configuration.GetSection("TcpMovieAdmin"));
+builder.Services.AddScoped<IAdminMovieTcpService, AdminMovieTcpService>();
 builder.Services.AddSignalR();
 builder.Services.AddAuthentication(options =>
 {

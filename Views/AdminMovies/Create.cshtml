@@ -1,0 +1,28 @@
+@model CinemaManagement.ViewModels.AdminMovies.AdminMovieViewModel
+@{
+    ViewData["Title"] = "Create Movie";
+    Layout = "_AdminLayout";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Thêm phim mới</h2>
+    <a asp-action="Index" class="btn btn-outline-secondary">Quay lại</a>
+</div>
+
+<div class="card border-0 shadow-sm">
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <partial name="_MovieForm" model="Model" />
+
+            <div class="mt-4 d-flex gap-2">
+                <button type="submit" class="btn btn-primary">Lưu phim</button>
+                <a asp-action="Index" class="btn btn-light">Hủy</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

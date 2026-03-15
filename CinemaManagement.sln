@@ -5,7 +5,7 @@ VisualStudioVersion = 17.14.36109.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CinemaManagement", "CinemaManagement.csproj", "{2B886961-0416-F2C0-0CDA-7021DEBD5185}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceAddMovie", "..\ServiceAddMovie\ServiceAddMovie.csproj", "{A8C6AB78-D17B-4C22-A50D-C78F4C52BCAE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ServiceMovieAdmin", "..\ServiceMovieAdmin\ServiceMovieAdmin.csproj", "{65BBCAB7-152C-494D-87D8-B04545ECB9EA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -17,10 +17,10 @@ Global
 		{2B886961-0416-F2C0-0CDA-7021DEBD5185}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2B886961-0416-F2C0-0CDA-7021DEBD5185}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2B886961-0416-F2C0-0CDA-7021DEBD5185}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A8C6AB78-D17B-4C22-A50D-C78F4C52BCAE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A8C6AB78-D17B-4C22-A50D-C78F4C52BCAE}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A8C6AB78-D17B-4C22-A50D-C78F4C52BCAE}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A8C6AB78-D17B-4C22-A50D-C78F4C52BCAE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{65BBCAB7-152C-494D-87D8-B04545ECB9EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{65BBCAB7-152C-494D-87D8-B04545ECB9EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{65BBCAB7-152C-494D-87D8-B04545ECB9EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{65BBCAB7-152C-494D-87D8-B04545ECB9EA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
