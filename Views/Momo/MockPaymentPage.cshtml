@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Thanh to�n MoMo";
+    ViewData["Title"] = "Thanh toán MoMo";
     Layout = null;
     
     var orderId = ViewBag.OrderId ?? "";
@@ -12,7 +12,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Thanh to�n MoMo (Test)</title>
+    <title>Thanh toán MoMo (Test)</title>
     <style>
         * {
             margin: 0;
@@ -153,14 +153,14 @@
 </head>
 <body>
     <div class="card">
-        <h1>Thanh to�n MoMo (Test)</h1>
+        <h1>Thanh toán MoMo (Test)</h1>
         
         <div class="info-row">
-            <div class="info-label">??n h�ng</div>
+            <div class="info-label">Đơn hàng</div>
             <div class="info-value">@orderId</div>
         </div>
         <div class="info-row">
-            <div class="info-label">S? ti?n</div>
+            <div class="info-label">Số tiền</div>
             <div class="info-value">@amount VND</div>
         </div>
 
@@ -170,44 +170,44 @@
             <input type="hidden" name="extraData" value="@extraData" />
 
             <div class="form-group">
-                <label for="bank">Ch?n ng�n h�ng</label>
+                <label for="bank">Chọn ngân hàng</label>
                 <select id="bank" name="bank" required>
-                    <option value="">-- Ch?n --</option>
+                    <option value="">-- Chọn --</option>
                     <option value="Vietcombank">Vietcombank</option>
                     <option value="Techcombank">Techcombank</option>
                     <option value="BIDV">BIDV</option>
                 </select>
-                <div id="bankError" class="error">Vui l�ng ch?n ng�n h�ng</div>
+                <div id="bankError" class="error">Vui lòng chọn ngân hàng</div>
             </div>
 
             <div class="form-group">
-                <label for="cardNumber">S? th? (16 ch? s?)</label>
+                <label for="cardNumber">Số thẻ (16 chữ số)</label>
                 <input id="cardNumber" name="cardNumber" placeholder="0123456789012345" maxlength="19" required />
-                <div id="cardNumberError" class="error">S? th? ph?i ?�ng 16 ch? s?</div>
+                <div id="cardNumberError" class="error">Số thẻ phải đúng 16 chữ số</div>
             </div>
 
             <div class="form-group">
-                <label for="cardName">T�n ch? th? (ch? c�i v� kho?ng tr?ng)</label>
+                <label for="cardName">Tên chủ thẻ (chữ cái và khoảng trắng)</label>
                 <input id="cardName" name="cardName" placeholder="NGUYEN VAN A" required />
-                <div id="cardNameError" class="error">T�n ch? th? ch? ch?a ch? c�i v� kho?ng tr?ng</div>
+                <div id="cardNameError" class="error">Tên chủ thẻ chỉ chứa chữ cái và khoảng trắng</div>
             </div>
 
             <div class="form-group">
-                <label for="expiry">Ng�y h?t h?n (MM/YY)</label>
+                <label for="expiry">Ngày hết hạn (MM/YY)</label>
                 <input id="expiry" name="expiry" placeholder="12/25" maxlength="5" required />
-                <div id="expiryError" class="error">Ng�y h?t h?n ph?i l?n h?n h�m nay (MM/YY)</div>
+                <div id="expiryError" class="error">Ngày hết hạn phải lớn hơn hôm nay (MM/YY)</div>
             </div>
 
             <div class="button-row">
                 <div class="total-amount">
-                    T?ng: <strong id="totalAmount">@amount VND</strong>
+                    Tổng: <strong id="totalAmount">@amount VND</strong>
                 </div>
-                <button id="submitBtn" class="btn btn-primary" type="submit" disabled>Ti?p t?c</button>
+                <button id="submitBtn" class="btn btn-primary" type="submit" disabled>Tiếp tục</button>
             </div>
         </form>
 
         <div class="note">
-            <p class="note-text">?? L?u �: ?�y l� trang gi? l?p d�nh cho m�i tr??ng ph�t tri?n.</p>
+            <p class="note-text">Lưu ý: Đây là trang giả lập dành cho môi trường phát triển.</p>
         </div>
     </div>
 
@@ -219,19 +219,19 @@
         const submitBtn = document.getElementById('submitBtn');
         const form = document.getElementById('paymentForm');
 
-        // X? l� input s? th? - ch? cho ph�p s?
+        // Xử lý input số thẻ - chỉ cho phép số
         cardNumberInput.addEventListener('input', function (e) {
             this.value = this.value.replace(/[^0-9]/g, '');
             validateCardNumber();
         });
 
-        // X? l� input t�n ch? th? - ch? cho ph�p ch? c�i v� kho?ng tr?ng
+        // Xử lý input tên chủ thẻ - chỉ cho phép chữ cái và khoảng trắng
         cardNameInput.addEventListener('input', function (e) {
             this.value = this.value.replace(/[^a-zA-Z\s]/g, '').toUpperCase();
             validateCardName();
         });
 
-        // X? l� input ng�y h?t h?n
+        // Xử lý input ngày hết hạn
         expiryInput.addEventListener('input', function (e) {
             let value = this.value.replace(/[^0-9]/g, '');
             if (value.length >= 2) {
@@ -241,7 +241,7 @@
             validateExpiry();
         });
 
-        // C�c h�m validate
+        // Các hàm validate
         function validateCardNumber() {
             const value = cardNumberInput.value.trim();
             const isValid = value.length === 16 && /^\d{16}$/.test(value);
@@ -271,15 +271,15 @@
 
             const [month, year] = dateStr.split('/').map(Number);
 
-            // Ki?m tra month 01-12
+            // Kiểm tra month 01-12
             if (month < 1 || month > 12) return false;
 
             const now = new Date();
-            const currentYear = now.getFullYear() % 100; // L?y 2 ch? s? cu?i
+            const currentYear = now.getFullYear() % 100; // Lấy 2 chữ số cuối
 
-            // Chuy?n year th�nh ??y ??
+            // Chuyển year thành đầy đủ
             const fullYear = year <= currentYear ? 2000 + year : 2000 + year;
-            const expiryDate = new Date(fullYear, month - 1, 1); // Ng�y ??u ti�n c?a th�ng h?t h?n
+            const expiryDate = new Date(fullYear, month - 1, 1); // Ngày đầu tiên của tháng hết hạn
             const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
 
             return expiryDate > today;
@@ -322,10 +322,10 @@
             return /^\d{2}\/\d{2}$/.test(value) && isValidExpiryDate(value);
         }
 
-        // L?ng nghe s? thay ??i ng�n h�ng
+        // Lắng nghe sự thay đổi ngân hàng
         bankSelect.addEventListener('change', updateSubmitBtn);
 
-        // Validate form tr??c khi submit
+        // Validate form trước khi submit
         form.addEventListener('submit', function (e) {
             if (!validateCardNumber() || !validateCardName() || !validateExpiry()) {
                 e.preventDefault();
@@ -333,7 +333,7 @@
             }
         });
 
-        // Kh?i t?o
+        // Khởi tạo
         updateSubmitBtn();
     </script>
 </body>

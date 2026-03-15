@@ -1,5 +1,5 @@
 @{
-    ViewData["Title"] = "Nh?p OTP";
+    ViewData["Title"] = "Nhập OTP";
     Layout = null;
     
     var orderId = ViewBag.OrderId ?? "";
@@ -14,7 +14,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width,initial-scale=1">
-    <title>Nh?p OTP - MoMo (Test)</title>
+    <title>Nhập OTP - MoMo (Test)</title>
     <style>
         * {
             margin: 0;
@@ -150,12 +150,12 @@
 </head>
 <body>
     <div class="card">
-        <h2>Nh?p OTP</h2>
+        <h2>Nhập OTP</h2>
         <div class="info">
-            ??n h�ng: <strong>@orderId</strong><br/>
-            S? ti?n: <strong>@amount VND</strong><br/>
-            Ng�n h�ng: <strong>@bank</strong><br/>
-            Th?: <strong>@masked</strong>
+            Đơn hàng: <strong>@orderId</strong><br/>
+            Số tiền: <strong>@amount VND</strong><br/>
+            Ngân hàng: <strong>@bank</strong><br/>
+            Thẻ: <strong>@masked</strong>
         </div>
 
         <form id="otpForm" method="post" action="@Url.Action("MockCallback", "Momo")">
@@ -163,19 +163,19 @@
             <input type="hidden" name="amount" value="@amount" />
             <input type="hidden" name="extraData" value="@extraData" />
 
-            <label for="otp">M� OTP (6 ch? s?)</label>
+            <label for="otp">Mã OTP (6 chữ số)</label>
             <input id="otp" name="otp" placeholder="000000" maxlength="6" required />
-            <div id="otpError" class="error">M� OTP ph?i ?�ng 6 ch? s?</div>
+            <div id="otpError" class="error">Mã OTP phải đúng 6 chữ số</div>
 
             <div class="btns">
-                <button type="submit" name="resultType" value="success" class="btn success" id="successBtn" disabled>Th�nh c�ng</button>
-                <button type="submit" name="resultType" value="fail" class="btn fail">Th?t b?i</button>
-                <button type="submit" name="resultType" value="insufficient" class="btn insuf">Kh�ng ?? ti?n</button>
+                <button type="submit" name="resultType" value="success" class="btn success" id="successBtn" disabled>Thành công</button>
+                <button type="submit" name="resultType" value="fail" class="btn fail">Thất bại</button>
+                <button type="submit" name="resultType" value="insufficient" class="btn insuf">Không đủ tiền</button>
             </div>
         </form>
 
         <div class="note">
-            <p class="note-text">?? L?u �: ?�y l� trang gi? l?p d�nh cho m�i tr??ng ph�t tri?n.</p>
+            <p class="note-text">Lưu ý: Đây là trang giả lập dành cho môi trường phát triển.</p>
         </div>
     </div>
 
@@ -184,7 +184,7 @@
         const otpForm = document.getElementById('otpForm');
         const successBtn = document.getElementById('successBtn');
 
-        // X? l� input OTP - ch? cho ph�p s?
+        // Xử lý input OTP - chỉ cho phép số
         otpInput.addEventListener('input', function (e) {
             this.value = this.value.replace(/[^0-9]/g, '');
             validateOtp();
@@ -194,7 +194,7 @@
             const value = otpInput.value.trim();
             const isValid = value.length === 6 && /^\d{6}$/.test(value);
 
-            // Hi?n th? l?i
+            // Hiển thị lỗi
             const errorEl = document.getElementById('otpError');
             if (!isValid && value.length > 0) {
                 errorEl.classList.add('show');
@@ -204,28 +204,28 @@
                 otpInput.classList.remove('invalid');
             }
 
-            // Enable/disable n�t Th�nh c�ng
+            // Enable/disable nút Thành công
             successBtn.disabled = !isValid;
 
             return isValid;
         }
 
-        // Validate form tr??c khi submit (success case)
+        // Validate form trước khi submit (success case)
         otpForm.addEventListener('submit', function (e) {
-            // N?u click n�t success, ki?m tra OTP
+            // Nếu click nút success, kiểm tra OTP
             if (e.submitter && e.submitter.name === 'resultType' && e.submitter.value === 'success') {
                 if (!validateOtp()) {
                     e.preventDefault();
                     return false;
                 }
             }
-            // C�c n�t kh�c (fail, insufficient) kh�ng c?n validate OTP
+            // Các nút khác (fail, insufficient) không cần validate OTP
         });
 
-        // Kh?i t?o tr?ng th�i
+        // Khởi tạo trạng thái
         validateOtp();
         
-        // Auto focus v�o input OTP
+        // Auto focus vào input OTP
         window.addEventListener('DOMContentLoaded', function() {
             otpInput.focus();
         });
