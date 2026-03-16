@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.Google;
+using CinemaManagement.Hubs;
 
 
 var builder = WebApplication.CreateBuilder(args);
@@ -74,5 +75,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+// Map SignalR hub
+app.MapHub<SeatHub>("/seatHub");
 
 app.Run();

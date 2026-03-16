@@ -1,4 +1,4 @@
-@model SelectSeatsViewModel;
+﻿@model SelectSeatsViewModel;
 @using CinemaManagement.Controllers
 @{
     ViewData["Title"] = "Ch?n Gh? - " + Model.MovieTitle;
@@ -8,7 +8,7 @@
 <div class="ticket-selection-container">
     <div class="breadcrumb">
         <a href="@Url.Action("Index", "Home")">Trang ch?</a> > 
-      <a href="@Url.Action("Detail", "Movie")">??t v�</a> > 
+      <a href="@Url.Action("Detail", "Movie")">??t vé</a> > 
         <span>Ch?n Gh?</span>
  </div>
 
@@ -26,12 +26,12 @@
        <label>Gh? VIP</label>
         </div>
     <div class="legend-item">
-  <img src="~/images/seat-couple.svg" alt="Gh? ?�i" class="seat-icon">
-    <label>Gh? ?�i</label>
+  <img src="~/images/seat-couple.svg" alt="Gh? ?ôi" class="seat-icon">
+    <label>Gh? ?ôi</label>
   </div>
   </div>
 
-     <div class="screen-label">M�N H�NH CHI?U</div>
+     <div class="screen-label">MÀN HÌNH CHI?U</div>
 
  <div class="seat-grid">
     @{
@@ -91,7 +91,7 @@
   </div>
   
    <div class="detail-row">
-          <span class="detail-label">Ng�y chi?u</span>
+          <span class="detail-label">Ngày chi?u</span>
       <span class="detail-value">@Model.ShowDate.ToString("dd/MM/yyyy")</span>
             </div>
         
@@ -103,7 +103,7 @@
       <div class="detail-divider"></div>
       
             <div class="selected-seats-section">
-   <h5>Gh? ?� Ch?n</h5>
+   <h5>Gh? ?ã Ch?n</h5>
       <div id="selectedSeatsList" class="selected-seats-list">
       <span class="placeholder">Ch?a ch?n gh?</span>
     </div>
@@ -115,7 +115,7 @@
        <span class="amount" id="totalPrice">0 vn?</span>
           </div>
              <div class="time-remaining">
-     Th?i gian c�n l?i: <span id="timeRemaining">8:17</span>
+     Th?i gian còn l?i: <span id="timeRemaining">8:17</span>
         </div>
       </div>
 
@@ -125,40 +125,112 @@
     </div>
 </div>
 
+<!-- Checkout modal -->
+<div id="checkoutModal" class="checkout-modal" style="display:none;">
+    <div class="checkout-overlay"></div>
+    <div class="checkout-content">
+        <h3>Xác nhận đặt vé</h3>
+        <p><strong>Gh?:</strong> <span id="modalSeats"></span></p>
+        <p><strong>T?ng vé:</strong> <span id="modalTotalTickets"></span></p>
+        <p><strong>T?ng ti?n:</strong> <span id="modalTotalPrice"></span></p>
+        <p><strong>Giờ chiếu:</strong> <span id="modalShowtime">@Model.ShowDate.ToString("dd/MM/yyyy HH:mm")</span></p>
+        <p><strong>Thời gian giữ ghế:</strong> <span id="modalCountdown">10:00</span></p>
+        <div class="checkout-actions">
+            <button id="cancelCheckout" class="btn-cancel">Hủy</button>
+            <button id="confirmCheckout" class="btn-pay">Thanh toán</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.checkout-modal { position: fixed; top:0; left:0; right:0; bottom:0; display:flex; align-items:center; justify-content:center; z-index:1000; }
+.checkout-overlay { position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.6); }
+.checkout-content { position: relative; background:#fff; padding:20px; border-radius:6px; width:320px; z-index:1001; box-shadow:0 8px 24px rgba(0,0,0,0.2); }
+.checkout-content h3 { margin-top:0; }
+.checkout-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:12px; }
+.btn-cancel { background:#ccc; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; }
+.btn-pay { background:#2b7cff; color:#fff; border:none; padding:8px 12px; border-radius:4px; cursor:pointer; }
+.held { opacity: 0.6; }
+</style>
+
+<!-- SignalR client -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 <script>
     const selectedSeats = new Set();
-  const maxSeats = 10;
- const basePrice = @Model.BasePrice;
+    const selectedSeatIds = new Set();
+    const maxSeats = 10;
+    const basePrice = @Model.BasePrice;
     const seatTypeMap = {}; // Track seat types
+    let modalTimer = null;
+    const showTimeId = '@Model.ShowTimeId';
+
+    // SignalR connection
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl(`/seatHub?showtime=${showTimeId}`)
+        .withAutomaticReconnect()
+        .build();
+
+    connection.on("SeatsHeld", function (payload) {
+        const seatIds = payload.seatIds || [];
+        seatIds.forEach(id => {
+            const btn = document.querySelector(`[data-seat-id="${id}"]`);
+            if (btn && !btn.classList.contains('selected')) {
+                btn.classList.add('held');
+                btn.disabled = true;
+            }
+        });
+    });
+
+    connection.on("SeatsReleased", function (payload) {
+        const seatIds = payload.seatIds || [];
+        seatIds.forEach(id => {
+            const btn = document.querySelector(`[data-seat-id="${id}"]`);
+            if (btn && !btn.classList.contains('booked')) {
+                btn.classList.remove('held');
+                btn.disabled = false;
+            }
+        });
+    });
+
+    connection.start()
+        .then(() => {
+            // join the showtime group explicitly
+            try { connection.invoke('JoinShowTime', showTimeId); } catch (e) { console.error(e); }
+        })
+        .catch(err => console.error(err.toString()));
 
     function toggleSeat(button) {
+        if (!button || button.disabled) return; // ignore clicks on disabled/held/booked
+
         const seatId = button.dataset.seatId;
         const seatCode = button.dataset.seatCode;
         const seatType = button.dataset.seatType;
-
-     // For Couple seats, they count as 2 seats
         const seatCount = seatType === 'Couple' ? 2 : 1;
 
         if (button.classList.contains('selected')) {
-   button.classList.remove('selected');
+            // unselect
+            button.classList.remove('selected');
             selectedSeats.delete(seatCode);
+            selectedSeatIds.delete(seatId);
             delete seatTypeMap[seatCode];
         } else {
-      const currentCount = Array.from(selectedSeats).reduce((sum, code) => {
-   return sum + (seatTypeMap[code] === 'Couple' ? 2 : 1);
-   }, 0);
+            // select
+            const currentCount = Array.from(selectedSeats).reduce((sum, code) => {
+                return sum + (seatTypeMap[code] === 'Couple' ? 2 : 1);
+            }, 0);
 
             if (currentCount + seatCount > maxSeats) {
-     alert(`Ch? ???c ch?n t?i ?a ${maxSeats} gh? (gh? ?�i t�nh 2 gh?)`);
-          return;
-   }
+                alert(`Ch? ???c ch?n t?i ?a ${maxSeats} gh? (gh? ?ôi tính 2 gh?)`);
+                return;
+            }
 
-    button.classList.add('selected');
-        selectedSeats.add(seatCode);
-    seatTypeMap[seatCode] = seatType;
+            button.classList.add('selected');
+            selectedSeats.add(seatCode);
+            selectedSeatIds.add(seatId);
+            seatTypeMap[seatCode] = seatType;
         }
 
-   updateSummary();
+        updateSummary();
     }
 
     function updateSummary() {
@@ -167,39 +239,111 @@
         let totalPrice = 0;
 
         selectedSeats.forEach(code => {
-    const seatType = seatTypeMap[code];
-    const ticketCount = seatType === 'Couple' ? 2 : 1;
-         totalTickets += ticketCount;
+            const seatType = seatTypeMap[code];
+            const ticketCount = seatType === 'Couple' ? 2 : 1;
+            totalTickets += ticketCount;
             totalPrice += ticketCount * basePrice;
-  });
+        });
 
-      const list = document.getElementById('selectedSeatsList');
+        const list = document.getElementById('selectedSeatsList');
         if (count === 0) {
-     list.innerHTML = '<span class="placeholder">Ch?a ch?n gh?</span>';
+            list.innerHTML = '<span class="placeholder">Ch?a ch?n gh?</span>';
         } else {
             const seatInfo = Array.from(selectedSeats)
-    .sort()
-      .map(code => {
- const type = seatTypeMap[code];
-        return type === 'Couple' ? `${code} (?�i)` : code;
-        })
-      .join(', ');
-    list.textContent = seatInfo;
+                .sort()
+                .map(code => {
+                    const type = seatTypeMap[code];
+                    return type === 'Couple' ? `${code} (?ôi)` : code;
+                })
+                .join(', ');
+            list.textContent = seatInfo;
         }
 
         document.getElementById('totalPrice').textContent = totalPrice.toLocaleString('vi-VN') + ' vn?';
     }
 
+    async function openCheckoutModal(seatsArray, seatIdsArray, totalTickets, totalPrice) {
+        document.getElementById('modalSeats').textContent = seatsArray.join(', ');
+        document.getElementById('modalTotalTickets').textContent = totalTickets + ' vé';
+        document.getElementById('modalTotalPrice').textContent = totalPrice.toLocaleString('vi-VN') + ' vn?';
+        document.getElementById('checkoutModal').style.display = 'flex';
+
+        // start 10 minute countdown (600 seconds)
+        startModalCountdown(600, seatIdsArray);
+
+        // notify server to hold these seats
+        try {
+            await connection.invoke('HoldSeats', showTimeId, seatIdsArray, 600);
+        } catch (e) {
+            console.error('HoldSeats error', e);
+        }
+    }
+
+    async function closeCheckoutModal(release = true) {
+        document.getElementById('checkoutModal').style.display = 'none';
+        if (modalTimer) {
+            clearInterval(modalTimer);
+            modalTimer = null;
+        }
+        document.getElementById('modalCountdown').textContent = '10:00';
+
+        if (release && selectedSeatIds.size > 0) {
+            // release held seats on server
+            try {
+                await connection.invoke('ReleaseSeats', showTimeId, Array.from(selectedSeatIds));
+            } catch (e) {
+                console.error('ReleaseSeats error', e);
+            }
+        }
+
+        // clear selections in UI
+        selectedSeats.forEach(code => {
+            // find button by seat code
+            const btn = Array.from(document.querySelectorAll('.seat')).find(b => b.dataset.seatCode === code);
+            if (btn) btn.classList.remove('selected');
+        });
+        selectedSeats.clear();
+        selectedSeatIds.clear();
+        for (const k in seatTypeMap) delete seatTypeMap[k];
+        updateSummary();
+    }
+
+    function startModalCountdown(seconds, seatIdsArray) {
+        let remaining = seconds;
+        if (modalTimer) {
+            clearInterval(modalTimer);
+        }
+        const display = document.getElementById('modalCountdown');
+        function update() {
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+            display.textContent = `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+            if (remaining <= 0) {
+                clearInterval(modalTimer);
+                modalTimer = null;
+                alert('Thời gian giữ ghế đã hết.');
+                // release on expiry
+                if (seatIdsArray && seatIdsArray.length) {
+                    connection.invoke('ReleaseSeats', showTimeId, seatIdsArray).catch(console.error);
+                }
+                closeCheckoutModal(false);
+            }
+            remaining--;
+        }
+        update();
+        modalTimer = setInterval(update, 1000);
+    }
+
     function proceedToCheckout() {
-    if (selectedSeats.size === 0) {
-     alert('Vui l�ng ch?n �t nh?t 1 gh?');
-  return;
-  }
+        if (selectedSeats.size === 0) {
+            alert('Vui lòng ch?n ít nh?t 1 gh?');
+            return;
+        }
 
         const seatsArray = Array.from(selectedSeats);
+        const seatIdsArray = Array.from(selectedSeatIds);
         let totalTickets = 0;
         let totalPrice = 0;
-
         seatsArray.forEach(code => {
             const seatType = seatTypeMap[code];
             const ticketCount = seatType === 'Couple' ? 2 : 1;
@@ -207,7 +351,30 @@
             totalPrice += ticketCount * basePrice;
         });
 
-        alert(`?� ch?n gh?: ${seatsArray.join(', ')}\nT?ng v�: ${totalTickets} v�\nT?ng ti?n: ${totalPrice.toLocaleString('vi-VN')} vn?`);
-   // TODO: Redirect to payment page
+        // Open modal and hold seats via SignalR
+        openCheckoutModal(seatsArray, seatIdsArray, totalTickets, totalPrice);
     }
+
+    // Wire up modal buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        const cancelBtn = document.getElementById('cancelCheckout');
+        const confirmBtn = document.getElementById('confirmCheckout');
+        const overlay = document.querySelector('.checkout-overlay');
+        if (cancelBtn) cancelBtn.addEventListener('click', function() { closeCheckoutModal(true); });
+        if (overlay) overlay.addEventListener('click', function() { closeCheckoutModal(true); });
+        if (confirmBtn) confirmBtn.addEventListener('click', function() {
+            // On pay, redirect to Checkout action with query params (implement server-side handling)
+            const seats = encodeURIComponent(document.getElementById('modalSeats').textContent);
+            const totalPrice = encodeURIComponent(document.getElementById('modalTotalPrice').textContent.replace(/[^0-9]/g, ''));
+            const url = '@Url.Action("Checkout", "Ticket")' + `?seats=${seats}&totalPrice=${totalPrice}`;
+            window.location.href = url;
+        });
+
+        // Release any held seats when leaving the page (optional)
+        window.addEventListener('beforeunload', function (e) {
+            if (selectedSeatIds.size > 0) {
+                navigator.sendBeacon ? navigator.sendBeacon('/api/seat/releaseOnUnload', JSON.stringify({ showTimeId: showTimeId, seatIds: Array.from(selectedSeatIds) })) : null;
+            }
+        });
+    });
 </script>
