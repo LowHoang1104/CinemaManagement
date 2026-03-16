@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 80" width="40" height="32">
+  <!-- Gh? VIP - Seat with armrests -->
+  <rect x="10" y="15" width="80" height="35" rx="8" ry="8" fill="#a0a0a0" stroke="#777" stroke-width="1.5"/>
+  <rect x="15" y="50" width="70" height="8" rx="2" ry="2" fill="#888"/>
+  <!-- Armrests -->
+  <rect x="5" y="25" width="8" height="25" rx="2" ry="2" fill="#888"/>
+  <rect x="87" y="25" width="8" height="25" rx="2" ry="2" fill="#888"/>
+</svg>

@@ -2,69 +2,195 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Beta Cinemas - Template Bài Tập</title>
     <link rel="stylesheet" href="~/css/style.css">
+    <link rel="stylesheet" href="~/css/movie-detail.css">
+    <link rel="stylesheet" href="~/css/ticket-selection.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
     <header>
-        <div class="container">
-            <div class="logo">
-                <img src="https://betacinemas.vn/Assets/Common/logo/logo.png" alt="Beta Logo">
-            </div>
-            <nav>
-                <ul>
-                    <li><a href="#" class="active">LỊCH CHIẾU</a></li>
-                    <li><a href="#">HỆ THỐNG RẠP</a></li>
-                    <li><a href="phim.html">PHIM</a></li>
-                    <li><a href="thong-tin-rap.html">RẠP</a></li>
-                    <li><a href="gia-ve.html">GIÁ VÉ</a></li>
-                    <li><a href="tin-moi-va-uu-dai.html">TIN MỚI VÀ ƯU ĐÃI</a></li>
-                    <li><a href="#">NHƯỢNG QUYỀN</a></li>
-                </ul>
+    <div class="container">
+   <div class="logo">
+ <img src="https://betacinemas.vn/Assets/Common/logo/logo.png" alt="Beta Logo">
+ </div>
+        
+    <!-- Cinema Selector Dropdown -->
+ <div class="cinema-selector">
+   <button class="cinema-selector-btn" id="cinemaSelectorBtn">
+  <span id="selectedCinemaName">Ch�?n cơ sở</span>
+     <span class="arrow">▼</span>
+       </button>
+     <div class="cinema-dropdown" id="cinemaDropdown">
+       @{
+         var cinemas = ViewData["Cinemas"] as List<Cinema> ?? new List<Cinema>();
+            }
+        @if (cinemas.Any())
+   {
+   @foreach (var cinema in cinemas)
+              {
+       <a href="javascript:void(0);" class="cinema-option" data-cinema-id="@cinema.CinemaId" data-cinema-name="@cinema.Name">
+      @cinema.Name
+      </a>
+      }
+         }
+           else
+     {
+        <span class="cinema-option-disabled">Không có rạp nào</span>
+   }
+           </div>
+       </div>
+   
+      <nav>
+       <ul>
+   <li><a href="@Url.Action("Index", "Home")" class="active">LỊCH CHIẾU</a></li>
+       <li><a href="#">HỆ TH�?NG RẠP</a></li>
+      <li><a href="#">PHIM</a></li>
+     <li><a href="#">RẠP</a></li>
+             <li><a href="#">GI�? VÉ</a></li>
+<li><a href="#">TIN MỚI VÀ ƯU �?ÃI</a></li>
+   <li><a href="#">NHƯỢNG QUYỀN</a></li>
+          </ul>
             </nav>
             <div class="user-actions">
-                <button class="btn-login" type="button" onclick="window.location.href='@Url.Action("Login", "Auth")'">ĐĂNG NHẬP</button>
+                <button class="btn-login" type="button" onclick="window.location.href='@Url.Action("Login", "Auth")'">�?ĂNG NHẬP</button>
 
             </div>
         </div>
     </header>
 
- 
-
     @RenderBody()
 
     <footer>
         <div class="container footer-content">
-            <div class="footer-col">
-                <h4>GIỚI THIỆU</h4>
-                <ul>
-                    <li><a href="#">V�? chúng tôi</a></li>
-                    <li><a href="#">Th�?a thuận sử dụng</a></li>
-                    <li><a href="#">Quy chế hoạt động</a></li>
-                    <li><a href="#">Chính sách bảo mật</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>GÓC �?IỆN ẢNH</h4>
-                <ul>
-                    <li><a href="#">Thể loại phim</a></li>
-                    <li><a href="#">Bình luận phim</a></li>
-                    <li><a href="#">Blog điện ảnh</a></li>
-                </ul>
-            </div>
-            <div class="footer-col">
-                <h4>KẾT N�?I VỚI CHÚNG TÔI</h4>
-                <p>Hotline: 1900 6467</p>
-                <p>Email: marketing@betacinemas.vn</p>
-            </div>
+     <div class="footer-col">
+        <h4>GIỚI THIỆU</h4>
+   <ul>
+        <li><a href="#">V�? chúng tôi</a></li>
+   <li><a href="#">Th�?a thuận sử dụng</a></li>
+          <li><a href="#">Quy chế hoạt động</a></li>
+       <li><a href="#">Chính sách bảo mật</a></li>
+      </ul>
+     </div>
+   <div class="footer-col">
+    <h4>GÓC �?IỆN ẢNH</h4>
+  <ul>
+     <li><a href="#">Thể loại phim</a></li>
+       <li><a href="#">Bình luận phim</a></li>
+          <li><a href="#">Blog điện ảnh</a></li>
+       </ul>
+</div>
+  <div class="footer-col">
+      <h4>KẾT N�?I VỚI CHÚNG TÔI</h4>
+   <p>Hotline: 1900 6467</p>
+   <p>Email: marketing@betacinemas.vn</p>
+    </div>
         </div>
         <div class="footer-bottom">
-            <p>&copy; 2024 Beta Cinemas. All Rights Reserved. Design for School Project.</p>
-        </div>
+    <p>&copy; 2024 Beta Cinemas. All Rights Reserved. Design for School Project.</p>
+   </div>
     </footer>
+
+    <script>
+   // Cinema Selector Dropdown Logic with Session
+document.addEventListener('DOMContentLoaded', function() {
+            const cinemaSelectorBtn = document.getElementById('cinemaSelectorBtn');
+ const cinemaDropdown = document.getElementById('cinemaDropdown');
+    const cinemaOptions = document.querySelectorAll('.cinema-option');
+const selectedCinemaName = document.getElementById('selectedCinemaName');
+
+       // Load selected cinema from session on page load
+      loadSelectedCinema();
+
+   // Toggle dropdown
+cinemaSelectorBtn.addEventListener('click', function(e) {
+         e.stopPropagation();
+     cinemaDropdown.classList.toggle('active');
+      });
+
+    // Select cinema and save to session
+ cinemaOptions.forEach(option => {
+        option.addEventListener('click', function(e) {
+       e.preventDefault();
+          const cinemaName = this.getAttribute('data-cinema-name');
+     const cinemaId = this.getAttribute('data-cinema-id');
+    
+   // Save to session via API
+         saveCinemaToSession(cinemaId, cinemaName);
+  });
+      });
+
+     // Close dropdown when clicking outside
+         document.addEventListener('click', function(e) {
+     if (!e.target.closest('.cinema-selector')) {
+           cinemaDropdown.classList.remove('active');
+}
+});
+
+      // Load selected cinema from session
+            function loadSelectedCinema() {
+   fetch('/Home/GetSelectedCinema', {
+   method: 'GET',
+          headers: {
+        'Content-Type': 'application/json',
+      }
+       })
+       .then(response => {
+                if (!response.ok) {
+     throw new Error('Network response was not ok');
+    }
+       return response.json();
+            })
+        .then(data => {
+            if (data.cinemaName && data.cinemaName !== 'Chưa ch�?n cơ sở') {
+        selectedCinemaName.textContent = data.cinemaName;
+     } else {
+    selectedCinemaName.textContent = 'Ch�?n cơ sở';
+         }
+    })
+        .catch(error => {
+           console.error('Error loading cinema:', error);
+         selectedCinemaName.textContent = 'Ch�?n cơ sở';
+       });
+ }
+
+     // Save cinema to session
+         function saveCinemaToSession(cinemaId, cinemaName) {
+   fetch('/Home/SelectCinema', {
+     method: 'POST',
+        headers: {
+     'Content-Type': 'application/json',
+        },
+      body: JSON.stringify({ cinemaId: cinemaId })
+      })
+ .then(response => {
+     if (!response.ok) {
+        throw new Error('Network response was not ok');
+     }
+                return response.json();
+            })
+     .then(data => {
+ if (data.success) {
+   selectedCinemaName.textContent = data.cinemaName;
+         cinemaDropdown.classList.remove('active');
+   
+      // Reload page after 500ms to apply cinema filter
+          setTimeout(() => {
+  window.location.reload();
+          }, 300);
+  } else {
+        alert('Lỗi: ' + (data.message || 'Không thể ch�?n cơ sở'));
+      }
+ })
+  .catch(error => {
+  console.error('Error saving cinema:', error);
+   alert('Có lỗi xảy ra khi ch�?n cơ sở');
+   });
+    }
+  });
+    </script>
 
 </body>
 </html>

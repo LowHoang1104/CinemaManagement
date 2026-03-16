@@ -1,0 +1,18 @@
+@{
+    var selectedCinemaId = ViewData["SelectedCinemaId"] as Guid? ?? Guid.Empty;
+    var cinemas = ViewData["Cinemas"] as List<Cinema> ?? new List<Cinema>();
+    var selectedCinema = cinemas.FirstOrDefault(c => c.CinemaId == selectedCinemaId);
+}
+
+@if (selectedCinema != null)
+{
+  <div class="selected-cinema-info">
+    <div class="container">
+  <div class="cinema-info-content">
+             <span class="cinema-label">?ang xem l?ch chi?u t?i:</span>
+ <span class="cinema-name">@selectedCinema.Name</span>
+           <span class="cinema-address">@selectedCinema.Address</span>
+        </div>
+        </div>
+  </div>
+}

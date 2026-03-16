@@ -1,0 +1,213 @@
+@model SelectSeatsViewModel;
+@using CinemaManagement.Controllers
+@{
+    ViewData["Title"] = "Ch?n Gh? - " + Model.MovieTitle;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="ticket-selection-container">
+    <div class="breadcrumb">
+        <a href="@Url.Action("Index", "Home")">Trang ch?</a> > 
+      <a href="@Url.Action("Detail", "Movie")">??t vé</a> > 
+        <span>Ch?n Gh?</span>
+ </div>
+
+ <div class="content">
+   <div class="seat-selection">
+          <h2>Ch?n Gh? C?a B?n</h2>
+        
+  <div class="legend">
+         <div class="legend-item">
+            <img src="~/images/seat-standard.svg" alt="Gh? th??ng" class="seat-icon">
+  <label>Gh? th??ng</label>
+            </div>
+    <div class="legend-item">
+     <img src="~/images/seat-vip.svg" alt="Gh? VIP" class="seat-icon">
+       <label>Gh? VIP</label>
+        </div>
+    <div class="legend-item">
+  <img src="~/images/seat-couple.svg" alt="Gh? ?ôi" class="seat-icon">
+    <label>Gh? ?ôi</label>
+  </div>
+  </div>
+
+     <div class="screen-label">MÀN HÌNH CHI?U</div>
+
+ <div class="seat-grid">
+    @{
+          var seatsByRow = Model.Seats.GroupBy(s => s.RowLabel).OrderBy(g => g.Key);
+    }
+  
+      @foreach (var row in seatsByRow)
+      {
+  <div class="seat-row">
+    <span class="row-label">@((char)(64 + row.Key))</span>
+       <div class="seats">
+@{
+    var seatsInRow = row.OrderBy(s => s.ColNumber).ToList();
+       for (int i = 0; i < seatsInRow.Count; i++)
+      {
+    var seat = seatsInRow[i];
+         var isBooked = Model.BooedSeatIds.Contains(seat.SeatId);
+              var seatClass = isBooked ? "booked" : (seat.SeatType == "VIP" ? "vip" : (seat.SeatType == "Couple" ? "couple" : "available"));
+         
+             <button type="button" 
+    class="seat @seatClass" 
+     id="seat-@seat.SeatId"
+ data-seat-id="@seat.SeatId"
+      data-seat-code="@seat.SeatCode"
+    data-seat-type="@seat.SeatType"
+    data-seat-price="@Model.BasePrice"
+  onclick="toggleSeat(this)"
+      @(isBooked ? "disabled" : "")>
+   <span class="seat-code">@seat.SeatCode</span>
+    </button>
+       }
+         }
+</div>
+ <span class="row-label">@((char)(64 + row.Key))</span>
+    </div>
+        }
+ </div>
+
+ <div class="seat-info">
+        <p>Ch?n t?i ?a 10 gh?</p>
+    </div>
+        </div>
+
+        <div class="ticket-info">
+            <div class="movie-card">
+         <img src="@Model.MoviePoster" alt="@Model.MovieTitle" class="movie-poster">
+                <h3>@Model.MovieTitle</h3>
+       <p class="format">@Model.Format</p>
+        </div>
+
+ <div class="booking-details">
+    <h4>Chi Ti?t L?ch Chi?u</h4>
+  
+   <div class="detail-row">
+      <span class="detail-label">R?p chi?u</span>
+         <span class="detail-value">@Model.CinemaName</span>
+  </div>
+  
+   <div class="detail-row">
+          <span class="detail-label">Ngày chi?u</span>
+      <span class="detail-value">@Model.ShowDate.ToString("dd/MM/yyyy")</span>
+            </div>
+        
+        <div class="detail-row">
+<span class="detail-label">Gi? chi?u</span>
+       <span class="detail-value">@Model.ShowDate.ToString("HH:mm")</span>
+  </div>
+    
+      <div class="detail-divider"></div>
+      
+            <div class="selected-seats-section">
+   <h5>Gh? ?ã Ch?n</h5>
+      <div id="selectedSeatsList" class="selected-seats-list">
+      <span class="placeholder">Ch?a ch?n gh?</span>
+    </div>
+    </div>
+
+                <div class="price-section">
+             <div class="price-row">
+           <span>T?ng ti?n</span>
+       <span class="amount" id="totalPrice">0 vn?</span>
+          </div>
+             <div class="time-remaining">
+     Th?i gian còn l?i: <span id="timeRemaining">8:17</span>
+        </div>
+      </div>
+
+          <button class="btn-proceed" onclick="proceedToCheckout()">TI?P T?C</button>
+     </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const selectedSeats = new Set();
+  const maxSeats = 10;
+ const basePrice = @Model.BasePrice;
+    const seatTypeMap = {}; // Track seat types
+
+    function toggleSeat(button) {
+        const seatId = button.dataset.seatId;
+        const seatCode = button.dataset.seatCode;
+        const seatType = button.dataset.seatType;
+
+     // For Couple seats, they count as 2 seats
+        const seatCount = seatType === 'Couple' ? 2 : 1;
+
+        if (button.classList.contains('selected')) {
+   button.classList.remove('selected');
+            selectedSeats.delete(seatCode);
+            delete seatTypeMap[seatCode];
+        } else {
+      const currentCount = Array.from(selectedSeats).reduce((sum, code) => {
+   return sum + (seatTypeMap[code] === 'Couple' ? 2 : 1);
+   }, 0);
+
+            if (currentCount + seatCount > maxSeats) {
+     alert(`Ch? ???c ch?n t?i ?a ${maxSeats} gh? (gh? ?ôi tính 2 gh?)`);
+          return;
+   }
+
+    button.classList.add('selected');
+        selectedSeats.add(seatCode);
+    seatTypeMap[seatCode] = seatType;
+        }
+
+   updateSummary();
+    }
+
+    function updateSummary() {
+        const count = selectedSeats.size;
+        let totalTickets = 0;
+        let totalPrice = 0;
+
+        selectedSeats.forEach(code => {
+    const seatType = seatTypeMap[code];
+    const ticketCount = seatType === 'Couple' ? 2 : 1;
+         totalTickets += ticketCount;
+            totalPrice += ticketCount * basePrice;
+  });
+
+      const list = document.getElementById('selectedSeatsList');
+        if (count === 0) {
+     list.innerHTML = '<span class="placeholder">Ch?a ch?n gh?</span>';
+        } else {
+            const seatInfo = Array.from(selectedSeats)
+    .sort()
+      .map(code => {
+ const type = seatTypeMap[code];
+        return type === 'Couple' ? `${code} (?ôi)` : code;
+        })
+      .join(', ');
+    list.textContent = seatInfo;
+        }
+
+        document.getElementById('totalPrice').textContent = totalPrice.toLocaleString('vi-VN') + ' vn?';
+    }
+
+    function proceedToCheckout() {
+    if (selectedSeats.size === 0) {
+     alert('Vui lòng ch?n ít nh?t 1 gh?');
+  return;
+  }
+
+        const seatsArray = Array.from(selectedSeats);
+        let totalTickets = 0;
+        let totalPrice = 0;
+
+        seatsArray.forEach(code => {
+            const seatType = seatTypeMap[code];
+            const ticketCount = seatType === 'Couple' ? 2 : 1;
+            totalTickets += ticketCount;
+            totalPrice += ticketCount * basePrice;
+        });
+
+        alert(`?ã ch?n gh?: ${seatsArray.join(', ')}\nT?ng vé: ${totalTickets} vé\nT?ng ti?n: ${totalPrice.toLocaleString('vi-VN')} vn?`);
+   // TODO: Redirect to payment page
+    }
+</script>

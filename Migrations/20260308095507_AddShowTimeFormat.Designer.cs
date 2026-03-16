@@ -3,6 +3,7 @@ using System;
 using CinemaManagement.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace CinemaManagement.Migrations
 {
     [DbContext(typeof(CinemaManagementContext))]
-    partial class CinemaManagementContextModelSnapshot : ModelSnapshot
+    [Migration("20260308095507_AddShowTimeFormat")]
+    partial class AddShowTimeFormat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -338,6 +341,11 @@ namespace CinemaManagement.Migrations
                     b.Property<Guid?>("CreatedBy")
                         .HasColumnType("uuid");
 
+                    b.Property<bool>("IsActive")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true);
+
                     b.Property<DateTime?>("LastUpdatedAt")
                         .HasPrecision(6)
                         .HasColumnType("timestamp(6) with time zone");
@@ -356,9 +364,6 @@ namespace CinemaManagement.Migrations
                         .HasMaxLength(10)
                         .HasColumnType("character varying(10)");
 
-                    b.Property<Guid>("SeatStatusId")
-                        .HasColumnType("uuid");
-
                     b.Property<string>("SeatType")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -366,29 +371,12 @@ namespace CinemaManagement.Migrations
 
                     b.HasKey("SeatId");
 
-                    b.HasIndex("SeatStatusId");
-
                     b.HasIndex(new[] { "RoomId" }, "IX_Seats_RoomId");
 
                     b.HasIndex(new[] { "RoomId", "SeatCode" }, "UQ_Seats_Room_SeatCode")
                         .IsUnique();
 
                     b.ToTable("Seats");
-                });
-
-            modelBuilder.Entity("CinemaManagement.Models.SeatStatus", b =>
-                {
-                    b.Property<Guid>("SeatStatusId")
-                        .HasColumnType("uuid");
-
-                    b.Property<string>("StatusName")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("character varying(50)");
-
-                    b.HasKey("SeatStatusId");
-
-                    b.ToTable("SeatStatuses");
                 });
 
             modelBuilder.Entity("CinemaManagement.Models.ShowTime", b =>
@@ -414,7 +402,8 @@ namespace CinemaManagement.Migrations
                         .HasColumnType("timestamp(6) with time zone");
 
                     b.Property<string>("Format")
-                        .HasColumnType("text");
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
 
                     b.Property<DateTime?>("LastUpdatedAt")
                         .HasPrecision(6)
@@ -658,15 +647,7 @@ namespace CinemaManagement.Migrations
                         .IsRequired()
                         .HasConstraintName("FK_Seats_Rooms");
 
-                    b.HasOne("CinemaManagement.Models.SeatStatus", "SeatStatus")
-                        .WithMany("Seats")
-                        .HasForeignKey("SeatStatusId")
-                        .IsRequired()
-                        .HasConstraintName("FK_Seats_SeatStatuses");
-
                     b.Navigation("Room");
-
-                    b.Navigation("SeatStatus");
                 });
 
             modelBuilder.Entity("CinemaManagement.Models.ShowTime", b =>
@@ -785,11 +766,6 @@ namespace CinemaManagement.Migrations
                     b.Navigation("ShowTimeSeats");
 
                     b.Navigation("Tickets");
-                });
-
-            modelBuilder.Entity("CinemaManagement.Models.SeatStatus", b =>
-                {
-                    b.Navigation("Seats");
                 });
 
             modelBuilder.Entity("CinemaManagement.Models.ShowTime", b =>
