@@ -15,8 +15,25 @@ namespace CinemaManagement.Controllers
  {
       _logger = logger;
    }
+        private void InitializeUserSession()
+        {
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            if (userIdStr == null)
+            {
+                // Get first user from database
+                var firstUser = _context.Users.FirstOrDefault();
 
-   public IActionResult Index()
+                if (firstUser != null)
+                {
+                    // Save user info to session
+                    HttpContext.Session.SetString("UserId", firstUser.UserId.ToString());
+                    HttpContext.Session.SetString("UserEmail", firstUser.Email ?? "");
+                    HttpContext.Session.SetString("UserFullName", firstUser.FullName ?? "");
+                }
+            }
+        }
+
+        public IActionResult Index()
         {
         var selectedCinemaId = GetSelectedCinemaId();
       ViewData["SelectedCinemaId"] = selectedCinemaId;
@@ -34,7 +51,7 @@ namespace CinemaManagement.Controllers
            .ThenInclude(r => r.Cinema)
                  .Where(m => m.ShowTimes.Any(st =>
           st.Room.Cinema.CinemaId == selectedCinemaId &&
-           st.StartAt > nowUtc &&
+           //st.StartAt > nowUtc &&
                st.Status == 1))
                 .OrderBy(x => x.CreatedAt)
             .ToList();
