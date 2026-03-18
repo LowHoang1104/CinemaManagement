@@ -1,0 +1,46 @@
+@model List<CinemaManagement.ViewModels.TicketPriceItemViewModel>
+@{
+    ViewData["Title"] = "Giá vé";
+}
+
+<div class="page-shell">
+    <section class="page-hero">
+        <h1>Bảng Giá Vé</h1>
+        <p>Giá tham khảo theo các suất chiếu sắp diễn ra.</p>
+    </section>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            Hiện chưa có suất chiếu sắp tới để hiển thị giá vé.
+        </div>
+    }
+    else
+    {
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Phim</th>
+                    <th>Cơ sở</th>
+                    <th>Rạp</th>
+                    <th>Suất chiếu</th>
+                    <th>Định dạng</th>
+                    <th>Giá cơ bản</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.MovieTitle</td>
+                        <td>@item.CinemaName</td>
+                        <td>@item.RoomName</td>
+                        <td>@item.StartAt.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                        <td>@item.Format</td>
+                        <td>@item.BasePrice.ToString("N0") VNĐ</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>

@@ -12,7 +12,21 @@ namespace CinemaManagement.Controllers
 
         public IActionResult Index()
         {
-            return View();
+            var selectedCinemaId = GetSelectedCinemaId();
+            var nowUtc = DateTime.UtcNow;
+
+            var movies = _context.Movies
+                .Include(m => m.ShowTimes.Where(st => st.Status == 1 && st.StartAt >= nowUtc))
+                .ThenInclude(st => st.Room)
+                .ThenInclude(r => r.Cinema)
+                .Where(m => m.Status == 1)
+                .Where(m => selectedCinemaId == Guid.Empty || m.ShowTimes.Any(st => st.Room.Cinema.CinemaId == selectedCinemaId))
+                .OrderByDescending(m => m.ReleaseDate ?? DateTime.MinValue)
+                .ThenBy(m => m.Title)
+                .ToList();
+
+            ViewData["SelectedCinemaId"] = selectedCinemaId;
+            return View(movies);
         }
 
         public IActionResult Detail(Guid id)

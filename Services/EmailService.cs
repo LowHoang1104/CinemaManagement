@@ -30,7 +30,7 @@ namespace CinemaManagement.Services
             var mail = new MailMessage
             {
                 From = new MailAddress(smtp["SenderEmail"], smtp["SenderName"]),
-                Subject = "Mã xác thực đặt lại mật khẩu - Beta Cinemas",
+                Subject = "Mã xác thực đặt lại mật khẩu - PRIME NINE Cinema",
                 Body = BuildEmailBody(fullName, otp),
                 IsBodyHtml = true
             };
@@ -52,10 +52,10 @@ namespace CinemaManagement.Services
           <table width=""600"" cellpadding=""0"" cellspacing=""0"" role=""presentation"" style=""background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 8px 30px rgba(16,24,40,0.08);"">
             <tr>
               <td style=""padding:24px 28px 12px; text-align:left;"">
-                <img src=""https://betacinemas.vn/Assets/Common/logo/logo.png"" alt=""Beta Cinemas"" width=""140"" style=""display:block; margin-bottom:12px;"" />
+                <div style=""font-size:18px;font-weight:700;color:#0b5cb6;margin-bottom:12px;"">PRIME NINE Cinema</div>
                 <h2 style=""margin:0 0 8px;color:#0b5cb6;font-size:20px;"">Xin chào {System.Net.WebUtility.HtmlEncode(fullName)}</h2>
                 <p style=""margin:0;color:#475569;font-size:14px;line-height:1.5;"">
-                  Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản tại <strong>Beta Cinemas</strong>. Vui lòng sử dụng mã xác thực bên dưới để tiếp tục.
+                  Bạn vừa yêu cầu đặt lại mật khẩu cho tài khoản tại <strong>PRIME NINE Cinema</strong>. Vui lòng sử dụng mã xác thực bên dưới để tiếp tục.
                 </p>
               </td>
             </tr>
@@ -79,13 +79,13 @@ namespace CinemaManagement.Services
                   <li>Không chia sẻ mã này với bất kỳ ai.</li>
                   <li>Nếu bạn không yêu cầu mã này, vui lòng bỏ qua email.</li>
                 </ul>
-                <p style=""margin:16px 0 0;color:#9aa4b2;font-size:12px;"">Trân trọng,<br/>Beta Cinemas</p>
+                <p style=""margin:16px 0 0;color:#9aa4b2;font-size:12px;"">Trân trọng,<br/>PRIME NINE Cinema</p>
               </td>
             </tr>
 
             <tr>
               <td style=""background:#f7fafc;padding:12px 20px;text-align:center;font-size:12px;color:#94a3b8;"">
-                © {DateTime.UtcNow.Year} Beta Cinemas — Bảo mật thông tin người dùng
+                © {DateTime.UtcNow.Year} PRIME NINE Cinema — Bảo mật thông tin người dùng
               </td>
             </tr>
           </table>

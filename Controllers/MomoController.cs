@@ -107,7 +107,7 @@ namespace CinemaManagement.Controllers
 <head>
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width,initial-scale=1'>
-  <title>Thanh to�n MoMo (Test)</title>
+    <title>Thanh toán MoMo (Test)</title>
   <style>
     body {{ background:#f2f6fb; font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; }}
     .card {{ max-width:480px; margin:60px auto; background:#fff; border-radius:12px; padding:22px; box-shadow:0 12px 30px rgba(11,46,90,0.06); }}
@@ -122,38 +122,38 @@ namespace CinemaManagement.Controllers
 </head>
 <body>
   <div class='card'>
-    <h1>Thanh to�n MoMo (Test)</h1>
-    <div class='small'>??n h�ng: <strong>{oOrderId}</strong></div>
-    <div class='small' style='margin-bottom:16px;'>S? ti?n: <strong>{oAmount} VND</strong></div>
+        <h1>Thanh toán MoMo (Test)</h1>
+        <div class='small'>Đơn hàng: <strong>{oOrderId}</strong></div>
+        <div class='small' style='margin-bottom:16px;'>Số tiền: <strong>{oAmount} VND</strong></div>
 
     <form method='post' action='/Momo/MockOtp'>
       <input type='hidden' name='orderId' value='{oOrderId}' />
       <input type='hidden' name='amount' value='{oAmount}' />
       <input type='hidden' name='extraData' value='{oExtra}' />
 
-      <label for='bank'>Ch?n ng�n h�ng</label>
+            <label for='bank'>Chọn ngân hàng</label>
       <select id='bank' name='bank' required>
         <option value='Vietcombank'>Vietcombank</option>
         <option value='Techcombank'>Techcombank</option>
         <option value='BIDV'>BIDV</option>
       </select>
 
-      <label for='cardNumber'>S? th?</label>
+            <label for='cardNumber'>Số thẻ</label>
       <input id='cardNumber' name='cardNumber' placeholder='0123 4567 8901 2345' required />
 
-      <label for='cardName'>T�n ch? th?</label>
+            <label for='cardName'>Tên chủ thẻ</label>
       <input id='cardName' name='cardName' placeholder='NGUYEN VAN A' required />
 
-      <label for='expiry'>Ng�y h?t h?n (MM/YY)</label>
+            <label for='expiry'>Ngày hết hạn (MM/YY)</label>
       <input id='expiry' name='expiry' placeholder='12/25' required />
 
       <div style='display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px;'>
-        <div class='small'>T?ng: <strong>{oAmount} VND</strong></div>
-        <button class='btn' type='submit'>Thanh to�n</button>
+                <div class='small'>Tổng: <strong>{oAmount} VND</strong></div>
+                <button class='btn' type='submit'>Thanh toán</button>
       </div>
     </form>
 
-    <div class='small' style='margin-top:14px;'>L?u �: ?�y l� trang gi? l?p d�nh cho m�i tr??ng ph�t tri?n.</div>
+        <div class='small' style='margin-top:14px;'>Lưu ý: Đây là trang giả lập dành cho môi trường phát triển.</div>
   </div>
 </body>
 </html>";
@@ -181,7 +181,7 @@ namespace CinemaManagement.Controllers
             var masked = cardNumber ?? string.Empty;
             if (!string.IsNullOrEmpty(cardNumber) && cardNumber.Length > 4)
             {
-                masked = new string('�', Math.Max(0, cardNumber.Length - 4)) + cardNumber.Substring(cardNumber.Length - 4);
+                masked = new string('*', Math.Max(0, cardNumber.Length - 4)) + cardNumber.Substring(cardNumber.Length - 4);
             }
 
             var html = $@"<!doctype html>
@@ -189,7 +189,7 @@ namespace CinemaManagement.Controllers
 <head>
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width,initial-scale=1'>
-  <title>Nh?p OTP - MoMo (Test)</title>
+    <title>Nhập OTP - MoMo (Test)</title>
   <style>
     body {{ background:#f2f6fb; font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; }}
     .card {{ max-width:420px; margin:60px auto; background:#fff; border-radius:12px; padding:22px; box-shadow:0 10px 30px rgba(11,46,90,0.06); }}
@@ -206,25 +206,25 @@ namespace CinemaManagement.Controllers
 </head>
 <body>
   <div class='card'>
-    <h2>Nh?p OTP</h2>
-    <div class='info'>??n h�ng: <strong>{oOrderId}</strong><br/>S? ti?n: <strong>{oAmount} VND</strong><br/>Ng�n h�ng: <strong>{oBank}</strong><br/>Th?: <strong>{WebUtility.HtmlEncode(masked)}</strong></div>
+        <h2>Nhập OTP</h2>
+        <div class='info'>Đơn hàng: <strong>{oOrderId}</strong><br/>Số tiền: <strong>{oAmount} VND</strong><br/>Ngân hàng: <strong>{oBank}</strong><br/>Thẻ: <strong>{WebUtility.HtmlEncode(masked)}</strong></div>
 
     <form method='post' action='/Momo/MockCallback'>
       <input type='hidden' name='orderId' value='{oOrderId}' />
       <input type='hidden' name='amount' value='{oAmount}' />
       <input type='hidden' name='extraData' value='{oExtra}' />
 
-      <label for='otp'>M� OTP</label>
+            <label for='otp'>Mã OTP</label>
       <input id='otp' name='otp' placeholder='123456' />
 
       <div class='btns'>
-        <button type='submit' name='resultType' value='success' class='btn success'>Th�nh c�ng</button>
-        <button type='submit' name='resultType' value='fail' class='btn fail'>Th?t b?i</button>
-        <button type='submit' name='resultType' value='insufficient' class='btn insuf'>Kh�ng ?? ti?n</button>
+                <button type='submit' name='resultType' value='success' class='btn success'>Thành công</button>
+                <button type='submit' name='resultType' value='fail' class='btn fail'>Thất bại</button>
+                <button type='submit' name='resultType' value='insufficient' class='btn insuf'>Không đủ tiền</button>
       </div>
     </form>
 
-    <div style='margin-top:12px; color:#6b7b95; font-size:13px;'>L?u �: ?�y l� trang gi? l?p d�nh cho m�i tr??ng ph�t tri?n.</div>
+        <div style='margin-top:12px; color:#6b7b95; font-size:13px;'>Lưu ý: Đây là trang giả lập dành cho môi trường phát triển.</div>
   </div>
 </body>
 </html>";
@@ -288,16 +288,16 @@ namespace CinemaManagement.Controllers
 
             var returnUrl = $"/Momo/Return?resultCode={resultCode}&orderId={WebUtility.UrlEncode(orderId)}&showtimeId={WebUtility.UrlEncode(showtimeId)}";
 
-            var statusHtml = resultCode == 0 ? "<div class='ok' style='color:#24a148;font-weight:700;'>Thanh to�n th�nh c�ng</div>"
-                : resultCode == 1006 ? "<div class='warn' style='color:#ff9f1a;font-weight:700;'>Kh�ng ?? ti?n</div>"
-                : "<div class='err' style='color:#d64545;font-weight:700;'>Thanh to�n th?t b?i</div>";
+            var statusHtml = resultCode == 0 ? "<div class='ok' style='color:#24a148;font-weight:700;'>Thanh toán thành công</div>"
+                : resultCode == 1006 ? "<div class='warn' style='color:#ff9f1a;font-weight:700;'>Không đủ tiền</div>"
+                : "<div class='err' style='color:#d64545;font-weight:700;'>Thanh toán thất bại</div>";
 
             var html = $@"<!doctype html>
 <html>
 <head>
   <meta charset='utf-8'>
   <meta name='viewport' content='width=device-width,initial-scale=1'>
-  <title>K?t qu? thanh to�n</title>
+    <title>Kết quả thanh toán</title>
   <meta http-equiv='refresh' content='3;url={WebUtility.HtmlEncode(returnUrl)}' />
   <style>
     body {{ background:#f2f6fb; font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; }}
@@ -308,11 +308,11 @@ namespace CinemaManagement.Controllers
 </head>
 <body>
   <div class='card'>
-    <h2>K?t qu? thanh to�n</h2>
-    <div style='margin:14px 0; font-size:15px;'>??n h�ng: <strong>{WebUtility.HtmlEncode(orderId)}</strong></div>
+        <h2>Kết quả thanh toán</h2>
+        <div style='margin:14px 0; font-size:15px;'>Đơn hàng: <strong>{WebUtility.HtmlEncode(orderId)}</strong></div>
     <div style='font-size:18px;'>{statusHtml}</div>
-    <div style='margin-top:12px;color:#6b7b95;'>B?n s? ???c chuy?n tr? l?i h? th?ng trong v�i gi�y...</div>
-    <a class='btn' href='{WebUtility.HtmlEncode(returnUrl)}'>Quay v? ngay</a>
+        <div style='margin-top:12px;color:#6b7b95;'>Bạn sẽ được chuyển trở lại hệ thống trong vài giây...</div>
+        <a class='btn' href='{WebUtility.HtmlEncode(returnUrl)}'>Quay về ngay</a>
   </div>
 </body>
 </html>";
@@ -386,12 +386,12 @@ namespace CinemaManagement.Controllers
 
                             if (resultCode == 0)
                             {
-                                // Thanh to�n th�nh c�ng - booking seats
+                                // Thanh toán thành công - booking seats
                                 _logger.LogInformation("[MockMoMo][IPN] Booking seats for showTime {showTimeId}: {seatIds}", showTimeId, string.Join(',', seatIds));
                             }
                             else
                             {
-                                // Thanh to�n th?t b?i - release seats
+                                // Thanh toán thất bại - release seats
                                 _logger.LogInformation("[MockMoMo][IPN] Releasing seats for showTime {showTimeId}: {seatIds} (Payment failed)", showTimeId, string.Join(',', seatIds));
                                 
                                 // Call internal release endpoint to reset seats and broadcast via SignalR
@@ -412,11 +412,11 @@ namespace CinemaManagement.Controllers
         }
 
         /// <summary>
-        /// Internal helper ?? release seats khi thanh to�n th?t b?i
+        /// Internal helper để release seats khi thanh toán thất bại
         /// </summary>
         private async Task ReleaseSeatsInternalAsync(Guid showTimeId, List<Guid> seatIds)
         {
-            // G?i /Booking/ReleaseSeats endpoint
+            // Gọi /Booking/ReleaseSeats endpoint
             try
             {
                 using var httpClient = new HttpClient();

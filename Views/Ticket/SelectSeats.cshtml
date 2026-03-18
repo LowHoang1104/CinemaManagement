@@ -1,37 +1,43 @@
 ﻿@model SelectSeatsViewModel;
 @using CinemaManagement.Controllers
 @{
-    ViewData["Title"] = "Ch?n Gh? - " + Model.MovieTitle;
+    ViewData["Title"] = "Chọn Ghế - " + Model.MovieTitle;
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
 <div class="ticket-selection-container">
     <div class="breadcrumb">
-        <a href="@Url.Action("Index", "Home")">Trang ch?</a> >
-        <a href="@Url.Action("Detail", "Movie")">??t vé</a> >
-        <span>Ch?n Gh?</span>
+        <a href="@Url.Action("Index", "Home")">Trang chủ</a> >
+        <a href="@Url.Action("Detail", "Movie")">Đặt vé</a> >
+        <span>Chọn Ghế</span>
     </div>
 
     <div class="content">
         <div class="seat-selection">
-            <h2>Ch?n Gh? C?a B?n</h2>
+            <h2>Chọn Ghế Của Bạn</h2>
 
             <div class="legend">
-                <div class="legend-item">
-                    <img src="~/images/seat-standard.svg" alt="Gh? th??ng" class="seat-icon">
-                    <label>Gh? th??ng</label>
+                <div class="legend-item legend-standard">
+                    <span class="legend-seat standard" aria-hidden="true">
+                        <span class="legend-seat-tag">STD</span>
+                    </span>
+                    <label>Ghế thường</label>
                 </div>
-                <div class="legend-item">
-                    <img src="~/images/seat-vip.svg" alt="Gh? VIP" class="seat-icon">
-                    <label>Gh? VIP</label>
+                <div class="legend-item legend-vip">
+                    <span class="legend-seat vip" aria-hidden="true">
+                        <span class="legend-seat-tag">VIP</span>
+                    </span>
+                    <label>Ghế VIP</label>
                 </div>
-                <div class="legend-item">
-                    <img src="~/images/seat-couple.svg" alt="Gh? ?ôi" class="seat-icon">
-                    <label>Gh? ?ôi</label>
+                <div class="legend-item legend-couple">
+                    <span class="legend-seat couple" aria-hidden="true">
+                        <span class="legend-seat-tag">2P</span>
+                    </span>
+                    <label>Ghế đôi</label>
                 </div>
             </div>
 
-            <div class="screen-label">MÀN HÌNH CHI?U</div>
+            <div class="screen-label">MÀN HÌNH CHIẾU</div>
 
             <div class="seat-grid">
                 @{
@@ -71,7 +77,7 @@
             </div>
 
             <div class="seat-info">
-                <p>Ch?n t?i ?a 10 gh?</p>
+                <p>Chọn tối đa 10 ghế</p>
             </div>
         </div>
 
@@ -83,43 +89,43 @@
             </div>
 
             <div class="booking-details">
-                <h4>Chi Ti?t L?ch Chi?u</h4>
+                <h4>Chi Tiết Lịch Chiếu</h4>
 
                 <div class="detail-row">
-                    <span class="detail-label">R?p chi?u</span>
+                    <span class="detail-label">Rạp chiếu</span>
                     <span class="detail-value">@Model.CinemaName</span>
                 </div>
 
                 <div class="detail-row">
-                    <span class="detail-label">Ngày chi?u</span>
+                    <span class="detail-label">Ngày chiếu</span>
                     <span class="detail-value">@Model.ShowDate.ToString("dd/MM/yyyy")</span>
                 </div>
 
                 <div class="detail-row">
-                    <span class="detail-label">Gi? chi?u</span>
+                    <span class="detail-label">Giờ chiếu</span>
                     <span class="detail-value">@Model.ShowDate.ToString("HH:mm")</span>
                 </div>
 
                 <div class="detail-divider"></div>
 
                 <div class="selected-seats-section">
-                    <h5>Gh? ?ã Ch?n</h5>
+                    <h5>Ghế Đã Chọn</h5>
                     <div id="selectedSeatsList" class="selected-seats-list">
-                        <span class="placeholder">Ch?a ch?n gh?</span>
+                        <span class="placeholder">Chưa chọn ghế</span>
                     </div>
                 </div>
 
                 <div class="price-section">
                     <div class="price-row">
-                        <span>T?ng ti?n</span>
-                        <span class="amount" id="totalPrice">0 vn?</span>
+                        <span>Tổng tiền</span>
+                        <span class="amount" id="totalPrice">0 vnđ</span>
                     </div>
                     <div class="time-remaining">
-                        Th?i gian còn l?i: <span id="timeRemaining">8:17</span>
+                        Thời gian còn lại: <span id="timeRemaining">8:17</span>
                     </div>
                 </div>
 
-                <button class="btn-proceed" onclick="proceedToCheckout()">TI?P T?C</button>
+                <button class="btn-proceed" onclick="proceedToCheckout()">TIẾP TỤC</button>
             </div>
         </div>
 
@@ -393,19 +399,19 @@
 
         const list = document.getElementById('selectedSeatsList');
         if (count === 0) {
-            list.innerHTML = '<span class="placeholder">Ch?a ch?n gh?</span>';
+            list.innerHTML = '<span class="placeholder">Chưa chọn ghế</span>';
         } else {
             const seatInfo = Array.from(selectedSeats)
                 .sort()
                 .map(code => {
                     const type = seatTypeMap[code];
-                    return type === 'Couple' ? `${code} (?ôi)` : code;
+                    return type === 'Couple' ? `${code} (Đôi)` : code;
                 })
                 .join(', ');
             list.textContent = seatInfo;
         }
 
-        document.getElementById('totalPrice').textContent = totalPrice.toLocaleString('vi-VN') + ' vn?';
+        document.getElementById('totalPrice').textContent = totalPrice.toLocaleString('vi-VN') + ' vnđ';
     }
 
     function findPairedSeatCode(seatCode) {
@@ -518,7 +524,7 @@
 
     function proceedToCheckout() {
         if (selectedSeats.size === 0) {
-            alert('Vui lòng ch?n ít nh?t 1 gh?');
+            alert('Vui lòng chọn ít nhất 1 ghế');
             return;
         }
 

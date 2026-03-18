@@ -1,5 +1,7 @@
 ﻿using CinemaManagement.Data;
 using CinemaManagement.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -17,15 +19,14 @@ namespace CinemaManagement.Controllers
         }
 
       [HttpGet]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
         public IActionResult SelectSeats(Guid showtimeId)
 {
-   // Check if user is logged in
-       var userId = HttpContext.Session.GetString("UserId");
-      if (string.IsNullOrEmpty(userId))
-    {
-      // Redirect to login with return URL
-    return RedirectToAction("Index", "Auth", new { returnUrl = Url.Action("SelectSeats", "Ticket", new { showtimeId }) });
-    }
+      var userId = HttpContext.Session.GetString("UserId");
+      if (string.IsNullOrWhiteSpace(userId))
+      {
+       return RedirectToAction("Login", "Auth", new { returnUrl = Url.Action("SelectSeats", "Ticket", new { showtimeId }) });
+      }
 
      var showTime = _context.ShowTimes
     .Include(s => s.Movie)

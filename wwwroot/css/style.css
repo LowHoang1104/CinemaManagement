@@ -31,28 +31,51 @@ header .container {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    gap: 30px;
+    gap: 12px;
+    flex-wrap: nowrap;
+    padding: 0 8px;
 }
 
 .logo img {
-    height: 50px;
+    max-height: 72px;
+    width: auto;
+    display: block;
 }
 
 /* Navigation */
+nav {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: visible;
+    display: flex;
+    justify-content: center;
+}
+
 nav ul {
     display: flex;
+    flex-wrap: nowrap;
+    white-space: nowrap;
+    width: 100%;
+    justify-content: space-evenly;
     list-style: none;
-    gap: 5px;
+    gap: 0;
     margin: 0;
     padding: 0;
 }
 
+nav ul li {
+    flex: 0 1 auto;
+}
+
 nav ul li a {
+    display: block;
     text-decoration: none;
     color: #333;
     font-weight: bold;
-    padding: 10px 15px;
-    font-size: 14px;
+    padding: 10px 9px;
+    font-size: 13px;
+    white-space: nowrap;
+    word-break: keep-all;
     transition: 0.3s;
 }
 
@@ -82,6 +105,14 @@ nav ul li a.active {
     background-color: #003d82;
 }
 
+.btn-logout {
+    background-color: #6c757d;
+}
+
+.btn-logout:hover {
+    background-color: #545b62;
+}
+
 .btn-login a {
     color: white;
     text-decoration: none;
@@ -90,7 +121,8 @@ nav ul li a.active {
 /* Cinema Selector */
 .cinema-selector {
   position: relative;
-    margin-right: auto;
+        margin-right: 0;
+        flex: 0 0 auto;
 }
 
 .cinema-selector-btn {
@@ -104,8 +136,28 @@ nav ul li a.active {
     display: flex;
     align-items: center;
     gap: 10px;
-    min-width: 180px;
+    min-width: 150px;
     transition: all 0.3s ease;
+}
+
+@media (max-width: 1200px) {
+    header .container {
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+
+    nav {
+        order: 3;
+        flex: 1 1 100%;
+    }
+
+    nav ul {
+        justify-content: space-between;
+    }
+
+    .btn-login {
+        padding: 8px 14px;
+    }
 }
 
 .cinema-selector-btn:hover {

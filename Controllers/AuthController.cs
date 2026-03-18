@@ -22,11 +22,11 @@ namespace CinemaManagement.Controllers
 
 
         [HttpGet]
-        public IActionResult Login()
+        public IActionResult Login(string? returnUrl = null)
         {
             ViewData["ResetSuccess"] = TempData["ResetSuccess"] as string;
-
-            return View(new LoginViewModel());
+            returnUrl ??= Request.Query["ReturnUrl"].ToString();
+            return View(new LoginViewModel { ReturnUrl = returnUrl });
         }
 
         [HttpPost]
@@ -36,6 +36,12 @@ namespace CinemaManagement.Controllers
             if (!ModelState.IsValid)
             {
                 return View(model);
+            }
+
+            var returnUrl = model.ReturnUrl;
+            if (string.IsNullOrWhiteSpace(returnUrl))
+            {
+                returnUrl = Request.Query["ReturnUrl"].ToString();
             }
 
             var loginReq = new Services.LoginRequest(model.Credential, model.Password, model.RememberMe);
@@ -67,8 +73,15 @@ namespace CinemaManagement.Controllers
                 ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : null
             });
 
+            SetAuthenticatedUserSession(result.User);
+
             // Phân quyền redirect theo role
             var isAdmin = result.User.Roles.Any(r => r.Name == "Admin");
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
 
             if (isAdmin)
             {
@@ -84,9 +97,9 @@ namespace CinemaManagement.Controllers
 
 
         [HttpGet]
-        public IActionResult GoogleLogin()
+        public IActionResult GoogleLogin(string? returnUrl = null)
         {
-            var redirectUrl = Url.Action(nameof(GoogleResponse), "Auth");
+            var redirectUrl = Url.Action(nameof(GoogleResponse), "Auth", new { returnUrl });
             var properties = new AuthenticationProperties
             {
                 RedirectUri = redirectUrl
@@ -95,7 +108,7 @@ namespace CinemaManagement.Controllers
             return Challenge(properties, GoogleDefaults.AuthenticationScheme);
         }
         [HttpGet]
-        public async Task<IActionResult> GoogleResponse()
+        public async Task<IActionResult> GoogleResponse(string? returnUrl = null)
         {
             var result = await HttpContext.AuthenticateAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme);
@@ -120,13 +133,26 @@ namespace CinemaManagement.Controllers
             if (user == null)
             {
                 TempData["LoginError"] =
-                    "Tài khoản Google của bạn chưa đăng ký với Beta Cinema.";
+                    "Tài khoản Google của bạn chưa đăng ký với PRIME NINE Cinema.";
                 return RedirectToAction(nameof(Login));
             }
 
             await SignInUser(user);
+            SetAuthenticatedUserSession(user);
+
+            if (!string.IsNullOrWhiteSpace(returnUrl) && Url.IsLocalUrl(returnUrl))
+            {
+                return LocalRedirect(returnUrl);
+            }
 
             return RedirectUserByRole(user);
+        }
+
+        private void SetAuthenticatedUserSession(User user)
+        {
+            HttpContext.Session.SetString("UserId", user.UserId.ToString());
+            HttpContext.Session.SetString("UserEmail", user.Email ?? string.Empty);
+            HttpContext.Session.SetString("UserFullName", user.FullName ?? string.Empty);
         }
 
         private async Task SignInUser(User user)
@@ -455,6 +481,9 @@ namespace CinemaManagement.Controllers
 
         public async Task<IActionResult> Logout()
         {
+            HttpContext.Session.Remove("UserId");
+            HttpContext.Session.Remove("UserEmail");
+            HttpContext.Session.Remove("UserFullName");
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             return RedirectToAction(nameof(Login));
         }

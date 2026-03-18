@@ -3,24 +3,37 @@
 <head>
     <meta charset="UTF-8">
  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Beta Cinemas - Template Bài Tập</title>
+   <title>PRIME NINE Cinema - Template Bài Tập</title>
     <link rel="stylesheet" href="~/css/style.css">
+   <link rel="stylesheet" href="~/css/info-pages.css">
     <link rel="stylesheet" href="~/css/movie-detail.css">
     <link rel="stylesheet" href="~/css/ticket-selection.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
 <body>
 
+   @{
+      var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? string.Empty;
+      var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? string.Empty;
+      bool IsActive(string controller, string action)
+      {
+         return string.Equals(currentController, controller, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(currentAction, action, StringComparison.OrdinalIgnoreCase);
+      }
+   }
+
     <header>
     <div class="container">
-   <div class="logo">
- <img src="https://betacinemas.vn/Assets/Common/logo/logo.png" alt="Beta Logo">
+    <div class="logo">
+ <a href="@Url.Action("Index", "Home")" aria-label="Về trang chủ">
+ <img src="~/images/prime-nine-logo.png" alt="Prime Nine Cinema Logo">
+ </a>
  </div>
         
     <!-- Cinema Selector Dropdown -->
  <div class="cinema-selector">
    <button class="cinema-selector-btn" id="cinemaSelectorBtn">
-  <span id="selectedCinemaName">Ch�?n cơ sở</span>
+  <span id="selectedCinemaName">Chọn cơ sở</span>
      <span class="arrow">▼</span>
        </button>
      <div class="cinema-dropdown" id="cinemaDropdown">
@@ -45,17 +58,24 @@
    
       <nav>
        <ul>
-   <li><a href="@Url.Action("Index", "Home")" class="active">LỊCH CHIẾU</a></li>
-       <li><a href="#">HỆ TH�?NG RẠP</a></li>
-      <li><a href="#">PHIM</a></li>
-     <li><a href="#">RẠP</a></li>
-             <li><a href="#">GI�? VÉ</a></li>
-<li><a href="#">TIN MỚI VÀ ƯU �?ÃI</a></li>
-   <li><a href="#">NHƯỢNG QUYỀN</a></li>
+   <li><a href="@Url.Action("Index", "Home")" class="@(IsActive("Home", "Index") ? "active" : "")">LỊCH CHIẾU</a></li>
+   <li><a href="@Url.Action("CinemaSystem", "Info")" class="@(IsActive("Info", "CinemaSystem") ? "active" : "")">HỆ THỐNG RẠP</a></li>
+   <li><a href="@Url.Action("Index", "Movie")" class="@(IsActive("Movie", "Index") ? "active" : "")">PHIM</a></li>
+   <li><a href="@Url.Action("TicketPrices", "Info")" class="@(IsActive("Info", "TicketPrices") ? "active" : "")">GIÁ VÉ</a></li>
+   <li><a href="@Url.Action("NewsPromotions", "Info")" class="@(IsActive("Info", "NewsPromotions") ? "active" : "")">TIN MỚI VÀ ƯU ĐÃI</a></li>
+   <li><a href="@Url.Action("Franchise", "Info")" class="@(IsActive("Info", "Franchise") ? "active" : "")">NHƯỢNG QUYỀN</a></li>
           </ul>
             </nav>
             <div class="user-actions">
-                <button class="btn-login" type="button" onclick="window.location.href='@Url.Action("Login", "Auth")'">�?ĂNG NHẬP</button>
+            @if (User?.Identity?.IsAuthenticated == true)
+            {
+               <button class="btn-login" type="button" onclick="window.location.href='@Url.Action("Profile", "Auth")'">HỒ SƠ</button>
+               <button class="btn-login btn-logout" type="button" onclick="window.location.href='@Url.Action("Logout", "Auth")'">ĐĂNG XUẤT</button>
+            }
+            else
+            {
+               <button class="btn-login" type="button" onclick="window.location.href='@Url.Action("Login", "Auth")'">ĐĂNG NHẬP</button>
+            }
 
             </div>
         </div>
@@ -68,14 +88,14 @@
      <div class="footer-col">
         <h4>GIỚI THIỆU</h4>
    <ul>
-        <li><a href="#">V�? chúng tôi</a></li>
-   <li><a href="#">Th�?a thuận sử dụng</a></li>
+        <li><a href="#">Về chúng tôi</a></li>
+    <li><a href="#">Thỏa thuận sử dụng</a></li>
           <li><a href="#">Quy chế hoạt động</a></li>
        <li><a href="#">Chính sách bảo mật</a></li>
       </ul>
      </div>
    <div class="footer-col">
-    <h4>GÓC �?IỆN ẢNH</h4>
+     <h4>GÓC ĐIỆN ẢNH</h4>
   <ul>
      <li><a href="#">Thể loại phim</a></li>
        <li><a href="#">Bình luận phim</a></li>
@@ -83,13 +103,13 @@
        </ul>
 </div>
   <div class="footer-col">
-      <h4>KẾT N�?I VỚI CHÚNG TÔI</h4>
+      <h4>KẾT NỐI VỚI CHÚNG TÔI</h4>
    <p>Hotline: 1900 6467</p>
-   <p>Email: marketing@betacinemas.vn</p>
+   <p>Email: marketing@primeninecinema.vn</p>
     </div>
         </div>
         <div class="footer-bottom">
-    <p>&copy; 2024 Beta Cinemas. All Rights Reserved. Design for School Project.</p>
+   <p>&copy; 2024 PRIME NINE Cinema. All Rights Reserved. Design for School Project.</p>
    </div>
     </footer>
     <script>
@@ -143,15 +163,15 @@ cinemaSelectorBtn.addEventListener('click', function(e) {
        return response.json();
             })
         .then(data => {
-            if (data.cinemaName && data.cinemaName !== 'Chưa ch�?n cơ sở') {
+            if (data.cinemaName && data.cinemaName !== 'Chưa chọn cơ sở') {
         selectedCinemaName.textContent = data.cinemaName;
      } else {
-    selectedCinemaName.textContent = 'Ch�?n cơ sở';
+    selectedCinemaName.textContent = 'Chọn cơ sở';
          }
     })
         .catch(error => {
            console.error('Error loading cinema:', error);
-         selectedCinemaName.textContent = 'Ch�?n cơ sở';
+         selectedCinemaName.textContent = 'Chọn cơ sở';
        });
  }
 
@@ -180,12 +200,12 @@ cinemaSelectorBtn.addEventListener('click', function(e) {
   window.location.reload();
           }, 300);
   } else {
-        alert('Lỗi: ' + (data.message || 'Không thể ch�?n cơ sở'));
+    alert('Lỗi: ' + (data.message || 'Không thể chọn cơ sở'));
       }
  })
   .catch(error => {
   console.error('Error saving cinema:', error);
-   alert('Có lỗi xảy ra khi ch�?n cơ sở');
+     alert('Có lỗi xảy ra khi chọn cơ sở');
    });
     }
   });

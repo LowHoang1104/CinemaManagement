@@ -15,23 +15,6 @@ namespace CinemaManagement.Controllers
  {
       _logger = logger;
    }
-        private void InitializeUserSession()
-        {
-            var userIdStr = HttpContext.Session.GetString("UserId");
-            if (userIdStr == null)
-            {
-                // Get first user from database
-                var firstUser = _context.Users.FirstOrDefault();
-
-                if (firstUser != null)
-                {
-                    // Save user info to session
-                    HttpContext.Session.SetString("UserId", firstUser.UserId.ToString());
-                    HttpContext.Session.SetString("UserEmail", firstUser.Email ?? "");
-                    HttpContext.Session.SetString("UserFullName", firstUser.FullName ?? "");
-                }
-            }
-        }
 
         public IActionResult Index()
         {
@@ -56,7 +39,6 @@ namespace CinemaManagement.Controllers
                 .OrderBy(x => x.CreatedAt)
             .ToList();
             }
-            InitializeUserSession();
    return View(moviesWithShowTimes);
     }
 
@@ -69,7 +51,7 @@ namespace CinemaManagement.Controllers
 
             if (cinema == null)
        {
-       return Json(new { success = false, message = "C? s? kh�ng h?p l?" });
+          return Json(new { success = false, message = "Cơ sở không hợp lệ" });
     }
 
   // Save to session
@@ -81,7 +63,7 @@ namespace CinemaManagement.Controllers
             catch (Exception ex)
       {
       _logger.LogError(ex, "Error selecting cinema");
-       return Json(new { success = false, message = "C� l?i x?y ra khi ch?n c? s?" });
+       return Json(new { success = false, message = "Có lỗi xảy ra khi chọn cơ sở" });
    }
    }
 
@@ -102,7 +84,7 @@ namespace CinemaManagement.Controllers
       HttpContext.Session.SetString("SelectedCinemaName", firstCinema.Name);
       return Json(new { cinemaId = firstCinema.CinemaId, cinemaName = firstCinema.Name });
      }
- return Json(new { cinemaId = "", cinemaName = "Ch?a ch?n c? s?" });
+     return Json(new { cinemaId = "", cinemaName = "Chưa chọn cơ sở" });
             }
 
       return Json(new { cinemaId = cinemaId, cinemaName = cinemaName });

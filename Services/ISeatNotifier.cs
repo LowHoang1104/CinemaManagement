@@ -1,7 +1,7 @@
 namespace CinemaManagement.Services;
 
 /// <summary>
-/// Interface ?? g?i th�ng b�o c?p nh?t tr?ng th�i gh? qua SignalR
+/// Interface để gửi thông báo cập nhật trạng thái ghế qua SignalR
 /// </summary>
 public interface ISeatNotifier
 {

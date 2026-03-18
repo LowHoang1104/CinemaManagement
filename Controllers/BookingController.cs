@@ -1,8 +1,11 @@
 using CinemaManagement.Data;
 using CinemaManagement.Models;
 using CinemaManagement.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Security.Claims;
 
 namespace CinemaManagement.Controllers
 {
@@ -26,14 +29,26 @@ namespace CinemaManagement.Controllers
 
         // POST /Booking/CreateTicket
         [HttpPost("CreateTicket")]
+        [Authorize(AuthenticationSchemes = CookieAuthenticationDefaults.AuthenticationScheme)]
         public async Task<IActionResult> CreateTicket([FromBody] CreateTicketRequest request)
         {
             try
             {
-                var userId = HttpContext.Session.GetString("UserId");
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
                 if (string.IsNullOrEmpty(userId))
                 {
                     return Unauthorized(new { error = "User not logged in" });
+                }
+
+                var sessionUserId = HttpContext.Session.GetString("UserId");
+                if (string.IsNullOrWhiteSpace(sessionUserId))
+                {
+                    return Unauthorized(new { error = "User session not found" });
+                }
+
+                if (!string.Equals(sessionUserId, userId, StringComparison.OrdinalIgnoreCase))
+                {
+                    return Unauthorized(new { error = "User session is invalid" });
                 }
 
                 if (!Guid.TryParse(userId, out var userGuid))
@@ -258,7 +273,7 @@ namespace CinemaManagement.Controllers
                 await _context.SaveChangesAsync();
                 _logger.LogInformation("[ReleaseSeats] Successfully released {updatedCount} ShowTimeSeats", updatedCount);
 
-                // Broadcast to all clients that seats have been released (thanh to�n th?t b?i)
+                // Broadcast to all clients that seats have been released (thanh toán thất bại)
                 await _seatNotifier.NotifySeatsReleased(showTimeId.ToString(), releasedSeatIds);
 
                 return Ok(new { success = true, message = $"Seats released successfully ({updatedCount} ShowTimeSeats reset)", updatedCount });

@@ -46,12 +46,104 @@ display: flex;
     align-items: center;
     gap: 8px;
     font-size: 13px;
+    background: #fff;
+    border: 1px solid #e3e8f0;
+    border-left: 4px solid transparent;
+    border-radius: 8px;
+    padding: 6px 10px;
+}
+
+.legend-item label {
+    font-weight: 700;
+}
+
+.legend-item.legend-standard {
+    border-left-color: #7d8ea3;
+}
+
+.legend-item.legend-vip {
+    border-left-color: #b97700;
+}
+
+.legend-item.legend-couple {
+    border-left-color: #cf3f7a;
+}
+
+.legend-seat {
+    width: 40px;
+    height: 32px;
+    border: 2px solid #7d8ea3;
+    border-radius: 4px;
+    display: inline-flex;
+    align-items: flex-end;
+    justify-content: center;
+    position: relative;
+    padding-bottom: 2px;
+    background-size: 70%;
+    background-repeat: no-repeat;
+    background-position: center 30%;
+}
+
+.legend-seat-tag {
+    position: absolute;
+    top: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 6px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    line-height: 1;
+    padding: 1px 3px;
+    border-radius: 3px;
+    color: #fff;
+    pointer-events: none;
+}
+
+.legend-seat.standard {
+    background-color: #e9eef4;
+    border-color: #7d8ea3;
+    background-image: url('/images/seat-standard.svg');
+}
+
+.legend-seat.standard .legend-seat-tag {
+    background: #5f6b7a;
+}
+
+.legend-seat.vip {
+    background-color: #ffe6b8;
+    border-color: #b97700;
+    background-image: url('/images/seat-vip.svg');
+}
+
+.legend-seat.vip .legend-seat-tag {
+    background: #9b5a00;
+}
+
+.legend-seat.couple {
+    background-color: #ffd7e8;
+    border-color: #cf3f7a;
+    background-image: url('/images/seat-couple.svg');
+}
+
+.legend-seat.couple .legend-seat-tag {
+    background: #ad1e62;
 }
 
 .seat-icon {
 width: 40px;
     height: 32px;
     object-fit: contain;
+    border-radius: 6px;
+    padding: 2px;
+    background: #eef2f7;
+}
+
+.seat-icon.vip {
+    background: #fff4dc;
+}
+
+.seat-icon.couple {
+    background: #ffe6f1;
 }
 
 .seat-legend {
@@ -142,14 +234,34 @@ color: #333;
     margin-bottom: 1px;
 }
 
+.seat::before {
+    position: absolute;
+    top: 1px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 6px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+    line-height: 1;
+    padding: 1px 3px;
+    border-radius: 3px;
+    color: #fff;
+    pointer-events: none;
+}
+
 .seat.available {
     background-image: url('~/images/seat-standard.svg');
-    background-color: #e8e8e8;
-    border-color: #999;
+    background-color: #e9eef4;
+    border-color: #7d8ea3;
+}
+
+.seat.available::before {
+    content: 'STD';
+    background: #5f6b7a;
 }
 
 .seat.available:hover {
-    background-color: #d0d0d0;
+    background-color: #d8e2ee;
     transform: scale(1.15);
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
@@ -191,12 +303,17 @@ color: #333;
 
 .seat.vip {
     background-image: url('~/images/seat-vip.svg');
-    background-color: #b8b8b8;
-    border-color: #666;
+        background-color: #ffe6b8;
+        border-color: #b97700;
+}
+
+.seat.vip::before {
+        content: 'VIP';
+        background: #9b5a00;
 }
 
 .seat.vip:hover {
-  background-color: #a0a0a0;
+    background-color: #ffd996;
  transform: scale(1.15);
     box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
@@ -211,20 +328,26 @@ color: #333;
 }
 
 .seat.couple {
-    width: 76px;
+    width: 40px;
+    height: 32px;
     background-image: url('~/images/seat-couple.svg');
- background-color: #e8e8e8;
-    border: 2px solid #999;
+ background-color: #ffd7e8;
+        border: 2px solid #cf3f7a;
     border-radius: 4px;
-    padding: 0 2px 2px 2px;
+    padding: 0 0 2px 0;
+}
+
+.seat.couple::before {
+        content: '2P';
+        background: #ad1e62;
 }
 
 .seat.couple .seat-code {
-    font-size: 7px;
+    font-size: 8px;
 }
 
 .seat.couple:hover {
-  background-color: #d0d0d0;
+    background-color: #ffc2dd;
     transform: scale(1.15);
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
 }
@@ -236,6 +359,11 @@ color: #333;
 
 .seat.couple.selected .seat-code {
     color: white;
+}
+
+.seat.selected::before {
+    background: rgba(255, 255, 255, 0.28);
+    color: #fff;
 }
 
 .seat:disabled {
@@ -403,6 +531,11 @@ margin-bottom: 20px;
         font-size: 10px;
     }
 
+    .seat.couple {
+        width: 28px;
+        height: 28px;
+    }
+
     .legend {
    gap: 15px;
     font-size: 12px;
@@ -433,9 +566,19 @@ margin-bottom: 20px;
         font-size: 9px;
     }
 
+    .seat.couple {
+        width: 24px;
+        height: 24px;
+    }
+
     .legend {
  flex-direction: column;
   gap: 10px;
+    }
+
+    .legend-seat {
+        width: 34px;
+        height: 28px;
     }
 
     .content {

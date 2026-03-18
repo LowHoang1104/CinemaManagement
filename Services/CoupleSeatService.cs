@@ -5,42 +5,42 @@ using Microsoft.EntityFrameworkCore;
 namespace CinemaManagement.Services;
 
 /// <summary>
-/// Service ?? x? l� logic couple seat
+/// Service xử lý logic couple seat
 /// </summary>
 public interface ICoupleSeatService
 {
     /// <summary>
-    /// L?y gh? ?�i (c?p gh?)
+    /// Lấy ghế đôi (cặp ghế)
     /// </summary>
     Task<List<Seat>> GetCoupleSeatsAsync(Guid showTimeId, Seat seat);
 
     /// <summary>
-    /// Check xem gh? c� ph?i couple seat kh�ng
+    /// Check xem ghế có phải couple seat không
     /// </summary>
     bool IsCoupleSeat(Seat seat);
 
     /// <summary>
-    /// L?y ColNumber c?a gh? ?�i
+    /// Lấy ColNumber của ghế đôi
     /// </summary>
     int GetPairedColNumber(Seat seat);
 
     /// <summary>
-    /// Hold couple seats (n?u l� couple) ho?c single seat
+    /// Hold couple seats (nếu là couple) hoặc single seat
     /// </summary>
     Task<List<Seat>> HoldSeatsAsync(Guid showTimeId, Seat seat, string holdSessionId, DateTime holdUntil);
 
     /// <summary>
-    /// Release couple seats (n?u l� couple) ho?c single seat
+    /// Release couple seats (nếu là couple) hoặc single seat
     /// </summary>
     Task<List<Seat>> ReleaseSeatsAsync(Guid showTimeId, Seat seat);
 
     /// <summary>
-    /// Book couple seats (n?u l� couple) ho?c single seat
+    /// Book couple seats (nếu là couple) hoặc single seat
     /// </summary>
     Task<List<Seat>> BookSeatsAsync(Guid showTimeId, Seat seat);
 
     /// <summary>
-    /// Ki?m tra xem couple seats c� available kh�ng
+    /// Kiểm tra xem couple seats có available không
     /// </summary>
     Task<bool> AreCoupleSeatsAvailableAsync(Guid showTimeId, Seat seat);
 }
@@ -66,8 +66,8 @@ public class CoupleSeatService : ICoupleSeatService
         if (!IsCoupleSeat(seat))
             return seat.ColNumber;
 
-        // Even ? pair with ColNumber - 1
-        // Odd ? pair with ColNumber + 1
+        // Even -> pair with ColNumber - 1
+        // Odd -> pair with ColNumber + 1
         return seat.ColNumber % 2 == 0 ? seat.ColNumber - 1 : seat.ColNumber + 1;
     }
 
@@ -92,7 +92,7 @@ public class CoupleSeatService : ICoupleSeatService
             if (pairedSeat != null)
             {
                 result.Add(pairedSeat);
-                _logger.LogInformation("[CoupleSeat] Found paired seat: {seatCode1} ? {seatCode2}",
+                _logger.LogInformation("[CoupleSeat] Found paired seat: {seatCode1} <-> {seatCode2}",
                     seat.SeatCode, pairedSeat.SeatCode);
             }
             else

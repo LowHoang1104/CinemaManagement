@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 namespace CinemaManagement.Services;
 
 /// <summary>
-/// Service ?? g?i th�ng b�o c?p nh?t tr?ng th�i gh? qua SignalR
+/// Service để gửi thông báo cập nhật trạng thái ghế qua SignalR
 /// </summary>
 public class SeatNotifier : ISeatNotifier
 {
@@ -18,7 +18,7 @@ public class SeatNotifier : ISeatNotifier
     }
 
     /// <summary>
-    /// Th�ng b�o gh? ?� ???c ??t cho t?t c? client
+    /// Thông báo ghế đã được đặt cho tất cả client
     /// </summary>
     public async Task NotifySeatBooked(string showTimeId, string seatId, string seatCode)
     {
@@ -41,7 +41,7 @@ public class SeatNotifier : ISeatNotifier
     }
 
     /// <summary>
-    /// Th�ng b�o gh? ???c release (tr? l?i tr?ng th�i c� s?n) cho t?t c? client
+    /// Thông báo ghế được release (trở lại trạng thái có sẵn) cho tất cả client
     /// </summary>
     public async Task NotifySeatsReleased(string showTimeId, List<string> seatIds)
     {
