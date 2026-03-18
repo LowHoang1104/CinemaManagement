@@ -1,6 +1,7 @@
 ﻿using CinemaManagement;
 using CinemaManagement.Data;
 using CinemaManagement.Models;
+using CinemaManagement.Services;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using CinemaManagement.Hubs;
 using Microsoft.EntityFrameworkCore;
@@ -50,8 +51,7 @@ builder.Services.AddAuthentication(options =>
 
 builder.Services.AddAuthorization();
 
-
-//  Session đăng nhập 30p
+// Session đăng nhập 30p
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -59,8 +59,12 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
 });
-// Đăng ký SeatNotifier để inject vào BookingService
-builder.Services.AddScoped<ISeatNotifier, SeatNotifier>();
+
+// Đăng ký SeatNotifier từ Services namespace để inject vào BookingController
+builder.Services.AddScoped<CinemaManagement.Services.ISeatNotifier, CinemaManagement.Services.SeatNotifier>();
+
+// Đăng ký CoupleSeatService
+builder.Services.AddScoped<ICoupleSeatService, CoupleSeatService>();
 
 var app = builder.Build();
 
@@ -78,6 +82,9 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 // Map SignalR Hub
 app.MapHub<SeatHub>("/hubs/seat");
+
+// Map SignalR hub
+app.MapHub<SeatHub>("/seatHub");
 
 app.Run();
 

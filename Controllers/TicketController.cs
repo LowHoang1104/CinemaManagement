@@ -36,20 +36,22 @@ namespace CinemaManagement.Controllers
     if (showTime == null)
       return NotFound();
 
-  // Get all seats for this room
+  // Get all seats for this room with SeatStatus included
         var seats = _context.Seats
-.Where(s => s.RoomId == showTime.RoomId && s.SeatStatus.StatusName != "Inactive")
+    .Include(s => s.SeatStatus)
+    .Where(s => s.RoomId == showTime.RoomId)
   .OrderBy(s => s.RowLabel)
       .ThenBy(s => s.ColNumber)
 .ToList();
 
-     // Get booked/held seats for this showtime
-        var bookedSeats = _context.ShowTimeSeats
+     // Get booked/held seats for this showtime from ShowTimeSeat only
+     // Status 1 = Holding, 2 = Booked
+     var bookedSeats = _context.ShowTimeSeats
           .Where(sts => sts.ShowTimeId == showtimeId && (sts.Status == 1 || sts.Status == 2))
    .Select(sts => sts.SeatId)
-       .ToHashSet();
-
-      var viewModel = new SelectSeatsViewModel
+   .ToHashSet();
+     
+     var viewModel = new SelectSeatsViewModel
          {
    ShowTimeId = showtimeId,
    MovieTitle = showTime.Movie.Title,
