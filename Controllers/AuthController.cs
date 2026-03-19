@@ -74,7 +74,6 @@ namespace CinemaManagement.Controllers
             });
 
             SetAuthenticatedUserSession(result.User);
-
             // Phân quyền redirect theo role
             var isAdmin = result.User.Roles.Any(r => r.Name == "Admin");
 
@@ -85,8 +84,7 @@ namespace CinemaManagement.Controllers
 
             if (isAdmin)
             {
-                //return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-                return View("AdminLogin");
+                return RedirectToAction("Dashboard", "ManagerReports");
             }
             return RedirectToAction("Index", "Home");
         }
@@ -174,7 +172,7 @@ namespace CinemaManagement.Controllers
         private IActionResult RedirectUserByRole(User user)
         {
             if (user.Roles.Any(r => r.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
-                return View("AdminLogin");
+                return RedirectToAction("Dashboard", "ManagerReports");
 
             return RedirectToAction("Index", "Home");
         }
