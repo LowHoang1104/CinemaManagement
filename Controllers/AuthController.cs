@@ -88,10 +88,7 @@ namespace CinemaManagement.Controllers
                 //return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
                 return View("AdminLogin");
             }
-
-            // Customer
-            //return RedirectToAction("Index", "Home");
-            return View("CustomerLogin");
+            return RedirectToAction("Index", "Home");
         }
 
 
@@ -179,7 +176,7 @@ namespace CinemaManagement.Controllers
             if (user.Roles.Any(r => r.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
                 return View("AdminLogin");
 
-            return View("CustomerLogin");
+            return RedirectToAction("Index", "Home");
         }
 
 

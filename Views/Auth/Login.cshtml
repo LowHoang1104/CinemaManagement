@@ -98,6 +98,8 @@
                 <form asp-action="Login" asp-controller="Auth" method="post" id="loginForm" novalidate>
                     @Html.AntiForgeryToken()
 
+                    <div asp-validation-summary="ModelOnly" class="text-danger" style="margin-bottom:12px;"></div>
+
                     <!-- Hidden returnUrl field -->
                     <input type="hidden" name="ReturnUrl" value="@pageReturnUrl" />
 
