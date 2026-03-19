@@ -1,0 +1,95 @@
+﻿    <!-- Sidebar Overlay (Mobile) -->
+<div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+<!-- Sidebar -->
+<aside class="admin-sidebar" id="adminSidebar">
+    <!-- Brand -->
+    <div class="sidebar-brand">
+        <div class="brand-icon">
+            <i class="bi bi-film"></i>
+        </div>
+        <span class="brand-text">CinemaAdmin</span>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
+        <div class="nav-section-title">Main Menu</div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a asp-controller="Home" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
+                    <span class="nav-icon"><i class="bi bi-grid-1x2"></i></span>
+                    <span class="nav-text">Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-controller="Cinemas" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Cinema" ? "active" : "")">
+                    <span class="nav-icon"><i class="bi bi-building"></i></span>
+                    <span class="nav-text">Cinemas</span>
+                    <span class="badge bg-primary rounded-pill">12</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-controller="Rooms" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Room" ? "active" : "")">
+                    <span class="nav-icon"><i class="bi bi-door-open"></i></span>
+                    <span class="nav-text">Rooms</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-controller="Movie" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Movie" ? "active" : "")">
+                    <span class="nav-icon"><i class="bi bi-camera-reels"></i></span>
+                    <span class="nav-text">Movies</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="nav-section-title">Management</div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a asp-controller="ShowTimes" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "ShowTimes" ? "active" : "")">
+                    <span class="nav-icon"><i class="bi bi-calendar-event"></i></span>
+                    <span class="nav-text">Showtimes</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-controller="Booking" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Booking" ? "active" : "")">
+                    <span class="nav-icon"><i class="bi bi-ticket-perforated"></i></span>
+                    <span class="nav-text">Bookings</span>
+                    <span class="badge bg-success rounded-pill">New</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-controller="User" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "User" ? "active" : "")">
+                    <span class="nav-icon"><i class="bi bi-people"></i></span>
+                    <span class="nav-text">Users</span>
+                </a>
+            </li>
+        </ul>
+
+        <div class="nav-section-title">Settings</div>
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a asp-controller="Settings" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Settings" ? "active" : "")">
+                    <span class="nav-icon"><i class="bi bi-gear"></i></span>
+                    <span class="nav-text">Settings</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a asp-controller="Report" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Report" ? "active" : "")">
+                    <span class="nav-icon"><i class="bi bi-bar-chart-line"></i></span>
+                    <span class="nav-text">Reports</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <div class="user-avatar">AD</div>
+            <div class="user-details">
+                <div class="user-name">Admin User</div>
+                <div class="user-role">Administrator</div>
+            </div>
+        </div>
+    </div>
+</aside>

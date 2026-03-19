@@ -1,0 +1,269 @@
+﻿@model CinemaManagement.ViewModels.Admin.UserListVm
+@{
+    ViewData["Title"] = "User Management";
+}
+
+<style>
+    .admin-wrap {
+        max-width: 1150px;
+        margin: 24px auto;
+        padding: 0 16px;
+    }
+
+    .page-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 18px;
+    }
+
+        .page-header h2 {
+            color: #c0392b;
+            margin: 0;
+        }
+
+    .filter-bar {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 6px rgba(0,0,0,.07);
+        padding: 14px 18px;
+        margin-bottom: 18px;
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+        align-items: flex-end;
+    }
+
+        .filter-bar label {
+            font-size: 12px;
+            color: #666;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .filter-bar input, .filter-bar select {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+
+    .btn {
+        padding: 6px 14px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-size: 13px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background: #e50914;
+        color: #fff;
+    }
+
+    .btn-success {
+        background: #27ae60;
+        color: #fff;
+    }
+
+    .btn-secondary {
+        background: #95a5a6;
+        color: #fff;
+    }
+
+    .user-table {
+        background: #fff;
+        border-radius: 8px;
+        box-shadow: 0 1px 6px rgba(0,0,0,.07);
+        overflow: hidden;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    thead th {
+        background: #2c3e50;
+        color: #fff;
+        padding: 10px 12px;
+        text-align: left;
+    }
+
+    tbody td {
+        padding: 9px 12px;
+        border-bottom: 1px solid #f0f0f0;
+        vertical-align: middle;
+    }
+
+    tbody tr:hover td {
+        background: #fafafa;
+    }
+
+    .badge {
+        display: inline-block;
+        padding: 2px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .badge-active {
+        background: #d5f5e3;
+        color: #1e8449;
+    }
+
+    .badge-locked {
+        background: #fde8e8;
+        color: #c0392b;
+    }
+
+    .badge-deleted {
+        background: #eee;
+        color: #888;
+    }
+
+    .role-tag {
+        display: inline-block;
+        padding: 2px 6px;
+        background: #eaf0fb;
+        color: #2980b9;
+        border-radius: 3px;
+        font-size: 11px;
+        margin: 1px;
+    }
+
+    .act-btn {
+        padding: 3px 9px;
+        border-radius: 3px;
+        border: none;
+        cursor: pointer;
+        font-size: 12px;
+        margin: 1px;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .alert {
+        padding: 10px 16px;
+        border-radius: 6px;
+        margin-bottom: 14px;
+        font-size: 13px;
+        background: #d5f5e3;
+        color: #1e8449;
+    }
+</style>
+
+<div class="admin-wrap">
+    <div class="page-header">
+        <h2>User Management</h2>
+        <a href="/AdminUsers/Create" class="btn btn-success">+ Create User</a>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert">@TempData["Success"]</div>
+    }
+
+    <form method="get" class="filter-bar">
+        <div>
+            <label>Keyword</label>
+            <input type="text" name="keyword" value="@Model.Keyword" placeholder="Email / Name..." style="width:200px" />
+        </div>
+        <div>
+            <label>Role</label>
+            <select name="role">
+                <option value="">All Roles</option>
+                @foreach (var r in Model.AllRoles)
+                {
+                    <option value="@r" selected="@(Model.Role == r)">@r</option>
+                }
+            </select>
+        </div>
+        <div>
+            <label>Status</label>
+            <select name="status">
+                <option value="">All</option>
+                <option value="1" selected="@(Model.Status == 1)">Active</option>
+                <option value="0" selected="@(Model.Status == 0)">Locked</option>
+            </select>
+        </div>
+        <div style="display:flex;gap:6px;align-self:flex-end">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a href="/AdminUsers" class="btn btn-secondary">Reset</a>
+        </div>
+    </form>
+
+    <div class="user-table">
+        <table>
+            <thead>
+                <tr><th>#</th><th>Full Name</th><th>Email</th><th>Phone</th><th>Roles</th><th>Status</th><th style="min-width:230px">Actions</th></tr>
+            </thead>
+            <tbody>
+                @if (!Model.Items.Any())
+                {
+                    <tr><td colspan="7" style="text-align:center;color:#aaa;padding:24px">No users found.</td></tr>
+                }
+                @for (int i = 0; i < Model.Items.Count; i++)
+                {
+                    var u = Model.Items[i];
+                    <tr>
+                        <td>@(i + 1)</td>
+                        <td><strong>@u.FullName</strong></td>
+                        <td>@u.Email</td>
+                        <td>@(u.Phone ?? "—")</td>
+                        <td>@foreach (var r in u.Roles) {
+                        <span class="role-tag">@r</span>
+                    }
+</td>
+                    <td>
+                        @if (u.Status == 1)
+                        {
+                            <span class="badge badge-active">Active</span>
+                        }
+                        else if (u.Status == 0)
+                        {
+
+                            <span class="badge badge-locked">Locked</span>
+                        }
+                        else
+                        {
+
+                            <span class="badge badge-deleted">Deleted</span>
+                        }
+                    </td>
+                    <td>
+                        <a href="/AdminUsers/Edit/@u.UserId" class="act-btn" style="background:#2980b9;color:#fff">Edit</a>
+                        <a href="/AdminUsers/AssignRoles/@u.UserId" class="act-btn" style="background:#8e44ad;color:#fff">Roles</a>
+
+                        <form method="post" action="/AdminUsers/ToggleLock/@u.UserId" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            @if (u.Status == 1)
+                            {
+                                <button type="submit" class="act-btn" style="background:#e74c3c;color:#fff" onclick="return confirm('Lock user?')">Lock</button>
+                            }
+                            else
+                            {
+
+                                <button type="submit" class="act-btn" style="background:#27ae60;color:#fff">Unlock</button>
+                            }
+                        </form>
+
+                        <form method="post" action="/AdminUsers/Delete/@u.UserId" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="act-btn" style="background:#7f8c8d;color:#fff"
+                                    onclick="return confirm('Delete this user?')">
+                                Del
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                                }
+            </tbody>
+        </table>
+    </div>
+    <p style="font-size:12px;color:#aaa;margin-top:10px">Total: @Model.Items.Count user(s)</p>
+</div>

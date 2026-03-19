@@ -8,6 +8,7 @@ public interface IReportService
 {
     Task<DashboardVm> GetDashboardAsync(DateTime from, DateTime to);
 }
+
 public class ReportService : IReportService
 {
     private readonly CinemaManagementContext _db;
@@ -15,43 +16,38 @@ public class ReportService : IReportService
 
     public async Task<DashboardVm> GetDashboardAsync(DateTime from, DateTime to)
     {
-        // normalize date range (UTC or local tuỳ bạn)
-        var fromDate = from.Date;
-        var toDateExclusive = to.Date.AddDays(1);
+        var fromDate = from.Date.ToUniversalTime();
+        var toDateExclusive = to.Date.AddDays(1).ToUniversalTime();
 
-        // giả định: Payment.Status = 1 là Success (bạn chỉnh theo enum thật)
         const short PAYMENT_SUCCESS = 1;
+        const short BOOKING_PAID = 1;
+        const short BOOKING_CANCELLED = 2;
+        const short BOOKING_EXPIRED = 3;
 
-        // Revenue = sum payments success
+        // ── Revenue ──────────────────────────────────────────────────────────
         var totalRevenue = await _db.Payments.AsNoTracking()
             .Where(p => p.PaidAt != null
                         && p.PaidAt >= fromDate && p.PaidAt < toDateExclusive
                         && p.Status == PAYMENT_SUCCESS)
             .SumAsync(p => (decimal?)p.Amount) ?? 0m;
 
-        // bookings
+        // ── Booking counts ────────────────────────────────────────────────────
         var totalBookings = await _db.Bookings.AsNoTracking()
             .Where(b => b.CreatedAt >= fromDate && b.CreatedAt < toDateExclusive)
             .CountAsync();
-
-        // cancelled/expired (giả định Booking.Status: 0 Pending, 1 Paid, 2 Cancelled, 3 Expired)
-        const short BOOKING_CANCELLED = 2;
-        const short BOOKING_EXPIRED = 3;
 
         var totalCancelled = await _db.Bookings.AsNoTracking()
             .Where(b => b.CreatedAt >= fromDate && b.CreatedAt < toDateExclusive
                         && (b.Status == BOOKING_CANCELLED || b.Status == BOOKING_EXPIRED))
             .CountAsync();
 
-        // tickets sold = tickets of paid bookings
-        const short BOOKING_PAID = 1;
-
+        // ── Tickets sold ──────────────────────────────────────────────────────
         var totalTicketsSold = await _db.Tickets.AsNoTracking()
             .Where(t => t.Booking.CreatedAt >= fromDate && t.Booking.CreatedAt < toDateExclusive
                         && t.Booking.Status == BOOKING_PAID)
             .CountAsync();
 
-        // Revenue by day
+        // ── Revenue by day ────────────────────────────────────────────────────
         var revenueByDay = await _db.Payments.AsNoTracking()
             .Where(p => p.PaidAt != null
                         && p.PaidAt >= fromDate && p.PaidAt < toDateExclusive
@@ -65,7 +61,7 @@ public class ReportService : IReportService
             .OrderBy(x => x.Date)
             .ToListAsync();
 
-        // Top movies by revenue (paid bookings)
+        // ── Top movies ────────────────────────────────────────────────────────
         var topMovies = await _db.Tickets.AsNoTracking()
             .Where(t => t.Booking.Status == BOOKING_PAID
                         && t.Booking.CreatedAt >= fromDate && t.Booking.CreatedAt < toDateExclusive)
@@ -81,6 +77,22 @@ public class ReportService : IReportService
             .Take(10)
             .ToListAsync();
 
+        // ── Occupancy rate by showtime ─────────────────────────────────────────
+        // Lấy top 10 showtimes trong khoảng thời gian, tính % ghế đã booked
+        var occupancy = await _db.ShowTimes.AsNoTracking()
+            .Where(s => s.StartAt >= fromDate && s.StartAt < toDateExclusive)
+            .Select(s => new ShowtimeOccupancyVm
+            {
+                ShowTimeId = s.ShowTimeId,
+                MovieTitle = s.Movie.Title,
+                StartAt = s.StartAt,
+                TotalSeats = s.ShowTimeSeats.Count,
+                BookedSeats = s.ShowTimeSeats.Count(ss => ss.Status == 2) // 2 = Booked
+            })
+            .OrderByDescending(s => s.BookedSeats)
+            .Take(10)
+            .ToListAsync();
+
         return new DashboardVm
         {
             From = fromDate,
@@ -90,8 +102,8 @@ public class ReportService : IReportService
             TotalTicketsSold = totalTicketsSold,
             TotalCancelled = totalCancelled,
             RevenueByDay = revenueByDay,
-            TopMovies = topMovies
+            TopMovies = topMovies,
+            OccupancyRates = occupancy
         };
     }
 }
-

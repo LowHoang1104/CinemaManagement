@@ -1,0 +1,216 @@
+@model CinemaManagement.ViewModels.ShowTimeDetailViewModel
+@using System.Globalization
+
+@{
+    var culture = new CultureInfo("vi-VN");
+    string FormatPrice(decimal p) => p.ToString("N0", new CultureInfo("en-US")) + " VNĐ";
+    string dayOfWeek = Model.StartAt.ToString("dddd", new CultureInfo("vi-VN"));
+    // Capitalize first letter
+    dayOfWeek = char.ToUpper(dayOfWeek[0]) + dayOfWeek.Substring(1);
+    string dateDisplay = $"{dayOfWeek}, {Model.StartAt:dd/MM/yyyy}";
+    string timeRange = $"{Model.StartAt:HH:mm} - {Model.EndAt:HH:mm} ({Model.MovieDuration} phút)";
+    string idShort = Model.ShowTimeId.ToString().Substring(0, 8).ToUpper();
+}
+
+<div class="p-8">
+    <!-- Header -->
+    <div class="flex items-start justify-between mb-6">
+        <div>
+            <div class="flex items-center gap-3 flex-wrap">
+                <h2 class="text-2xl font-extrabold text-slate-900 leading-tight">@Model.MovieTitle</h2>
+                @switch (Model.DisplayStatus)
+                {
+                    case 0: // Cancelled
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-700 border border-red-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-red-500 inline-block"></span>
+                            Đã hủy
+                        </span>
+                        break;
+                    case 1: // Upcoming
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-blue-100 text-blue-700 border border-blue-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500 inline-block"></span>
+                            Sắp chiếu
+                        </span>
+                        break;
+                    case 2: // Now Showing
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-700 border border-emerald-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse inline-block"></span>
+                            Đang chiếu
+                        </span>
+                        break;
+                    case 3: // Ended
+                        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-gray-100 text-gray-700 border border-gray-200">
+                            <span class="w-1.5 h-1.5 rounded-full bg-gray-400 inline-block"></span>
+                            Đã kết thúc
+                        </span>
+                        break;
+                }
+            </div>
+            <p class="text-slate-500 text-sm mt-1">Chi tiết suất chiếu</p>
+        </div>
+        <button onclick="closeDetailsModal()" class="text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-all p-2 rounded-full flex-shrink-0 ml-4">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+
+    <!-- 2-Column Body -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+        <!-- LEFT: Thông tin suất chiếu -->
+        <div>
+            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Thông tin suất chiếu</h3>
+            <div class="space-y-3">
+
+                <!-- ID -->
+                <div class="bg-gray-50 rounded-xl p-4 flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-indigo-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 10h16M4 14h10"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 mb-0.5">ID Suất chiếu</p>
+                        <!-- <p class="text-sm font-mono font-bold text-slate-800">@Model.ShowTimeId.ToString().ToUpper().Substring(0,8)...</p> -->
+                        <p class="text-[11px] text-slate-400 mt-0.5 font-mono break-all">@Model.ShowTimeId</p>
+                    </div>
+                </div>
+
+                <!-- Phim -->
+                <div class="bg-gray-50 rounded-xl p-4 flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-violet-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-violet-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 mb-0.5">Phim</p>
+                        <p class="text-sm font-bold text-slate-900">@Model.MovieTitle</p>
+                        <div class="flex items-center gap-2 mt-1.5 flex-wrap">
+                            <span class="inline-block bg-slate-200 text-slate-700 text-[11px] font-semibold px-2 py-0.5 rounded-md">@Model.MovieDuration phút</span>
+                            @if (Model.AgeRating.HasValue)
+                            {
+                                <span class="inline-block bg-orange-100 text-orange-700 text-[11px] font-bold px-2 py-0.5 rounded-md">T@(Model.AgeRating)</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Địa điểm -->
+                <div class="bg-gray-50 rounded-xl p-4 flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-green-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 mb-0.5">Địa điểm</p>
+                        <p class="text-sm font-bold text-slate-900">@Model.CinemaName</p>
+                        <p class="text-xs text-slate-500 mt-0.5">@Model.RoomName - Standard</p>
+                    </div>
+                </div>
+
+                <!-- Thời gian chiếu -->
+                <div class="bg-gray-50 rounded-xl p-4 flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 mb-0.5">Thời gian chiếu</p>
+                        <p class="text-sm font-bold text-slate-900">@dateDisplay</p>
+                        <p class="text-xs text-slate-600 mt-0.5">@Model.StartAt.ToString("HH:mm") - @Model.EndAt.ToString("HH:mm") (@Model.MovieDuration phút)</p>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Xong dọn dẹp: <span class="font-semibold text-slate-500">@Model.CleaningEndsAt.ToString("HH:mm")</span></p>
+                    </div>
+                </div>
+
+                <!-- Ngày tạo -->
+                <div class="bg-gray-50 rounded-xl p-4 flex items-start gap-3">
+                    <div class="w-9 h-9 rounded-lg bg-sky-100 flex items-center justify-center flex-shrink-0">
+                        <svg class="w-4 h-4 text-sky-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    </div>
+                    <div>
+                        <p class="text-xs font-bold text-slate-500 mb-0.5">Ngày tạo</p>
+                        <p class="text-sm font-bold text-slate-800">@Model.CreatedAt.ToString("dd/MM/yyyy")</p>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- RIGHT: Giá vé -->
+        <div>
+            <h3 class="text-sm font-bold text-slate-500 uppercase tracking-widest mb-4">Giá vé</h3>
+
+            <!-- Base price hero card -->
+            <div class="bg-blue-50 border border-blue-100 rounded-xl p-5 mb-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <svg class="w-4 h-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span class="text-sm font-bold text-blue-700">Giá cơ bản</span>
+                </div>
+                <p class="text-3xl font-extrabold text-slate-900 leading-none">@FormatPrice(Model.BasePrice)</p>
+                <p class="text-xs text-blue-500 font-medium mt-1.5">Áp dụng cho ghế Standard</p>
+            </div>
+
+            <!-- Price tiers -->
+            <div class="space-y-2 mb-4">
+                <p class="text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Giá theo loại ghế:</p>
+
+                <div class="flex items-center justify-between bg-green-50 border border-green-100 rounded-xl px-4 py-3">
+                    <div class="flex items-center gap-2">
+                        <!-- <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg> -->
+                        <svg class="h-5 w-5 text-green-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3"/><path d="M2 11v5a2 2 0 002 2h16a2 2 0 002-2v-5a2 2 0 00-4 0v1H6v-1a2 2 0 00-4 0z"/>
+                        </svg>
+                        <span class="text-sm font-bold text-green-800">Standard</span>
+                    </div>
+                    <span class="text-sm font-extrabold text-green-700">@FormatPrice(Model.BasePrice)</span>
+                </div>
+
+                <div class="flex items-center justify-between bg-amber-50 border border-amber-100 rounded-xl px-4 py-3">
+                    <div class="flex items-center gap-2">
+                        <!-- <svg class="w-4 h-4 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z"/></svg> -->
+                        <svg class="h-5 w-5 text-amber-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3"/><path d="M2 11v5a2 2 0 002 2h16a2 2 0 002-2v-5a2 2 0 00-4 0v1H6v-1a2 2 0 00-4 0z"/>
+                        </svg>
+                        <span class="text-sm font-bold text-amber-800">VIP <span class="font-normal text-amber-500 text-xs">(+20.000 VNĐ)</span></span>
+                    </div>
+                    <span class="text-sm font-extrabold text-amber-700">@FormatPrice(Model.VipPrice)</span>
+                </div>
+
+                <div class="flex items-center justify-between bg-rose-50 border border-rose-100 rounded-xl px-4 py-3">
+                    <div class="flex items-center gap-2">
+                        <!-- <svg class="w-4 h-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/></svg> -->
+                        <svg class="h-5 w-5 text-rose-700" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3"/><path d="M2 11v5a2 2 0 002 2h16a2 2 0 002-2v-5a2 2 0 00-4 0v1H6v-1a2 2 0 00-4 0z"/>
+                        </svg>
+                        <span class="text-sm font-bold text-rose-800">Couple <span class="font-normal text-rose-400 text-xs">(+50.000 VNĐ)</span></span>
+                    </div>
+                    <span class="text-sm font-extrabold text-rose-700">@FormatPrice(Model.CouplePrice)</span>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="bg-slate-50 border border-dashed border-slate-200 rounded-xl p-4">
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="text-base">📋</span>
+                    <span class="text-xs font-bold text-slate-600">Ghi chú:</span>
+                </div>
+                <ul class="text-xs text-slate-500 space-y-1 list-disc list-inside">
+                    <li>Giá VIP và Couple được tính tự động</li>
+                    <li>Giá có thể được override khi đặt vé</li>
+                    <li>Giá đã bao gồm thuế VAT</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer Buttons -->
+    <div class="flex justify-end gap-3 mt-8 pt-6 border-t border-slate-100">
+        <button onclick="closeDetailsModal()" class="px-7 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-700 transition-all shadow-lg text-sm active:scale-95">
+            Đóng
+        </button>
+        @{
+            var isRestricted = Model.DisplayStatus != 1;
+            var restrictedClasses = isRestricted ? "opacity-30 cursor-not-allowed pointer-events-none" : "";
+        }
+        <button onclick="closeDetailsModal(); openEditModal('@Model.ShowTimeId', false);" @(isRestricted ? "disabled" : "")
+                class="px-7 py-3 bg-gray-100 border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-gray-200 transition-all shadow-sm text-sm active:scale-95 @restrictedClasses">
+            Chỉnh sửa
+        </button>
+    </div>
+</div>

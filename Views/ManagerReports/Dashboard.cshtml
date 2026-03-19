@@ -1,0 +1,180 @@
+﻿@model CinemaManagement.ViewModels.Manager.DashboardVm
+@{
+    ViewData["Title"] = "Manager Dashboard";
+}
+
+<style>
+    .dash-wrap { max-width: 1200px; margin: 24px auto; padding: 0 16px; }
+    .dash-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
+    .dash-header h2 { margin: 0; color: #c0392b; }
+    .filter-form { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+    .filter-form input[type=date] { border: 1px solid #ccc; border-radius: 4px; padding: 5px 8px; font-size: 14px; }
+    .btn-sm { padding: 6px 14px; font-size: 13px; border-radius: 4px; border: none; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn-primary { background: #e50914; color: #fff; }
+    .btn-success { background: #27ae60; color: #fff; }
+    .btn-info    { background: #2980b9; color: #fff; }
+
+    .kpi-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 28px; }
+    .kpi-card { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.08); padding: 18px 20px; border-left: 5px solid #e50914; }
+    .kpi-card.green  { border-left-color: #27ae60; }
+    .kpi-card.blue   { border-left-color: #2980b9; }
+    .kpi-card.orange { border-left-color: #e67e22; }
+    .kpi-val { font-size: 26px; font-weight: 700; color: #333; }
+    .kpi-lbl { font-size: 12px; color: #888; margin-top: 4px; }
+
+    .row-2col { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .card { background: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,.08); padding: 20px; margin-bottom: 20px; }
+    .card h4 { margin: 0 0 14px; color: #555; font-size: 15px; border-bottom: 1px solid #f0f0f0; padding-bottom: 8px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th { background: #f5f5f5; padding: 8px; text-align: left; color: #555; font-weight: 600; }
+    td { padding: 7px 8px; border-bottom: 1px solid #f0f0f0; vertical-align: middle; }
+    tr:last-child td { border-bottom: none; }
+    .rank { font-weight: 700; color: #e50914; }
+    .export-row { display: flex; gap: 10px; margin-bottom: 20px; justify-content: flex-end; }
+    .occ-bar-wrap { background: #f0f0f0; border-radius: 4px; height: 8px; min-width: 80px; }
+    .occ-bar { height: 8px; border-radius: 4px; background: linear-gradient(90deg,#27ae60,#2ecc71); }
+    .occ-bar.medium { background: linear-gradient(90deg,#f39c12,#f1c40f); }
+    .occ-bar.low    { background: linear-gradient(90deg,#e74c3c,#e57373); }
+</style>
+
+<div class="dash-wrap">
+    <div class="dash-header">
+        <h2>&#x1F4CA; Manager Dashboard</h2>
+        <form class="filter-form" method="get">
+            <label style="font-size:13px;color:#555">From:</label>
+            <input type="date" name="from" value="@Model.From.ToString("yyyy-MM-dd")" />
+            <label style="font-size:13px;color:#555">To:</label>
+            <input type="date" name="to" value="@Model.To.ToString("yyyy-MM-dd")" />
+            <button type="submit" class="btn-sm btn-primary">Apply</button>
+        </form>
+    </div>
+
+    <div class="export-row">
+        <a href="/ManagerReports/ExportExcel?from=@Model.From.ToString("yyyy-MM-dd")&to=@Model.To.ToString("yyyy-MM-dd")"
+           class="btn-sm btn-success">&#x2B07; Export Excel</a>
+        <a href="/ManagerReports/ExportPdf?from=@Model.From.ToString("yyyy-MM-dd")&to=@Model.To.ToString("yyyy-MM-dd")"
+           target="_blank" class="btn-sm btn-info">&#x1F5A8; Export PDF</a>
+    </div>
+
+    <div class="kpi-row">
+        <div class="kpi-card">
+            <div class="kpi-val">@Model.TotalRevenue.ToString("N0") VND</div>
+            <div class="kpi-lbl">Total Revenue</div>
+        </div>
+        <div class="kpi-card green">
+            <div class="kpi-val">@Model.TotalBookings.ToString("N0")</div>
+            <div class="kpi-lbl">Total Bookings</div>
+        </div>
+        <div class="kpi-card blue">
+            <div class="kpi-val">@Model.TotalTicketsSold.ToString("N0")</div>
+            <div class="kpi-lbl">Tickets Sold</div>
+        </div>
+        <div class="kpi-card orange">
+            <div class="kpi-val">@Model.CancellationRate.ToString("F1")%</div>
+            <div class="kpi-lbl">Cancellation Rate (@Model.TotalCancelled bookings)</div>
+        </div>
+    </div>
+
+    <div class="row-2col">
+        <div class="card">
+            <h4>Revenue by Day</h4>
+            <canvas id="revenueChart" height="100"></canvas>
+        </div>
+        <div class="card">
+            <h4>Top Movies by Revenue</h4>
+            @if (!Model.TopMovies.Any())
+            {
+                <p style="color:#aaa;font-size:13px">No data for selected period.</p>
+            }
+            else
+            {
+                <table>
+                    <thead><tr><th>#</th><th>Movie</th><th>Tickets</th><th>Revenue</th></tr></thead>
+                    <tbody>
+                        @for (int i = 0; i < Model.TopMovies.Count; i++)
+                        {
+                            var m = Model.TopMovies[i];
+                            <tr>
+                                <td class="rank">@(i + 1)</td>
+                                <td>@m.Title</td>
+                                <td>@m.TicketsSold</td>
+                                <td>@m.Revenue.ToString("N0")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+        </div>
+    </div>
+
+    <div class="card">
+        <h4>Showtime Occupancy Rate (Top 10)</h4>
+        @if (!Model.OccupancyRates.Any())
+        {
+            <p style="color:#aaa;font-size:13px">No showtimes in selected period.</p>
+        }
+        else
+        {
+            <table>
+                <thead>
+                    <tr>
+                        <th>Movie</th>
+                        <th>Start Time</th>
+                        <th>Booked / Total</th>
+                        <th style="min-width:160px">Occupancy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model.OccupancyRates)
+                    {
+                        var pct = s.OccupancyRate;
+                        var barClass = pct >= 70 ? "" : (pct >= 40 ? "medium" : "low");
+                        <tr>
+                            <td><strong>@s.MovieTitle</strong></td>
+                            <td>@s.StartAt.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@s.BookedSeats / @s.TotalSeats</td>
+                            <td>
+                                <div style="display:flex;align-items:center;gap:8px">
+                                    <div class="occ-bar-wrap" style="flex:1">
+                                        <div class="occ-bar @barClass" style="width:@((int)Math.Min(pct, 100))%"></div>
+                                    </div>
+                                    <span style="font-size:12px;font-weight:600;width:38px">@pct.ToString("F0")%</span>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        const labels = [@Html.Raw(string.Join(",", Model.RevenueByDay.Select(d => $"'{d.Date:dd/MM}'")))];
+        const data   = [@Html.Raw(string.Join(",", Model.RevenueByDay.Select(d => d.Revenue)))];
+
+        new Chart(document.getElementById('revenueChart'), {
+            type: 'bar',
+            data: {
+                labels,
+                datasets: [{
+                    label: 'Revenue (VND)',
+                    data,
+                    backgroundColor: 'rgba(229,9,20,0.7)',
+                    borderColor: '#c0392b',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { ticks: { callback: v => v.toLocaleString('vi-VN') + ' VND' } }
+                }
+            }
+        });
+    </script>
+}

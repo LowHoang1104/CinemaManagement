@@ -1,4 +1,5 @@
 ﻿using CinemaManagement.Data;
+using CinemaManagement.Models;
 using CinemaManagement.ViewModels.Admin;
 using Microsoft.EntityFrameworkCore;
 
@@ -7,9 +8,14 @@ namespace CinemaManagement.Services;
 public interface IAdminUserService
 {
     Task<UserListVm> SearchUsersAsync(string? keyword, string? role, int? status);
+    Task<CreateUserVm> GetCreateFormAsync();
+    Task CreateUserAsync(CreateUserVm vm);
+    Task<EditUserVm> GetEditAsync(Guid userId);
+    Task UpdateUserAsync(EditUserVm vm);
     Task<AssignRolesVm> GetAssignRolesAsync(Guid userId);
     Task UpdateUserRolesAsync(Guid userId, List<Guid> selectedRoleIds);
     Task ToggleLockAsync(Guid userId);
+    Task DeleteUserAsync(Guid userId);
 }
 
 public class AdminUserService : IAdminUserService
@@ -21,14 +27,9 @@ public class AdminUserService : IAdminUserService
     public async Task<UserListVm> SearchUsersAsync(string? keyword, string? role, int? status)
     {
         var roles = await _db.Roles.AsNoTracking()
-            .Select(r => r.Name)
-            .OrderBy(x => x)
-            .ToListAsync();
+            .Select(r => r.Name).OrderBy(x => x).ToListAsync();
 
-        var query = _db.Users
-            .AsNoTracking()
-            .Include(u => u.Roles)
-            .AsQueryable();
+        var query = _db.Users.AsNoTracking().Include(u => u.Roles).AsQueryable();
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
@@ -67,23 +68,109 @@ public class AdminUserService : IAdminUserService
         };
     }
 
-    public async Task ToggleLockAsync(Guid userId)
+    // ── CREATE ────────────────────────────────────────────────────────────────
+    public async Task<CreateUserVm> GetCreateFormAsync()
     {
-        var user = await _db.Users.FirstOrDefaultAsync(x => x.UserId == userId)
-            ?? throw new InvalidOperationException("User not found");
+        var allRoles = await _db.Roles.AsNoTracking().OrderBy(r => r.Name).ToListAsync();
+        return new CreateUserVm
+        {
+            AllRoles = allRoles.Select(r => new RoleOptionVm
+            {
+                RoleId = r.RoleId,
+                Name = r.Name
+            }).ToList()
+        };
+    }
 
-        user.Status = user.Status == 1 ? 0 : 1;
+    public async Task CreateUserAsync(CreateUserVm vm)
+    {
+        // Kiểm tra email trùng
+        if (await _db.Users.AnyAsync(u => u.Email == vm.Email))
+            throw new InvalidOperationException("Email already exists.");
+
+        var roles = await _db.Roles
+            .Where(r => vm.SelectedRoleIds.Contains(r.RoleId))
+            .ToListAsync();
+
+        var user = new User
+        {
+            UserId = Guid.NewGuid(),
+            Email = vm.Email,
+            // Production: dùng BCrypt.HashPassword(vm.Password)
+            PasswordHash = BCryptHash(vm.Password),
+            FullName = vm.FullName,
+            Phone = vm.Phone,
+            Status = 1,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        foreach (var r in roles)
+            user.Roles.Add(r);
+
+        _db.Users.Add(user);
+        await _db.SaveChangesAsync();
+    }
+
+    // ── EDIT ──────────────────────────────────────────────────────────────────
+    public async Task<EditUserVm> GetEditAsync(Guid userId)
+    {
+        var user = await _db.Users.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.UserId == userId)
+            ?? throw new InvalidOperationException("User not found.");
+
+        return new EditUserVm
+        {
+            UserId = user.UserId,
+            Email = user.Email,
+            FullName = user.FullName,
+            Phone = user.Phone,
+            Status = user.Status
+        };
+    }
+
+    public async Task UpdateUserAsync(EditUserVm vm)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == vm.UserId)
+            ?? throw new InvalidOperationException("User not found.");
+
+        user.FullName = vm.FullName;
+        user.Phone = vm.Phone;
+        user.Status = vm.Status;
         user.LastUpdatedAt = DateTime.UtcNow;
 
         await _db.SaveChangesAsync();
     }
 
+    // ── TOGGLE LOCK ───────────────────────────────────────────────────────────
+    public async Task ToggleLockAsync(Guid userId)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId)
+            ?? throw new InvalidOperationException("User not found.");
+
+        user.Status = user.Status == 1 ? 0 : 1;
+        user.LastUpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+    }
+
+    // ── DELETE (soft) ─────────────────────────────────────────────────────────
+    public async Task DeleteUserAsync(Guid userId)
+    {
+        var user = await _db.Users.FirstOrDefaultAsync(u => u.UserId == userId)
+            ?? throw new InvalidOperationException("User not found.");
+
+        // Soft delete: set Status = -1 thay vì xóa cứng
+        user.Status = -1;
+        user.LastUpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync();
+    }
+
+    // ── ASSIGN ROLES ──────────────────────────────────────────────────────────
     public async Task<AssignRolesVm> GetAssignRolesAsync(Guid userId)
     {
         var user = await _db.Users
             .Include(u => u.Roles)
             .FirstOrDefaultAsync(u => u.UserId == userId)
-            ?? throw new InvalidOperationException("User not found");
+            ?? throw new InvalidOperationException("User not found.");
 
         var allRoles = await _db.Roles.AsNoTracking().OrderBy(r => r.Name).ToListAsync();
         var userRoleIds = user.Roles.Select(r => r.RoleId).ToHashSet();
@@ -106,19 +193,22 @@ public class AdminUserService : IAdminUserService
         var user = await _db.Users
             .Include(u => u.Roles)
             .FirstOrDefaultAsync(u => u.UserId == userId)
-            ?? throw new InvalidOperationException("User not found");
+            ?? throw new InvalidOperationException("User not found.");
 
         var roles = await _db.Roles
             .Where(r => selectedRoleIds.Contains(r.RoleId))
             .ToListAsync();
 
-        // reset roles
         user.Roles.Clear();
         foreach (var r in roles)
             user.Roles.Add(r);
 
         user.LastUpdatedAt = DateTime.UtcNow;
-
         await _db.SaveChangesAsync();
     }
+
+    // ── Helper ────────────────────────────────────────────────────────────────
+    // Production: cài BCrypt.Net-Next NuGet rồi dùng BCrypt.Net.BCrypt.HashPassword()
+    private static string BCryptHash(string password)
+        => $"$2a$11$DEMO_HASH_{Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(password))}";
 }
