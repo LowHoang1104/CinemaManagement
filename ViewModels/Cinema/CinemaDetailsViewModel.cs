@@ -2,7 +2,7 @@ using CinemaManagement.Models;
 
 namespace CinemaManagement.ViewModels.Cinema;
 
-public class CinemaDetailsVm
+public class CinemaDetailsViewModel
 {
     public Guid CinemaId { get; set; }
     public string Name { get; set; } = null!;

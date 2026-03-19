@@ -88,11 +88,11 @@
                         <span id="EditPriceStandard" class="font-extrabold text-slate-900">0 VNĐ</span>
                     </div>
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-600 font-medium font-bold italic">• VIP <span class="text-[10px] font-normal text-blue-500">(+20,000)</span></span>
+                        <span class="text-slate-600 font-medium font-bold italic">• VIP <span class="text-[10px] font-normal text-blue-500">(+5,000)</span></span>
                         <span id="EditPriceVIP" class="font-extrabold text-slate-900">0 VNĐ</span>
                     </div>
                     <div class="flex justify-between items-center text-xs">
-                        <span class="text-slate-600 font-medium font-bold italic">• Couple <span class="text-[10px] font-normal text-pink-500">(+50,000)</span></span>
+                        <span class="text-slate-600 font-medium font-bold italic">• Couple <span class="text-[10px] font-normal text-pink-500">(x2)</span></span>
                         <span id="EditPriceCouple" class="font-extrabold text-slate-900">0 VNĐ</span>
                     </div>
                 </div>
@@ -116,209 +116,14 @@
 
 <script>
     (function() {
-        const viewOnly = @(viewOnly ? "true" : "false");
-        let lastEditOverlapData = null;
-        const movieDuration = @Model.MovieDuration;
-        const roomId = '@Model.RoomId';
-        const showTimeId = '@Model.ShowTimeId';
-        const movieId = '@Model.MovieId';
-        const movieTitle = '@Model.MovieTitle';
-
-        // Use setTimeout to ensure DOM is fully rendered after AJAX injection
-        setTimeout(function() {
-            const startTimeInput = document.getElementById('EditStartTimeInput');
-            const basePriceInput = document.getElementById('EditBasePriceInput');
-            const timeRangeDisplay = document.getElementById('EditTimeRangeDisplay');
-            const priceStandard = document.getElementById('EditPriceStandard');
-            const priceVIP = document.getElementById('EditPriceVIP');
-            const priceCouple = document.getElementById('EditPriceCouple');
-            const validationBar = document.getElementById('EditValidationBar');
-            const submitBtn = document.getElementById('EditSubmitBtn');
-
-            function formatCurrency(n) { return new Intl.NumberFormat('en-US').format(n) + ' VNĐ'; }
-            function updatePricing() {
-                // Robust parsing
-                const raw = basePriceInput.value.replace(/\D/g, '');
-                const b = parseInt(raw) || 0;
-                priceStandard.textContent = formatCurrency(b);
-                priceVIP.textContent = formatCurrency(b + 20000);
-                priceCouple.textContent = formatCurrency(b + 50000);
-            }
-
-            async function checkOverlap() {
-                const s = startTimeInput.value;
-                if (!s) { validationBar.classList.add('hidden'); submitBtn.disabled = true; lastEditOverlapData = null; return; }
-                try {
-                    const res = await fetch(`/ShowTimes/CheckOverlap?roomId=${roomId}&startAt=${s}&movieId=${movieId}&excludeId=${showTimeId}`);
-                    if (res.ok) {
-                        const d = await res.json();
-                        lastEditOverlapData = d;
-                        validationBar.classList.remove('hidden');
-                        if (d.isPast) {
-                            lastEditOverlapData = null;
-                            validationBar.className = "rounded-xl p-4 border border-orange-200 bg-orange-50 text-orange-700 text-sm flex items-start gap-3";
-                            validationBar.innerHTML = `
-                                <svg class="h-5 w-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                </svg>
-                                <div><span class="font-bold">Không hợp lệ:</span> Thời gian bắt đầu suất chiếu không thể nằm trong quá khứ.</div>
-                            `;
-                            submitBtn.disabled = true;
-                        } else if (d.isOverlapping) {
-                            validationBar.className = "rounded-xl p-4 border border-red-200 bg-red-50 text-red-700 text-sm flex items-start gap-3";
-                            validationBar.innerHTML = `
-                                <svg class="h-5 w-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                                </svg>
-                                <div class="flex-1">
-                                    <span class="font-bold">Cảnh báo:</span> Phát hiện xung đột thời gian với suất chiếu khác.<br/>
-                                    <span class="text-xs font-semibold underline cursor-pointer mt-1 block" onclick="document.getElementById('EditForm').requestSubmit()">
-                                        Bấm 'Cập nhật' để xem chi tiết >>
-                                    </span>
-                                </div>
-                            `;
-                            submitBtn.disabled = false;
-                        } else {
-                            lastEditOverlapData = null;
-                            validationBar.className = "rounded-xl p-4 border border-green-200 bg-green-50 text-green-700 text-sm flex items-center gap-2";
-                            validationBar.innerHTML = `
-                                <svg class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                                </svg>
-                                <span>Không có xung đột thời gian</span>
-                            `;
-                            submitBtn.disabled = false;
-                        }
-                    }
-                } catch (e) { console.error(e); }
-            }
-
-            function updatePreview() {
-                const s = startTimeInput.value;
-                if (s && movieDuration > 0) {
-                    const start = new Date(s), end = new Date(start.getTime() + movieDuration * 60000), cl = new Date(end.getTime() + 15 * 60000);
-                    const f = (dt) => dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    timeRangeDisplay.textContent = `${f(start)} - ${f(end)} (Xong dọn dẹp: ${f(cl)})`;
-                } else if (s) {
-                    timeRangeDisplay.textContent = "Không xác định được thời lượng phim";
-                } else {
-                    timeRangeDisplay.textContent = '--:--';
-                }
-                if (s && !viewOnly) checkOverlap();
-                else if (s && viewOnly) { validationBar.classList.add('hidden'); }
-                else { validationBar.classList.add('hidden'); if(submitBtn) submitBtn.disabled = true; lastEditOverlapData = null; }
-            }
-
-            // Intercept EditForm submission to show Conflict Modal if overlap detected
-            const editForm = document.getElementById('EditForm');
-            if (viewOnly) {
-                editForm.addEventListener('submit', e => e.preventDefault());
-            } else {
-                editForm.addEventListener('submit', async function(e) {
-                e.preventDefault();
-                
-                if (lastEditOverlapData && lastEditOverlapData.isOverlapping) {
-                    // Build the conflict modal using data from the Edit context
-                    const list = document.getElementById('ConflictList');
-                    list.innerHTML = '';
-                    document.getElementById('ConflictSubtitle').textContent = `Suất chiếu "${movieTitle}" bị trùng thời gian với ${lastEditOverlapData.conflicts.length} suất chiếu đã tồn tại.`;
-                    document.getElementById('ConflictNewMovieName').textContent = movieTitle;
-                    const s = startTimeInput.value;
-                    if (s) {
-                        const sD = new Date(s), eD = new Date(sD.getTime() + movieDuration * 60000);
-                        const f = (dt) => dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
-                        document.getElementById('ConflictNewTime').textContent = `${f(sD)} - ${f(eD)}`;
-                        document.getElementById('ConflictNewDate').textContent = sD.toLocaleDateString('vi-VN', { weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit' });
-                        document.getElementById('ConflictNewShowBlock').classList.remove('hidden');
-                    }
-                    lastEditOverlapData.conflicts.forEach(c => {
-                        list.innerHTML += `
-                            <div class="bg-white rounded-xl border border-red-200/60 p-4 shadow-sm">
-                                <h4 class="font-bold text-slate-800">${c.movieTitle}</h4>
-                                <div class="flex items-center gap-2 mt-1.5 text-slate-600 text-sm">
-                                    <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                    ${c.startTime} - ${c.endTime}
-                                </div>
-                                <div class="text-slate-500 text-xs mt-1">Thời lượng: ${c.duration} phút + 15 phút dọn dẹp</div>
-                            </div>
-                        `;
-                    });
-                    toggleConflictModal(true);
-                    return;
-                }
-
-                // AJAX Submit
-                try {
-                    const formData = new FormData(editForm);
-                    const response = await fetch(editForm.action, {
-                        method: 'POST',
-                        body: formData,
-                        headers: {
-                            'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
-                        }
-                    });
-
-                    if (response.ok) {
-                        if (response.redirected) {
-                            window.location.href = response.url; // Follow redirect to Index
-                        } else {
-                            const html = await response.text();
-                            const editModalBody = document.getElementById('EditModalBody');
-                            editModalBody.innerHTML = html;
-                            if (typeof executeScripts === 'function') {
-                                executeScripts(editModalBody);
-                            }
-                        }
-                    } else {
-                        showToast('Lỗi', 'Không thể lưu thay đổi.', 'error');
-                    }
-                } catch (error) {
-                    console.error('Submit error:', error);
-                    showToast('Lỗi', 'Lỗi hệ thống khi lưu.', 'error');
-                }
-            });
-            }
-
-            startTimeInput.addEventListener('change', updatePreview);
-            startTimeInput.addEventListener('input', updatePreview);
-            basePriceInput.addEventListener('input', function(e) {
-                const oldValue = this.value;
-                const cursor = this.selectionStart;
-
-                // 1. Calculate digits before cursor
-                const digitsBefore = oldValue.substring(0, cursor).replace(/\D/g, '').length;
-
-                // 2. Clean and format
-                const digitsOnly = oldValue.replace(/\D/g, '');
-                const clean = digitsOnly.replace(/^0+/, '');
-
-                if (clean === '') {
-                    this.value = '';
-                    updatePricing();
-                    return;
-                }
-
-                const formatted = new Intl.NumberFormat('en-US').format(BigInt(clean));
-                this.value = formatted;
-
-                // 3. Restore cursor
-                let newCursor = 0;
-                let digitsFound = 0;
-                for (let i = 0; i < formatted.length; i++) {
-                    if (digitsFound < digitsBefore) {
-                        if (/\d/.test(formatted[i])) digitsFound++;
-                        newCursor = i + 1;
-                    } else {
-                        break;
-                    }
-                }
-                this.setSelectionRange(newCursor, newCursor);
-                updatePricing();
-            });
-            updatePricing(); // Initialize pricing display
-            updatePreview(); // Initialize time preview and overlap check
-            
-            if (viewOnly && validationBar) validationBar.classList.add('hidden');
-        }, 0);
+        window.editModalData = {
+            viewOnly: @(viewOnly ? "true" : "false"),
+            movieDuration: @Model.MovieDuration,
+            roomId: '@Model.RoomId',
+            showTimeId: '@Model.ShowTimeId',
+            movieId: '@Model.MovieId',
+            movieTitle: '@Html.Raw(Model.MovieTitle.Replace("'", "\\'"))'
+        };
     })();
 </script>
+<script src="~/js/admin/showtime-edit-modal.js" asp-append-version="true"></script>

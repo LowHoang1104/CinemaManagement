@@ -1,3 +1,4 @@
+using CinemaManagement.Extensions;
 using CinemaManagement.Requests;
 using CinemaManagement.Services;
 using CinemaManagement.ViewModels.Cinema;
@@ -14,64 +15,41 @@ namespace CinemaManagement.Controllers
             _cinemaService = cinemaService;
         }
 
-
         public async Task<IActionResult> Index(string? search, int? status, string? sortBy, string? sortDir, int page = 1, int pageSize = 2)
         {
             var result = await _cinemaService.GetAllAsync(search, status, sortBy, sortDir, page, pageSize);
             var stats = await _cinemaService.GetStatsAsync();
 
-            // Thống kê
-            ViewData["TotalCinemas"] = stats.TotalCinemas;
-            ViewData["ActiveCinemas"] = stats.ActiveCinemas;
-            ViewData["InactiveCinemas"] = stats.InactiveCinemas;
-            ViewData["TotalRooms"] = stats.TotalRooms;
-
-            // State bộ lọc và phân trang
-            ViewData["SearchKeyword"] = search ?? "";
-            ViewData["StatusFilter"] = status;
-            ViewData["SortBy"] = sortBy ?? "";
-            ViewData["SortDir"] = sortDir ?? "asc";
-            ViewData["CurrentPage"] = page;
-            ViewData["PageSize"] = pageSize;
-            ViewData["TotalItems"] = result.TotalItems;
-            ViewData["TotalPages"] = (int)Math.Ceiling(result.TotalItems / (double)pageSize);
-
-            // Kiểm tra nếu là AJAX request thì chỉ trả về Partial View chứa các Card
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+            var vm = new CinemaIndexViewModel
             {
-                return PartialView("_CinemaGridPartial", result.Items);
-            }
-
-            return View(result.Items);
-        }
-
-        public async Task<IActionResult> Detail(Guid id)
-        {
-            var cinema = await _cinemaService.GetByIdAsync(id);
-            if(cinema == null) return NotFound();
-
-            var vm = new CinemaDetailVm
-            {
-                Id = cinema.CinemaId,
-                Name = cinema.Name,
-                Address = cinema.Address,
-                IsActive = cinema.Status == 1,
-                CreatedAt = cinema.CreatedAt,
-                UpdatedAt = cinema.LastUpdatedAt
+                Cinemas = result.Items,
+                Stats = stats,
+                SearchKeyword = search ?? "",
+                StatusFilter = status,
+                SortBy = sortBy ?? "",
+                SortDir = sortDir ?? "asc",
+                CurrentPage = page,
+                PageSize = pageSize,
+                TotalItems = result.TotalItems,
+                TotalPages = (int)Math.Ceiling(result.TotalItems / (double)pageSize)
             };
 
-            return PartialView("_CinemaDetailModal", vm);
+            // Kiểm tra nếu là AJAX request thì chỉ trả về Partial View chứa các Card
+            if (Request.IsAjaxRequest())
+            {
+                return PartialView("_CinemaGridPartial", vm);
+            }
+
+            return View(vm);
         }
 
         // GET: Để hiển thị form trong Modal
         public IActionResult Create()
         {
-            // Trả về PartialView nếu là request từ Modal/AJAX
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView("_CreateCinemaPartial", new CreateCinemaRequest());
-            }
-            return View(new CreateCinemaRequest());
+            if (!Request.IsAjaxRequest())
+                return RedirectToAction(nameof(Index));
+
+            return PartialView("_CreateCinemaPartial", new CreateCinemaRequest());
         }
 
         [HttpPost]
@@ -80,7 +58,7 @@ namespace CinemaManagement.Controllers
         {
             if (!ModelState.IsValid)
             {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                if (Request.IsAjaxRequest())
                     return PartialView("_CreateCinemaPartial", request);
                 return View(request);
             }
@@ -94,7 +72,7 @@ namespace CinemaManagement.Controllers
                 await _cinemaService.CreateAsync(request, currentUserId);
 
                 // 3. UX on Success: Nếu là Modal AJAX, trả về JSON để FE tự đóng Modal và hiện Toast
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                if (Request.IsAjaxRequest())
                 {
                     return Json(new { success = true, message = $"Đã tạo rạp {request.Name} thành công!" });
                 }
@@ -107,7 +85,7 @@ namespace CinemaManagement.Controllers
                 // 2. Bắt lỗi trùng tên từ Service và hiển thị đỏ lòm trên field "Name"
                 ModelState.AddModelError("Name", ex.Message);
                 
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                if (Request.IsAjaxRequest())
                     return PartialView("_CreateCinemaPartial", request);
                     
                 return View(request);
@@ -116,15 +94,14 @@ namespace CinemaManagement.Controllers
 
         public async Task<IActionResult> Edit(Guid? id)
         {
+            if (!Request.IsAjaxRequest())
+                return RedirectToAction(nameof(Index));
+
             if (id == null) return NotFound();
             var cinemaVm = await _cinemaService.GetEditByIdAsync(id.Value);
             if (cinemaVm == null) return NotFound();
 
-            if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-            {
-                return PartialView("_EditCinemaPartial", cinemaVm);
-            }
-            return View(cinemaVm);
+            return PartialView("_EditCinemaPartial", cinemaVm);
         }
 
         [HttpGet]
@@ -147,13 +124,13 @@ namespace CinemaManagement.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(Guid id, [Bind("CinemaId,Name,Address")] EditCinemaVm vm)
+        public async Task<IActionResult> Edit(Guid id, [Bind("CinemaId,Name,Address")] EditCinemaViewModel vm)
         {
             if (id != vm.CinemaId) return BadRequest();
 
             if (!ModelState.IsValid)
             {
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                if (Request.IsAjaxRequest())
                     return PartialView("_EditCinemaPartial", vm);
                 return View(vm);
             }
@@ -169,7 +146,7 @@ namespace CinemaManagement.Controllers
 
                 await _cinemaService.UpdateAsync(request, null);
 
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                if (Request.IsAjaxRequest())
                 {
                     return Json(new { success = true, message = $"Cập nhật rạp {vm.Name} thành công!" });
                 }
@@ -180,7 +157,7 @@ namespace CinemaManagement.Controllers
             catch (InvalidOperationException ex)
             {
                 ModelState.AddModelError("Name", ex.Message);
-                if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
+                if (Request.IsAjaxRequest())
                     return PartialView("_EditCinemaPartial", vm);
                 return View(vm);
             }

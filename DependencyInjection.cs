@@ -1,4 +1,4 @@
-﻿using CinemaManagement.Services;
+using CinemaManagement.Services;
 using FluentValidation;
 using Microsoft.Extensions.DependencyInjection;
 using System.Reflection;
@@ -18,6 +18,8 @@ namespace CinemaManagement
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IExportService, ExportService>();   
             services.AddScoped<ICinemaService, CinemaService>();
+            services.AddScoped<IRoomService, RoomService>();
+            services.AddScoped<IShowTimeService, ShowTimeService>();
 
             return services;
         }
