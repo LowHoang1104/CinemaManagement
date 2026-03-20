@@ -98,67 +98,11 @@ namespace CinemaManagement.Controllers
             amount ??= "0";
             extraData ??= string.Empty;
 
-            var oOrderId = WebUtility.HtmlEncode(orderId);
-            var oAmount = WebUtility.HtmlEncode(amount);
-            var oExtra = WebUtility.HtmlEncode(extraData);
+            ViewBag.OrderId = orderId;
+            ViewBag.Amount = amount;
+            ViewBag.ExtraData = extraData;
 
-            var html = $@"<!doctype html>
-<html>
-<head>
-  <meta charset='utf-8'>
-  <meta name='viewport' content='width=device-width,initial-scale=1'>
-    <title>Thanh toán MoMo (Test)</title>
-  <style>
-    body {{ background:#f2f6fb; font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; }}
-    .card {{ max-width:480px; margin:60px auto; background:#fff; border-radius:12px; padding:22px; box-shadow:0 12px 30px rgba(11,46,90,0.06); }}
-    h1 {{ color:#0b2e5a; margin:0 0 12px; font-size:20px; }}
-    label {{ display:block; margin-bottom:6px; font-size:13px; color:#334; }}
-    select,input {{ width:100%; padding:10px 12px; border-radius:8px; border:1px solid #d7e3f7; margin-bottom:12px; box-sizing:border-box; }}
-    .row {{ display:flex; gap:12px; }}
-    .small {{ color:#6b7b95; font-size:13px; }}
-    .btn {{ background:#2b7cff; color:#fff; padding:10px 14px; border:none; border-radius:8px; cursor:pointer; font-weight:600; }}
-    @media (max-width:520px) {{ .card {{ margin:20px; }} }}
-  </style>
-</head>
-<body>
-  <div class='card'>
-        <h1>Thanh toán MoMo (Test)</h1>
-        <div class='small'>Đơn hàng: <strong>{oOrderId}</strong></div>
-        <div class='small' style='margin-bottom:16px;'>Số tiền: <strong>{oAmount} VND</strong></div>
-
-    <form method='post' action='/Momo/MockOtp'>
-      <input type='hidden' name='orderId' value='{oOrderId}' />
-      <input type='hidden' name='amount' value='{oAmount}' />
-      <input type='hidden' name='extraData' value='{oExtra}' />
-
-            <label for='bank'>Chọn ngân hàng</label>
-      <select id='bank' name='bank' required>
-        <option value='Vietcombank'>Vietcombank</option>
-        <option value='Techcombank'>Techcombank</option>
-        <option value='BIDV'>BIDV</option>
-      </select>
-
-            <label for='cardNumber'>Số thẻ</label>
-      <input id='cardNumber' name='cardNumber' placeholder='0123 4567 8901 2345' required />
-
-            <label for='cardName'>Tên chủ thẻ</label>
-      <input id='cardName' name='cardName' placeholder='NGUYEN VAN A' required />
-
-            <label for='expiry'>Ngày hết hạn (MM/YY)</label>
-      <input id='expiry' name='expiry' placeholder='12/25' required />
-
-      <div style='display:flex; justify-content:space-between; align-items:center; gap:12px; margin-top:8px;'>
-                <div class='small'>Tổng: <strong>{oAmount} VND</strong></div>
-                <button class='btn' type='submit'>Thanh toán</button>
-      </div>
-    </form>
-
-        <div class='small' style='margin-top:14px;'>Lưu ý: Đây là trang giả lập dành cho môi trường phát triển.</div>
-  </div>
-</body>
-</html>";
-
-            return Content(html, "text/html", System.Text.Encoding.UTF8);
+            return View("MockPaymentPage");
         }
 
         // POST /Momo/MockOtp
@@ -173,63 +117,19 @@ namespace CinemaManagement.Controllers
             var bank = Request.Form["bank"].ToString();
             var cardNumber = Request.Form["cardNumber"].ToString();
 
-            var oOrderId = WebUtility.HtmlEncode(orderId);
-            var oAmount = WebUtility.HtmlEncode(amount);
-            var oExtra = WebUtility.HtmlEncode(extraData);
-            var oBank = WebUtility.HtmlEncode(bank);
-
             var masked = cardNumber ?? string.Empty;
             if (!string.IsNullOrEmpty(cardNumber) && cardNumber.Length > 4)
             {
                 masked = new string('*', Math.Max(0, cardNumber.Length - 4)) + cardNumber.Substring(cardNumber.Length - 4);
             }
 
-            var html = $@"<!doctype html>
-<html>
-<head>
-  <meta charset='utf-8'>
-  <meta name='viewport' content='width=device-width,initial-scale=1'>
-    <title>Nhập OTP - MoMo (Test)</title>
-  <style>
-    body {{ background:#f2f6fb; font-family:Arial,Helvetica,sans-serif; margin:0; padding:0; }}
-    .card {{ max-width:420px; margin:60px auto; background:#fff; border-radius:12px; padding:22px; box-shadow:0 10px 30px rgba(11,46,90,0.06); }}
-    h2 {{ color:#0b2e5a; margin:0 0 12px; }}
-    .info {{ font-size:14px; color:#334; margin-bottom:12px; }}
-    input {{ width:100%; padding:10px 12px; border-radius:8px; border:1px solid #d7e3f7; margin-bottom:12px; box-sizing:border-box; }}
-    .btns {{ display:flex; gap:8px; }}
-    .btn {{ flex:1; padding:10px 12px; border-radius:8px; border:none; cursor:pointer; color:#fff; font-weight:600; }}
-    .success {{ background:#24a148; }}
-    .fail {{ background:#d64545; }}
-    .insuf {{ background:#ff9f1a; color:#000; }}
-    @media (max-width:520px) {{ .card {{ margin:20px; }} .btns {{ flex-direction:column; }} }}
-  </style>
-</head>
-<body>
-  <div class='card'>
-        <h2>Nhập OTP</h2>
-        <div class='info'>Đơn hàng: <strong>{oOrderId}</strong><br/>Số tiền: <strong>{oAmount} VND</strong><br/>Ngân hàng: <strong>{oBank}</strong><br/>Thẻ: <strong>{WebUtility.HtmlEncode(masked)}</strong></div>
+            ViewBag.OrderId = orderId;
+            ViewBag.Amount = amount;
+            ViewBag.ExtraData = extraData;
+            ViewBag.Bank = bank;
+            ViewBag.Masked = masked;
 
-    <form method='post' action='/Momo/MockCallback'>
-      <input type='hidden' name='orderId' value='{oOrderId}' />
-      <input type='hidden' name='amount' value='{oAmount}' />
-      <input type='hidden' name='extraData' value='{oExtra}' />
-
-            <label for='otp'>Mã OTP</label>
-      <input id='otp' name='otp' placeholder='123456' />
-
-      <div class='btns'>
-                <button type='submit' name='resultType' value='success' class='btn success'>Thành công</button>
-                <button type='submit' name='resultType' value='fail' class='btn fail'>Thất bại</button>
-                <button type='submit' name='resultType' value='insufficient' class='btn insuf'>Không đủ tiền</button>
-      </div>
-    </form>
-
-        <div style='margin-top:12px; color:#6b7b95; font-size:13px;'>Lưu ý: Đây là trang giả lập dành cho môi trường phát triển.</div>
-  </div>
-</body>
-</html>";
-
-            return Content(html, "text/html", System.Text.Encoding.UTF8);
+            return View("MockOtp");
         }
 
         // POST /Momo/MockCallback

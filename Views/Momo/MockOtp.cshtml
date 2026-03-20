@@ -1,0 +1,234 @@
+@{
+    ViewData["Title"] = "Nh?p OTP";
+    Layout = null;
+    
+    var orderId = ViewBag.OrderId ?? "";
+    var amount = ViewBag.Amount ?? "0";
+    var extraData = ViewBag.ExtraData ?? "";
+    var bank = ViewBag.Bank ?? "";
+    var masked = ViewBag.Masked ?? "";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Nh?p OTP - MoMo (Test)</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #f2f6fb;
+            font-family: Arial, Helvetica, sans-serif;
+            padding: 20px;
+        }
+        .card {
+            max-width: 420px;
+            margin: 60px auto;
+            background: #fff;
+            border-radius: 12px;
+            padding: 22px;
+            box-shadow: 0 10px 30px rgba(11, 46, 90, 0.06);
+        }
+        h2 {
+            color: #0b2e5a;
+            margin: 0 0 12px;
+        }
+        .info {
+            font-size: 14px;
+            color: #334;
+            margin-bottom: 12px;
+            line-height: 1.6;
+        }
+        .info strong {
+            color: #0b2e5a;
+        }
+        label {
+            display: block;
+            margin-bottom: 6px;
+            font-size: 13px;
+            color: #334;
+            font-weight: 500;
+        }
+        input {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #d7e3f7;
+            margin-bottom: 12px;
+            box-sizing: border-box;
+            font-size: 14px;
+            text-align: center;
+            letter-spacing: 2px;
+            font-weight: 600;
+        }
+        input:focus {
+            outline: none;
+            border-color: #2b7cff;
+            box-shadow: 0 0 0 3px rgba(43, 124, 255, 0.1);
+        }
+        input.invalid {
+            border-color: #d64545;
+        }
+        .error {
+            color: #d64545;
+            font-size: 12px;
+            margin-top: -10px;
+            margin-bottom: 8px;
+            display: none;
+        }
+        .error.show {
+            display: block;
+        }
+        .btns {
+            display: flex;
+            gap: 8px;
+        }
+        .btn {
+            flex: 1;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .btn:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        .success {
+            background: #24a148;
+        }
+        .success:hover:not(:disabled) {
+            background: #1a7a35;
+        }
+        .fail {
+            background: #d64545;
+        }
+        .fail:hover {
+            background: #b93030;
+        }
+        .insuf {
+            background: #ff9f1a;
+            color: #000;
+        }
+        .insuf:hover {
+            background: #e68900;
+        }
+        .note {
+            margin-top: 12px;
+            padding: 12px;
+            background: #f8fafc;
+            border-left: 3px solid #2b7cff;
+            border-radius: 4px;
+        }
+        .note-text {
+            font-size: 12px;
+            color: #6b7b95;
+            margin: 0;
+        }
+        @@media (max-width: 520px) {
+            .card {
+                margin: 20px;
+            }
+            .btns {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>Nh?p OTP</h2>
+        <div class="info">
+            ??n hàng: <strong>@orderId</strong><br/>
+            S? ti?n: <strong>@amount VND</strong><br/>
+            Ngân hàng: <strong>@bank</strong><br/>
+            Th?: <strong>@masked</strong>
+        </div>
+
+        <form id="otpForm" method="post" action="@Url.Action("MockCallback", "Momo")">
+            <input type="hidden" name="orderId" value="@orderId" />
+            <input type="hidden" name="amount" value="@amount" />
+            <input type="hidden" name="extraData" value="@extraData" />
+
+            <label for="otp">Mã OTP (6 ch? s?)</label>
+            <input id="otp" name="otp" placeholder="000000" maxlength="6" required />
+            <div id="otpError" class="error">Mã OTP ph?i ?úng 6 ch? s?</div>
+
+            <div class="btns">
+                <button type="submit" name="resultType" value="success" class="btn success" id="successBtn" disabled>Thành công</button>
+                <button type="submit" name="resultType" value="fail" class="btn fail">Th?t b?i</button>
+                <button type="submit" name="resultType" value="insufficient" class="btn insuf">Không ?? ti?n</button>
+            </div>
+        </form>
+
+        <div class="note">
+            <p class="note-text">?? L?u ý: ?ây là trang gi? l?p dành cho môi tr??ng phát tri?n.</p>
+        </div>
+    </div>
+
+    <script>
+        const otpInput = document.getElementById('otp');
+        const otpForm = document.getElementById('otpForm');
+        const successBtn = document.getElementById('successBtn');
+
+        // X? lý input OTP - ch? cho phép s?
+        otpInput.addEventListener('input', function (e) {
+            this.value = this.value.replace(/[^0-9]/g, '');
+            validateOtp();
+        });
+
+        function validateOtp() {
+            const value = otpInput.value.trim();
+            const isValid = value.length === 6 && /^\d{6}$/.test(value);
+
+            // Hi?n th? l?i
+            const errorEl = document.getElementById('otpError');
+            if (!isValid && value.length > 0) {
+                errorEl.classList.add('show');
+                otpInput.classList.add('invalid');
+            } else {
+                errorEl.classList.remove('show');
+                otpInput.classList.remove('invalid');
+            }
+
+            // Enable/disable nút Thành công
+            successBtn.disabled = !isValid;
+
+            return isValid;
+        }
+
+        // Validate form tr??c khi submit (success case)
+        otpForm.addEventListener('submit', function (e) {
+            // N?u click nút success, ki?m tra OTP
+            if (e.submitter && e.submitter.name === 'resultType' && e.submitter.value === 'success') {
+                if (!validateOtp()) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            // Các nút khác (fail, insufficient) không c?n validate OTP
+        });
+
+        // Kh?i t?o tr?ng thái
+        validateOtp();
+        
+        // Auto focus vào input OTP
+        window.addEventListener('DOMContentLoaded', function() {
+            otpInput.focus();
+        });
+    </script>
+</body>
+</html>
