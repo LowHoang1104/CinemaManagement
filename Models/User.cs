@@ -32,6 +32,4 @@ public partial class User
     public virtual ICollection<ShowTimeSeat> ShowTimeSeats { get; set; } = new List<ShowTimeSeat>();
 
     public virtual ICollection<Role> Roles { get; set; } = new List<Role>();
-    
-    public virtual ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
 }

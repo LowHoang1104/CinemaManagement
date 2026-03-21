@@ -37,7 +37,34 @@ public class SeatHub : Hub
 
         foreach (var s in sts)
         {
-            s.Status = 2; // held/reserved status (domain-specific)
+            // ✅ 1. Nếu ghế đang giữ nhưng đã hết hạn → auto release
+            if (s.Status == 2 && s.HoldUntil != null && s.HoldUntil < now)
+            {
+                s.Status = 0;
+                s.HoldUntil = null;
+                s.HoldSessionId = null;
+
+                var oldSeat = await _db.Seats.FindAsync(s.SeatId);
+                if (oldSeat != null)
+                {
+                    oldSeat.SeatStatusId = SeatStatusActive;
+                }
+            }
+
+            // ✅ 2. Nếu vẫn đang bị giữ bởi người khác → chặn
+            if (s.Status == 2 && s.HoldSessionId != Context.ConnectionId)
+            {
+                throw new HubException("Ghế đang được người khác giữ");
+            }
+
+            // ✅ 3. Nếu đã book (nếu bạn có status = 3)
+            if (s.Status == 3)
+            {
+                throw new HubException("Ghế đã được đặt");
+            }
+
+            // ✅ 4. Set giữ ghế
+            s.Status = 2;
             s.HoldUntil = holdUntil;
             s.HoldSessionId = Context.ConnectionId;
 
@@ -50,11 +77,15 @@ public class SeatHub : Hub
 
         await _db.SaveChangesAsync();
 
-        // Notify other clients in the showtime group
+        // ✅ 5. Notify realtime
         await Clients.GroupExcept(showTimeId.ToString(), Context.ConnectionId)
-            .SendAsync("SeatsHeld", new { showTimeId, seatIds, holdUntil = holdUntil.ToString("o") });
+            .SendAsync("SeatsHeld", new
+            {
+                showTimeId,
+                seatIds,
+                holdUntil = holdUntil.ToString("o")
+            });
     }
-
     public async Task ReleaseSeats(Guid showTimeId, List<Guid> seatIds)
     {
         var sts = await _db.ShowTimeSeats
