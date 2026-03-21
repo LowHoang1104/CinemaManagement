@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CinemaManagement.Models;
@@ -36,6 +36,16 @@ public partial class Movie
     public DateTime? LastUpdatedAt { get; set; }
 
     public Guid? LastUpdatedBy { get; set; }
+
+    public string? Actors { get; set; }
+
+    public string? Director { get; set; }
+
+    public string? Genre { get; set; }
+
+    public string? Language { get; set; }
+
+    public DateTime? ReleaseDate { get; set; }
 
     public virtual ICollection<ShowTime> ShowTimes { get; set; } = new List<ShowTime>();
 }

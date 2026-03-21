@@ -2,6 +2,7 @@
 using CinemaManagement.Data;
 using CinemaManagement.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
+using CinemaManagement.Hubs;
 using Microsoft.EntityFrameworkCore;
 using System.Text;
 using Microsoft.AspNetCore.Authentication.Google;
@@ -22,6 +23,7 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
 });
+builder.Services.AddAntiforgery(options => options.HeaderName = "RequestVerificationToken");
 
 builder.Services.AddDbContext<CinemaManagementContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("MyCnn"))
@@ -29,8 +31,6 @@ builder.Services.AddDbContext<CinemaManagementContext>(options =>
 
 builder.Services.AddApplicationServices();
 builder.Services.AddSignalR();
-
-
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
@@ -60,6 +60,8 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax; 
 });
+// Đăng ký SeatNotifier để inject vào BookingService
+builder.Services.AddScoped<ISeatNotifier, SeatNotifier>();
 
 var app = builder.Build();
 
@@ -74,7 +76,10 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=AdminUsers}/{action=Index}/{id?}");
+
+// Map SignalR Hub
+app.MapHub<SeatHub>("/hubs/seat");
 
 // Map SignalR hub
 app.MapHub<SeatHub>("/seatHub");

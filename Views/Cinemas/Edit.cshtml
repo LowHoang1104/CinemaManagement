@@ -1,0 +1,137 @@
+﻿@model CinemaManagement.ViewModels.Cinema.EditCinemaVm
+@{
+    ViewData["Title"] = "Edit Cinema";
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+}
+<script src="https://cdn.tailwindcss.com"></script>
+
+<div class="min-h-screen bg-[#f8fafc] py-12 px-4 sm:px-6 lg:px-8 font-sans">
+    <div class="max-w-2xl mx-auto">
+        
+        @* Breadcrumb *@
+        <nav class="flex mb-8 text-sm font-medium" aria-label="Breadcrumb">
+            <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                <li class="inline-flex items-center">
+                    <a asp-controller="Home" asp-action="Index" class="text-slate-400 hover:text-slate-600 transition-colors flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                        Trang chủ
+                    </a>
+                </li>
+                <li>
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 text-slate-300 mx-1" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
+                        <a asp-action="Index" class="text-slate-400 hover:text-slate-600 transition-colors">Rạp chiếu</a>
+                    </div>
+                </li>
+                <li aria-current="page">
+                    <div class="flex items-center">
+                        <svg class="w-4 h-4 text-slate-300 mx-1" fill="currentColor" viewBox="0 0 20 20"><path d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z"/></svg>
+                        <span class="text-slate-600">Chỉnh sửa</span>
+                    </div>
+                </li>
+            </ol>
+        </nav>
+
+        @* Page Header *@
+        <div class="text-center mb-10">
+            <div class="inline-flex items-center justify-center h-20 w-20 rounded-full bg-orange-50 mb-4 shadow-sm ring-8 ring-white">
+                <svg class="h-10 w-10 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+                </svg>
+            </div>
+            <h1 class="text-4xl font-black text-slate-900 tracking-tight">Edit Cinema</h1>
+            <p class="text-slate-500 mt-2 font-medium">Update the cinema information below</p>
+        </div>
+
+        @* Form Card *@
+        <div class="bg-white rounded-[2.5rem] shadow-2xl shadow-slate-200/60 overflow-hidden border border-slate-100 mb-8">
+            <div class="p-8 md:p-12">
+                <form asp-action="Edit" method="post" class="space-y-8">
+                    @Html.AntiForgeryToken()
+                    <input type="hidden" asp-for="CinemaId" />
+
+                    @if (!ViewData.ModelState.IsValid)
+                    {
+                        <div class="bg-rose-50 border border-rose-100 text-rose-600 px-6 py-4 rounded-3xl text-sm font-bold flex items-center gap-3 animate-head-shake">
+                            <svg class="h-5 w-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                            <div asp-validation-summary="ModelOnly"></div>
+                        </div>
+                    }
+
+                    @* Cinema ID (Read-only) *@
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 text-sm font-black text-slate-700 uppercase tracking-widest pl-1">
+                            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+                            Cinema ID
+                        </label>
+                        <div class="relative group">
+                            <input type="text" value="@Model.CinemaId" disabled
+                                   class="w-full px-6 py-4 rounded-2xl bg-slate-50 border border-slate-100 text-slate-500 font-mono text-sm shadow-inner cursor-not-allowed group-hover:bg-slate-100/50 transition-colors" />
+                        </div>
+                        <p class="text-[11px] font-bold text-slate-400 italic pl-1">This field cannot be changed</p>
+                    </div>
+
+                    @* Cinema Name *@
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 text-sm font-black text-slate-700 uppercase tracking-widest pl-1">
+                            <svg class="h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                            Cinema Name <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative group">
+                            <input asp-for="Name" placeholder="Enter cinema name"
+                                   class="w-full px-6 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 hover:border-slate-300 transition-all outline-none shadow-sm" />
+                        </div>
+                        <span asp-validation-for="Name" class="text-xs font-bold text-rose-500 pl-1"></span>
+                    </div>
+
+                    @* Address *@
+                    <div class="space-y-2">
+                        <label class="flex items-center gap-2 text-sm font-black text-slate-700 uppercase tracking-widest pl-1">
+                            <svg class="h-4 w-4 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                            Address <span class="text-rose-500">*</span>
+                        </label>
+                        <div class="relative group">
+                            <textarea asp-for="Address" placeholder="Enter full address" rows="3"
+                                      class="w-full px-6 py-4 rounded-2xl bg-white border border-slate-200 text-slate-900 font-bold focus:ring-4 focus:ring-blue-50 focus:border-blue-500 hover:border-slate-300 transition-all outline-none shadow-sm resize-none"></textarea>
+                        </div>
+                        <span asp-validation-for="Address" class="text-xs font-bold text-rose-500 pl-1"></span>
+                    </div>
+
+                    @* Warning Note *@
+                    <div class="bg-indigo-50/50 rounded-xl p-8 border border-indigo-100/30 flex items-center gap-6 text-indigo-900">
+                        <div class="flex-shrink-0 h-14 w-14 rounded-2xl bg-white flex items-center justify-center text-indigo-500 shadow-sm ring-1 ring-indigo-100/50">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <p class="text-sm font-bold leading-relaxed">
+                            Trạng thái hoạt động được quản lý tại trang <strong class="text-indigo-600 underline decoration-indigo-300 decoration-4 underline-offset-4 cursor-pointer hover:text-indigo-800 transition-all font-black">Danh sách rạp</strong>. Tại đây chỉ chỉnh sửa các thông tin cơ bản.
+                        </p>
+                    </div>
+
+                    @* Action Buttons *@
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 pt-6">
+                        <button type="submit" class="w-full py-6 px-8 rounded-xl bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white text-sm font-black flex items-center justify-center gap-4 transition-all shadow-xl shadow-indigo-100 active:scale-95 uppercase tracking-widest ring-1 ring-white/20">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M5 13l4 4L19 7"/></svg>
+                            Lưu thay đổi
+                        </button>
+                        <a asp-action="Index" class="w-full py-6 px-8 rounded-xl bg-white border border-slate-200 text-slate-400 hover:bg-slate-50 hover:border-slate-400 hover:text-slate-800 text-sm font-black flex items-center justify-center gap-4 transition-all active:scale-95 uppercase tracking-widest">
+                            <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                            Hủy
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        @* Help Footer *@
+        <div class="text-center">
+            <p class="text-[11px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center justify-center gap-2">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                Need help? Contact support at <a href="mailto:support@cinema.com" class="text-blue-500 hover:underline">support@cinema.com</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

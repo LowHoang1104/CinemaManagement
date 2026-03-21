@@ -1,0 +1,215 @@
+@model CinemaManagement.Models.Room
+
+@{
+    var cinemaName = ViewData["CinemaName"] as string;
+}
+
+<div class="bg-white">
+    <form asp-action="Edit" method="post" id="EditRoomForm" class="px-8 py-6 space-y-6">
+        @Html.AntiForgeryToken()
+        <input type="hidden" asp-for="RoomId" id="editRoomId" />
+        <input type="hidden" id="editCinemaId" value='@ViewData["CinemaId"]' />
+
+        @* Validation summary *@
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+        {
+            <div class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+                <svg class="mt-0.5 h-4 w-4 flex-shrink-0 text-red-500" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8 15A7 7 0 1 1 8 1a7 7 0 0 1 0 14zm0 1A8 8 0 1 0 8 0a8 8 0 0 0 0 16z"/>
+                    <path d="M7.002 11a1 1 0 1 1 2 0 1 1 0 0 1-2 0zM7.1 4.995a.905.905 0 1 1 1.8 0l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 4.995z"/>
+                </svg>
+                <div>
+                    <p class="mb-1 text-sm font-semibold text-red-700">Vui lòng kiểm tra lại thông tin:</p>
+                    <div asp-validation-summary="All" class="text-xs text-red-600 space-y-0.5 list-disc list-inside"></div>
+                </div>
+            </div>
+        }
+
+        @* ── 01 · Thông tin có thể thay đổi ── *@
+        <div class="space-y-2">
+            <label asp-for="Name" class="block text-sm font-bold text-slate-700">
+                Tên phòng chiếu <span class="text-red-500">*</span>
+            </label>
+            <input asp-for="Name" id="editRoomName"
+                   autocomplete="off" required
+                   class="w-full bg-white border border-slate-200 rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-slate-900/10 focus:border-slate-400 transition-all text-slate-800 font-bold text-sm shadow-sm" />
+            <span id="editRoomNameFeedback" class="mt-1 hidden text-xs text-red-600 font-medium"></span>
+            <span asp-validation-for="Name" class="mt-1 block text-xs text-red-600"></span>
+            <p class="text-[11px] text-slate-500 flex items-center gap-1.5 ml-1 mt-1">
+                Được phép thay đổi. Tên phòng phải duy nhất trong rạp.
+            </p>
+        </div>
+
+        @* ── 02 · Thông số kỹ thuật (read-only) ── *@
+        <div class="space-y-2 mt-6">
+            <label class="block text-sm font-bold text-slate-700">Thông Số Kỹ Thuật (Chỉ đọc)</label>
+            
+            <div class="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-4 opacity-80 cursor-not-allowed">
+                @* Rạp chiếu phim *@
+                <div>
+                    <label class="mb-1 block text-xs font-semibold text-slate-500">Rạp chiếu phim</label>
+                    <div class="font-bold text-slate-700">
+                        📍 @cinemaName
+                    </div>
+                </div>
+
+                @* Số hàng / cột *@
+                <div class="grid grid-cols-2 gap-4 pt-2 border-t border-slate-200/60">
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-500">Số hàng ghế</label>
+                        <div class="font-bold text-slate-700">@Model.TotalRows</div>
+                    </div>
+                    <div>
+                        <label class="mb-1 block text-xs font-semibold text-slate-500">Số cột ghế</label>
+                        <div class="font-bold text-slate-700">@Model.TotalCols</div>
+                    </div>
+                </div>
+
+                @* Info badge: tổng ghế *@
+                <div class="pt-2 border-t border-slate-200/60 flex items-center gap-2 text-sm text-slate-600 font-medium">
+                    <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 9V6a2 2 0 00-2-2H6a2 2 0 00-2 2v3"/><path d="M2 11v5a2 2 0 002 2h16a2 2 0 002-2v-5a2 2 0 00-4 0v1H6v-1a2 2 0 00-4 0z"/>
+                    </svg>
+                    Tổng sức chứa: <span class="font-bold text-slate-800">@(Model.TotalRows * Model.TotalCols) ghế</span>
+                </div>
+            </div>
+            <div class="flex items-start gap-2 mt-2">
+                <svg class="mt-0.5 h-3.5 w-3.5 flex-shrink-0 text-amber-500" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z"/>
+                </svg>
+                <p class="text-[10px] font-medium text-amber-600">
+                    Kích thước phòng chiếu và số ghế không thể thay đổi để bảo vệ cấu trúc dữ liệu.
+                </p>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    (function() {
+        const form = document.getElementById('EditRoomForm');
+        
+        /* ── REAL-TIME VALIDATION — Room Name Uniqueness ── */
+        let validationTimeout;
+        const roomNameInput = document.getElementById('editRoomName');
+        const roomNameFeedback = document.getElementById('editRoomNameFeedback');
+        const cinemaId = document.getElementById('editCinemaId').value;
+        const roomId = document.getElementById('editRoomId').value;
+        const submitBtn = document.getElementById('EditSubmitBtn');
+
+        async function validateRoomNameSync() {
+            const roomName = roomNameInput.value.trim();
+
+            if (!cinemaId || !roomName) {
+                resetRoomNameValidation();
+                return;
+            }
+
+            try {
+                const response = await fetch(`/Rooms/CheckRoomNameExists?cinemaId=${cinemaId}&roomName=${encodeURIComponent(roomName)}&excludeRoomId=${roomId}`);
+                const data = await response.json();
+
+                if (data.exists) {
+                    roomNameInput.classList.add('!border-red-400', '!ring-red-100', '!ring-2');
+                    roomNameInput.classList.remove('!border-emerald-400', '!ring-emerald-100');
+                    roomNameFeedback.textContent = 'Tên phòng chiếu này đã tồn tại trong rạp.';
+                    roomNameFeedback.classList.remove('hidden');
+                    submitBtn.disabled = true;
+                } else {
+                    roomNameInput.classList.remove('!border-red-400', '!ring-red-100', '!ring-2');
+                    roomNameInput.classList.add('!border-emerald-400', '!ring-emerald-100', '!ring-2');
+                    roomNameFeedback.classList.add('hidden');
+                    submitBtn.disabled = false;
+                }
+            } catch (err) {
+                console.error('Validation error:', err);
+            }
+        }
+
+        function resetRoomNameValidation() {
+            roomNameInput.classList.remove('!border-red-400', '!ring-red-100', '!ring-2', '!border-emerald-400', '!ring-emerald-100');
+            roomNameFeedback.classList.add('hidden');
+            submitBtn.disabled = false;
+        }
+
+        roomNameInput.addEventListener('input', () => {
+            clearTimeout(validationTimeout);
+            validationTimeout = setTimeout(validateRoomNameSync, 500);
+        });
+
+        form.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const submitBtn = document.getElementById('EditSubmitBtn');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white inline-block"></div> Đang lưu...';
+            
+            try {
+                const formData = new FormData(form);
+                const response = await fetch(form.action, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                });
+
+                const contentType = response.headers.get('content-type');
+                if (response.ok) {
+                    if (contentType && contentType.includes('application/json')) {
+                        const data = await response.json();
+                        if (data.success) {
+                            // 1. Close Modal
+                            if (typeof toggleEditModal === 'function') {
+                                toggleEditModal(false);
+                            }
+                            
+                            // 2. Show Toast
+                            if (typeof showToast === 'function') {
+                                showToast('Thành công', data.message, 'success');
+                            }
+                            
+                            // 3. Update Grid row
+                            const nameCell = document.getElementById(`room-name-${data.roomId}`);
+                            if (nameCell) {
+                                nameCell.textContent = data.updatedName;
+                                // Subtle highlight effect
+                                nameCell.parentElement.classList.add('bg-emerald-50');
+                                setTimeout(() => nameCell.parentElement.classList.remove('bg-emerald-50'), 2000);
+                            }
+                        } else {
+                            // Handling success:false if we decided to send it in JSON
+                            submitBtn.disabled = false;
+                            submitBtn.innerHTML = originalText;
+                            alert(data.message || 'Lỗi validate.');
+                        }
+                    } else {
+                        // Re-render modal content on validation error (HTML response)
+                        const html = await response.text();
+                        const modalBody = document.getElementById('EditModalBody');
+                        modalBody.innerHTML = html;
+                        // Execute embedded scripts
+                        const scripts = modalBody.querySelectorAll('script');
+                        scripts.forEach(oldScript => {
+                            const newScript = document.createElement('script');
+                            Array.from(oldScript.attributes).forEach(attr => newScript.setAttribute(attr.name, attr.value));
+                            newScript.textContent = oldScript.textContent;
+                            oldScript.parentNode.replaceChild(newScript, oldScript);
+                        });
+                    }
+                } else {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                    alert('Lỗi khi lưu.');
+                }
+            } catch (err) {
+                console.error(err);
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+                alert('Lỗi hệ thống.');
+            }
+        });
+    })();
+</script>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CinemaManagement.Models;
@@ -28,6 +28,8 @@ public partial class ShowTime
     public DateTime? LastUpdatedAt { get; set; }
 
     public Guid? LastUpdatedBy { get; set; }
+
+    public string? Format { get; set; }
 
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 

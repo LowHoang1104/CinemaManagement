@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
-using CinemaManagement.Models;
 using Microsoft.EntityFrameworkCore;
+using CinemaManagement.Models;
 
 namespace CinemaManagement.Data;
 
@@ -17,33 +17,25 @@ public partial class CinemaManagementContext : DbContext
     }
 
     public virtual DbSet<Booking> Bookings { get; set; }
-
     public virtual DbSet<Cinema> Cinemas { get; set; }
-
     public virtual DbSet<Movie> Movies { get; set; }
-
-    public virtual DbSet<Payment> Payments { get; set; }
-
-    public virtual DbSet<Role> Roles { get; set; }
-
-    public virtual DbSet<Room> Rooms { get; set; }
-
-    public virtual DbSet<Seat> Seats { get; set; }
-
-    public virtual DbSet<SeatStatus> SeatStatuses { get; set; }
-
-    public virtual DbSet<ShowTime> ShowTimes { get; set; }
-
-    public virtual DbSet<ShowTimeSeat> ShowTimeSeats { get; set; }
-
-    public virtual DbSet<Ticket> Tickets { get; set; }
-
-    public virtual DbSet<User> Users { get; set; }
-
     public virtual DbSet<PasswordResetToken> PasswordResetTokens { get; set; }
+    public virtual DbSet<Payment> Payments { get; set; }
+    public virtual DbSet<Role> Roles { get; set; }
+    public virtual DbSet<Room> Rooms { get; set; }
+    public virtual DbSet<Seat> Seats { get; set; }
+    public virtual DbSet<SeatStatus> SeatStatuses { get; set; }
+    public virtual DbSet<ShowTime> ShowTimes { get; set; }
+    public virtual DbSet<ShowTimeSeat> ShowTimeSeats { get; set; }
+    public virtual DbSet<Ticket> Tickets { get; set; }
+    public virtual DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder
+            .HasPostgresExtension("pgcrypto")
+            .HasPostgresExtension("uuid-ossp");
+
         modelBuilder.Entity<Booking>(entity =>
         {
             entity.HasIndex(e => new { e.ShowTimeId, e.CreatedAt }, "IX_Bookings_ShowTime_CreatedAt");
@@ -87,19 +79,42 @@ public partial class CinemaManagementContext : DbContext
         modelBuilder.Entity<Movie>(entity =>
         {
             entity.Property(e => e.MovieId).ValueGeneratedNever();
-            entity.Property(e => e.Title).HasMaxLength(200);
-            entity.Property(e => e.Description).HasMaxLength(2000);
-            entity.Property(e => e.PosterUrl).HasMaxLength(500);
-            entity.Property(e => e.Director).HasMaxLength(200);
             entity.Property(e => e.Actors).HasMaxLength(500);
-            entity.Property(e => e.Genre).HasMaxLength(200);
-            entity.Property(e => e.Language).HasMaxLength(100);
-            entity.Property(e => e.ReleaseDate).HasPrecision(6);
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(6)
                 .HasDefaultValueSql("now()");
+            entity.Property(e => e.Description).HasMaxLength(2000);
+            entity.Property(e => e.Director).HasMaxLength(200);
+            entity.Property(e => e.Genre).HasMaxLength(200);
+            entity.Property(e => e.Language).HasMaxLength(100);
             entity.Property(e => e.LastUpdatedAt).HasPrecision(6);
+            entity.Property(e => e.PosterUrl).HasMaxLength(500);
+            entity.Property(e => e.ReleaseDate).HasPrecision(6);
             entity.Property(e => e.Status).HasDefaultValue(1);
+            entity.Property(e => e.Title).HasMaxLength(200);
+        });
+
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.HasKey(e => e.TokenId);
+
+            entity.HasIndex(e => e.ExpiryTime, "IX_PasswordResetTokens_ExpiryTime");
+
+            entity.HasIndex(e => new { e.UserId, e.Otpcode }, "IX_PasswordResetTokens_User_OTP");
+
+            entity.Property(e => e.TokenId).ValueGeneratedNever();
+            entity.Property(e => e.CreatedAt)
+                .HasPrecision(6)
+                .HasDefaultValueSql("now()");
+            entity.Property(e => e.ExpiryTime).HasPrecision(6);
+            entity.Property(e => e.IsUsed).HasDefaultValue(false);
+            entity.Property(e => e.Otpcode)
+                .HasMaxLength(6)
+                .HasColumnName("OTPCode");
+
+            entity.HasOne(d => d.User).WithMany(p => p.PasswordResetTokens)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_PasswordResetTokens_Users");
         });
 
         modelBuilder.Entity<Payment>(entity =>
@@ -149,10 +164,11 @@ public partial class CinemaManagementContext : DbContext
         {
             entity.HasIndex(e => e.RoomId, "IX_Seats_RoomId");
 
+            entity.HasIndex(e => e.SeatStatusId, "IX_Seats_SeatStatusId");
+
             entity.HasIndex(e => new { e.RoomId, e.SeatCode }, "UQ_Seats_Room_SeatCode").IsUnique();
 
             entity.Property(e => e.SeatId).ValueGeneratedNever();
-            entity.Property(e => e.SeatStatusId).ValueGeneratedNever();
             entity.Property(e => e.CreatedAt)
                 .HasPrecision(6)
                 .HasDefaultValueSql("now()");
@@ -173,8 +189,9 @@ public partial class CinemaManagementContext : DbContext
 
         modelBuilder.Entity<SeatStatus>(entity =>
         {
-                entity.Property(e => e.SeatStatusId).ValueGeneratedNever();
-                entity.Property(e => e.StatusName).HasMaxLength(50);
+            entity.ToTable("SeatStatuses");
+            entity.Property(e => e.SeatStatusId).ValueGeneratedNever();
+            entity.Property(e => e.StatusName).HasMaxLength(50);
         });
 
         modelBuilder.Entity<ShowTime>(entity =>
@@ -208,7 +225,11 @@ public partial class CinemaManagementContext : DbContext
         {
             entity.HasKey(e => new { e.ShowTimeId, e.SeatId });
 
+            entity.HasIndex(e => e.HoldByUserId, "IX_ShowTimeSeats_HoldByUserId");
+
             entity.HasIndex(e => new { e.ShowTimeId, e.Status, e.HoldUntil }, "IX_ShowTimeSeats_Query");
+
+            entity.HasIndex(e => e.SeatId, "IX_ShowTimeSeats_SeatId");
 
             entity.Property(e => e.HoldSessionId).HasMaxLength(100);
             entity.Property(e => e.HoldUntil).HasPrecision(6);
@@ -233,6 +254,8 @@ public partial class CinemaManagementContext : DbContext
         modelBuilder.Entity<Ticket>(entity =>
         {
             entity.HasIndex(e => e.BookingId, "IX_Tickets_BookingId");
+
+            entity.HasIndex(e => e.SeatId, "IX_Tickets_SeatId");
 
             entity.HasIndex(e => new { e.ShowTimeId, e.SeatId }, "UQ_Tickets_ShowTime_Seat").IsUnique();
 
@@ -291,29 +314,6 @@ public partial class CinemaManagementContext : DbContext
                         j.ToTable("UserRoles");
                         j.HasIndex(new[] { "RoleId" }, "IX_UserRoles_RoleId");
                     });
-        });
-
-        modelBuilder.Entity<PasswordResetToken>(entity =>
-        {
-            entity.ToTable("PasswordResetTokens");
-
-            entity.HasKey(e => e.TokenId).HasName("PK_PasswordResetTokens");
-
-            entity.Property(e => e.TokenId).ValueGeneratedNever();
-            entity.Property(e => e.OTPCode).HasMaxLength(6);
-            entity.Property(e => e.ExpiryTime).HasPrecision(6);
-            entity.Property(e => e.CreatedAt)
-                  .HasPrecision(6)
-                  .HasDefaultValueSql("now()");
-            entity.Property(e => e.IsUsed).HasDefaultValue(false);
-
-            entity.HasIndex(e => new { e.UserId, e.OTPCode }, "IX_PasswordResetTokens_User_OTP");
-            entity.HasIndex(e => e.ExpiryTime, "IX_PasswordResetTokens_ExpiryTime");
-
-            entity.HasOne(d => d.User).WithMany(p => p.PasswordResetTokens)
-                .HasForeignKey(d => d.UserId)
-                .OnDelete(DeleteBehavior.Cascade)
-                .HasConstraintName("FK_PasswordResetTokens_Users");
         });
 
         OnModelCreatingPartial(modelBuilder);
