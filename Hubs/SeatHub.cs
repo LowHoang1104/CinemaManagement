@@ -90,6 +90,7 @@ public class SeatHub : Hub
     {
         var sts = await _db.ShowTimeSeats
             .Where(s => s.ShowTimeId == showTimeId && seatIds.Contains(s.SeatId))
+            .Include(s => s.Seat)
             .ToListAsync();
 
         foreach (var s in sts)
@@ -98,16 +99,60 @@ public class SeatHub : Hub
             s.HoldUntil = null;
             s.HoldSessionId = null;
 
-            var seat = await _db.Seats.FindAsync(s.SeatId);
-            if (seat != null)
+            // 🔥 Detach old seat tracking and fetch fresh from DB
+            if (s.Seat != null)
             {
-                seat.SeatStatusId = SeatStatusActive;
+                var seatId = s.Seat.SeatId;
+                // Detach the included seat
+                _db.Entry(s.Seat).State = EntityState.Detached;
+                
+                // Fetch fresh seat from database
+                var freshSeat = await _db.Seats.FindAsync(seatId);
+                if (freshSeat != null)
+                {
+                    freshSeat.SeatStatusId = SeatStatusActive;
+                    _db.Entry(freshSeat).State = EntityState.Modified;
+                }
             }
         }
 
         await _db.SaveChangesAsync();
 
+        // 🔥 Broadcast SeatsReleased event
         await Clients.Group(showTimeId.ToString()).SendAsync("SeatsReleased", new { showTimeId, seatIds });
+
+        // 🔥 Broadcast SeatStatusChanged for each seat (Available status)
+        foreach (var st in sts)
+        {
+            if (st.Seat != null)
+            {
+                await Clients.Group(showTimeId.ToString()).SendAsync("SeatStatusChanged", new
+                {
+                    seatCode = st.Seat.SeatCode,
+                    status = "Available"
+                });
+            }
+        }
+    }
+
+    public async Task ClearHold(Guid showTimeId, List<Guid> seatIds)
+    {
+        var sts = await _db.ShowTimeSeats
+            .Where(s => s.ShowTimeId == showTimeId && seatIds.Contains(s.SeatId))
+            .ToListAsync();
+
+        foreach (var s in sts)
+        {
+            // Only clear hold from this session, don't change seat status
+            if (s.HoldSessionId == Context.ConnectionId)
+            {
+                s.HoldSessionId = null;
+                s.HoldUntil = null;
+                // Keep Status = 2 so seat remains "holding" visually
+            }
+        }
+
+        await _db.SaveChangesAsync();
     }
 
     public override async Task OnConnectedAsync()
@@ -129,7 +174,10 @@ public class SeatHub : Hub
     {
         // Release any holds held by this connection that are still active
         var connId = Context.ConnectionId;
-        var held = await _db.ShowTimeSeats.Where(s => s.HoldSessionId == connId).ToListAsync();
+        var held = await _db.ShowTimeSeats
+            .Where(s => s.HoldSessionId == connId)
+            .Include(s => s.Seat)
+            .ToListAsync();
 
         var groupedByShow = held.GroupBy(s => s.ShowTimeId);
 
@@ -144,18 +192,43 @@ public class SeatHub : Hub
                 s.HoldSessionId = null;
                 s.HoldUntil = null;
 
-                var seat = await _db.Seats.FindAsync(s.SeatId);
-                if (seat != null)
-                    seat.SeatStatusId = SeatStatusActive;
+                // 🔥 Detach old seat tracking and fetch fresh from DB
+                if (s.Seat != null)
+                {
+                    var seatId = s.Seat.SeatId;
+                    // Detach the included seat
+                    _db.Entry(s.Seat).State = EntityState.Detached;
+                    
+                    // Fetch fresh seat from database
+                    var freshSeat = await _db.Seats.FindAsync(seatId);
+                    if (freshSeat != null)
+                    {
+                        freshSeat.SeatStatusId = SeatStatusActive;
+                        _db.Entry(freshSeat).State = EntityState.Modified;
+                    }
+                }
             }
 
             await _db.SaveChangesAsync();
 
+            // 🔥 Broadcast SeatsReleased event
             await Clients.Group(showTimeId.ToString()).SendAsync("SeatsReleased", new { showTimeId, seatIds });
+
+            // 🔥 Broadcast SeatStatusChanged for each seat (Available status)
+            foreach (var st in kv)
+            {
+                if (st.Seat != null)
+                {
+                    await Clients.Group(showTimeId.ToString()).SendAsync("SeatStatusChanged", new
+                    {
+                        seatCode = st.Seat.SeatCode,
+                        status = "Available"
+                    });
+                }
+            }
         }
 
         await base.OnDisconnectedAsync(exception);
-
     }
 }
 

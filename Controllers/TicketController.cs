@@ -36,18 +36,34 @@ namespace CinemaManagement.Controllers
     if (showTime == null)
       return NotFound();
 
-  // Get all seats for this room
+  // 🔥 Get all seats for this room with SeatStatus included
         var seats = _context.Seats
-.Where(s => s.RoomId == showTime.RoomId && s.SeatStatus.StatusName != "Inactive")
+    .Include(s => s.SeatStatus)
+    .Where(s => s.RoomId == showTime.RoomId)
   .OrderBy(s => s.RowLabel)
       .ThenBy(s => s.ColNumber)
 .ToList();
 
-     // Get booked/held seats for this showtime
-        var bookedSeats = _context.ShowTimeSeats
+     // 🔥 Get booked/held seats for this showtime
+     // Check both ShowTimeSeats.Status AND Seat.SeatStatusId
+     var bookedStatusId = Guid.Parse("550e8400-e29b-41d4-a716-000000000003"); // Booked
+     var inactiveStatusId = Guid.Parse("550e8400-e29b-41d4-a716-000000000002"); // Inactive (holding)
+     var activeStatusId = Guid.Parse("550e8400-e29b-41d4-a716-000000000001"); // Active (available)
+     
+     var bookedSeats = _context.ShowTimeSeats
           .Where(sts => sts.ShowTimeId == showtimeId && (sts.Status == 1 || sts.Status == 2))
    .Select(sts => sts.SeatId)
+   .Union(_context.Seats
+       .Where(s => s.RoomId == showTime.RoomId && 
+               (s.SeatStatusId == bookedStatusId || s.SeatStatusId == inactiveStatusId))
+       .Select(s => s.SeatId))
        .ToHashSet();
+     
+     // 🔥 Filter seats: only show those with Active or Booked/Inactive status
+     seats = seats.Where(s => 
+        s.SeatStatusId == activeStatusId || 
+        s.SeatStatusId == bookedStatusId || 
+        s.SeatStatusId == inactiveStatusId).ToList();
 
       var viewModel = new SelectSeatsViewModel
          {

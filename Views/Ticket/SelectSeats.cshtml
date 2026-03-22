@@ -234,10 +234,36 @@
         seatIds.forEach(id => {
             const btn = document.querySelector(`[data-seat-id="${id}"]`);
             if (btn && !btn.classList.contains('booked')) {
-                btn.classList.remove('held');
+                // 🔥 Reset to available state
+                btn.classList.remove('held', 'selected');
+                btn.classList.add('available');
                 btn.disabled = false;
+                console.log('[SeatsReleased] Reset seat:', btn.dataset.seatCode);
             }
         });
+    });
+
+    // 🔥 Handle SeatStatusChanged event (for Booked status)
+    connection.on("SeatStatusChanged", function (data) {
+        const { seatCode, status } = data;
+        console.log('[SeatStatusChanged]', seatCode, '→', status);
+        
+        const btn = Array.from(document.querySelectorAll('.seat')).find(b => b.dataset.seatCode === seatCode);
+        if (!btn) return;
+
+        if (status === "Booked") {
+            // Mark as booked (permanently)
+            btn.classList.remove('held', 'available', 'selected');
+            btn.classList.add('booked');
+            btn.disabled = true;
+            console.log('[SeatStatusChanged] Seat booked:', seatCode);
+        } else if (status === "Available") {
+            // Reset to available
+            btn.classList.remove('held', 'booked', 'selected');
+            btn.classList.add('available');
+            btn.disabled = false;
+            console.log('[SeatStatusChanged] Seat available:', seatCode);
+        }
     });
 
     connection.start()
@@ -472,6 +498,15 @@
             console.log('RESPONSE:', data);
 
             if (data && data.payUrl) {
+                // 🔥 Clear hold from SignalR before redirecting
+                try {
+                    await connection.invoke('ClearHold', showTimeId, seatIdsArray);
+                    console.log('Cleared hold from SignalR');
+                } catch (err) {
+                    console.error('Error clearing hold:', err);
+                }
+                
+                // Then redirect to payment
                 window.location.href = data.payUrl;
             } else {
                 alert('No payUrl returned');
@@ -499,7 +534,7 @@
         }
 
         if (resultCode === 0 && paymentData) {
-            // Thanh toán thành công - tạo ticket
+            // ✅ Thanh toán thành công - tạo ticket
             try {
                 const ticketRes = await fetch('/Booking/CreateTicket', {
                     method: 'POST',
@@ -536,8 +571,32 @@
                 }
             }
         } else if (resultCode !== 0 && paymentData) {
-            // Thanh toán thất bại
+            // ❌ Thanh toán thất bại - release seats via API
             console.log('Payment failed with resultCode:', resultCode);
+            
+            try {
+                // 🔥 Release seats via API endpoint (more reliable than SignalR)
+                const releaseRes = await fetch('/Booking/ReleaseSeats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        showTimeId: paymentData.showTimeId,
+                        seatIds: paymentData.seatIds
+                    })
+                });
+                
+                console.log('[ReleaseSeats] Response status:', releaseRes.status);
+                
+                const releaseData = await releaseRes.json();
+                console.log('[ReleaseSeats] Response data:', releaseData);
+                
+                if (!releaseRes.ok) {
+                    console.error('[ReleaseSeats] API returned error:', releaseData);
+                }
+            } catch (err) {
+                console.error('Error releasing seats via API:', err);
+            }
+            
             alert('Thanh toán thất bại. Vui lòng thử lại.');
             // 🔥 Clear session data
             sessionStorage.removeItem('paymentData');
