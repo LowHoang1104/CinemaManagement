@@ -1,4 +1,4 @@
-@model SelectSeatsViewModel;
+﻿@model SelectSeatsViewModel;
 @using CinemaManagement.Controllers
 @{
     ViewData["Title"] = "Ch?n Gh? - " + Model.MovieTitle;
@@ -7,158 +7,356 @@
 
 <div class="ticket-selection-container">
     <div class="breadcrumb">
-        <a href="@Url.Action("Index", "Home")">Trang ch?</a> > 
-      <a href="@Url.Action("Detail", "Movie")">??t v�</a> > 
+        <a href="@Url.Action("Index", "Home")">Trang ch?</a> >
+        <a href="@Url.Action("Detail", "Movie")">??t vé</a> >
         <span>Ch?n Gh?</span>
- </div>
+    </div>
 
- <div class="content">
-   <div class="seat-selection">
-          <h2>Ch?n Gh? C?a B?n</h2>
-        
-  <div class="legend">
-         <div class="legend-item">
-            <img src="~/images/seat-standard.svg" alt="Gh? th??ng" class="seat-icon">
-  <label>Gh? th??ng</label>
+    <div class="content">
+        <div class="seat-selection">
+            <h2>Ch?n Gh? C?a B?n</h2>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <img src="~/images/seat-standard.svg" alt="Gh? th??ng" class="seat-icon">
+                    <label>Gh? th??ng</label>
+                </div>
+                <div class="legend-item">
+                    <img src="~/images/seat-vip.svg" alt="Gh? VIP" class="seat-icon">
+                    <label>Gh? VIP</label>
+                </div>
+                <div class="legend-item">
+                    <img src="~/images/seat-couple.svg" alt="Gh? ?ôi" class="seat-icon">
+                    <label>Gh? ?ôi</label>
+                </div>
             </div>
-    <div class="legend-item">
-     <img src="~/images/seat-vip.svg" alt="Gh? VIP" class="seat-icon">
-       <label>Gh? VIP</label>
-        </div>
-    <div class="legend-item">
-  <img src="~/images/seat-couple.svg" alt="Gh? ?�i" class="seat-icon">
-    <label>Gh? ?�i</label>
-  </div>
-  </div>
 
-     <div class="screen-label">M�N H�NH CHI?U</div>
+            <div class="screen-label">MÀN HÌNH CHI?U</div>
 
- <div class="seat-grid">
-    @{
-          var seatsByRow = Model.Seats.GroupBy(s => s.RowLabel).OrderBy(g => g.Key);
-    }
-  
-      @foreach (var row in seatsByRow)
-      {
-  <div class="seat-row">
-    <span class="row-label">@((char)(64 + row.Key))</span>
-       <div class="seats">
-@{
-    var seatsInRow = row.OrderBy(s => s.ColNumber).ToList();
-       for (int i = 0; i < seatsInRow.Count; i++)
-      {
-    var seat = seatsInRow[i];
-         var isBooked = Model.BooedSeatIds.Contains(seat.SeatId);
-              var seatClass = isBooked ? "booked" : (seat.SeatType == "VIP" ? "vip" : (seat.SeatType == "Couple" ? "couple" : "available"));
-         
-             <button type="button" 
-    class="seat @seatClass" 
-     id="seat-@seat.SeatId"
- data-seat-id="@seat.SeatId"
-      data-seat-code="@seat.SeatCode"
-    data-seat-type="@seat.SeatType"
-    data-seat-price="@Model.BasePrice"
-  onclick="toggleSeat(this)"
-      @(isBooked ? "disabled" : "")>
-   <span class="seat-code">@seat.SeatCode</span>
-    </button>
-       }
-         }
-</div>
- <span class="row-label">@((char)(64 + row.Key))</span>
-    </div>
-        }
- </div>
+            <div class="seat-grid">
+                @{
+                    var seatsByRow = Model.Seats.GroupBy(s => s.RowLabel).OrderBy(g => g.Key);
+                }
 
- <div class="seat-info">
-        <p>Ch?n t?i ?a 10 gh?</p>
-    </div>
+                @foreach (var row in seatsByRow)
+                {
+                    <div class="seat-row">
+                        <span class="row-label">@((char)(64 + row.Key))</span>
+                        <div class="seats">
+                            @{
+                                var seatsInRow = row.OrderBy(s => s.ColNumber).ToList();
+                                for (int i = 0; i < seatsInRow.Count; i++)
+                                {
+                                    var seat = seatsInRow[i];
+                                    var isBooked = Model.BooedSeatIds.Contains(seat.SeatId);
+                                    var seatClass = isBooked ? "booked" : (seat.SeatType == "VIP" ? "vip" : (seat.SeatType == "Couple" ? "couple" : "available"));
+
+                                    <button type="button"
+                                            class="seat @seatClass"
+                                            id="seat-@seat.SeatId"
+                                            data-seat-id="@seat.SeatId"
+                                            data-seat-code="@seat.SeatCode"
+                                            data-seat-type="@seat.SeatType"
+                                            data-seat-price="@Model.BasePrice"
+                                            onclick="toggleSeat(this)"
+                                            @(isBooked ? "disabled" : "")>
+                                        <span class="seat-code">@seat.SeatCode</span>
+                                    </button>
+                                }
+                            }
+                        </div>
+                        <span class="row-label">@((char)(64 + row.Key))</span>
+                    </div>
+                }
+            </div>
+
+            <div class="seat-info">
+                <p>Ch?n t?i ?a 10 gh?</p>
+            </div>
         </div>
 
         <div class="ticket-info">
             <div class="movie-card">
-         <img src="@Model.MoviePoster" alt="@Model.MovieTitle" class="movie-poster">
+                <img src="@Model.MoviePoster" alt="@Model.MovieTitle" class="movie-poster">
                 <h3>@Model.MovieTitle</h3>
-       <p class="format">@Model.Format</p>
-        </div>
-
- <div class="booking-details">
-    <h4>Chi Ti?t L?ch Chi?u</h4>
-  
-   <div class="detail-row">
-      <span class="detail-label">R?p chi?u</span>
-         <span class="detail-value">@Model.CinemaName</span>
-  </div>
-  
-   <div class="detail-row">
-          <span class="detail-label">Ng�y chi?u</span>
-      <span class="detail-value">@Model.ShowDate.ToString("dd/MM/yyyy")</span>
+                <p class="format">@Model.Format</p>
             </div>
-        
-        <div class="detail-row">
-<span class="detail-label">Gi? chi?u</span>
-       <span class="detail-value">@Model.ShowDate.ToString("HH:mm")</span>
-  </div>
-    
-      <div class="detail-divider"></div>
-      
-            <div class="selected-seats-section">
-   <h5>Gh? ?� Ch?n</h5>
-      <div id="selectedSeatsList" class="selected-seats-list">
-      <span class="placeholder">Ch?a ch?n gh?</span>
-    </div>
-    </div>
+
+            <div class="booking-details">
+                <h4>Chi Ti?t L?ch Chi?u</h4>
+
+                <div class="detail-row">
+                    <span class="detail-label">R?p chi?u</span>
+                    <span class="detail-value">@Model.CinemaName</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Ngày chi?u</span>
+                    <span class="detail-value">@Model.ShowDate.ToString("dd/MM/yyyy")</span>
+                </div>
+
+                <div class="detail-row">
+                    <span class="detail-label">Gi? chi?u</span>
+                    <span class="detail-value">@Model.ShowDate.ToString("HH:mm")</span>
+                </div>
+
+                <div class="detail-divider"></div>
+
+                <div class="selected-seats-section">
+                    <h5>Gh? ?ã Ch?n</h5>
+                    <div id="selectedSeatsList" class="selected-seats-list">
+                        <span class="placeholder">Ch?a ch?n gh?</span>
+                    </div>
+                </div>
 
                 <div class="price-section">
-             <div class="price-row">
-           <span>T?ng ti?n</span>
-       <span class="amount" id="totalPrice">0 vn?</span>
-          </div>
-             <div class="time-remaining">
-     Th?i gian c�n l?i: <span id="timeRemaining">8:17</span>
-        </div>
-      </div>
+                    <div class="price-row">
+                        <span>T?ng ti?n</span>
+                        <span class="amount" id="totalPrice">0 vn?</span>
+                    </div>
+                    <div class="time-remaining">
+                        Th?i gian còn l?i: <span id="timeRemaining">8:17</span>
+                    </div>
+                </div>
 
-          <button class="btn-proceed" onclick="proceedToCheckout()">TI?P T?C</button>
-     </div>
+                <button class="btn-proceed" onclick="proceedToCheckout()">TI?P T?C</button>
+            </div>
         </div>
+
+        <!-- Checkout modal -->
+        <div id="checkoutModal" class="checkout-modal" style="display:none;">
+            <div class="checkout-overlay"></div>
+            <div class="checkout-content">
+                <h3>Xác nhận đặt vé</h3>
+                <p><strong>Ghế:</strong> <span id="modalSeats"></span></p>
+                <p><strong>Tổng vé:</strong> <span id="modalTotalTickets"></span></p>
+                <p><strong>Tổng tiền:</strong> <span id="modalTotalPrice"></span></p>
+                <p><strong>Giờ chiếu:</strong> <span id="modalShowtime">@Model.ShowDate.ToString("dd/MM/yyyy HH:mm")</span></p>
+                <p><strong>Thời gian giữ ghế:</strong> <span id="modalCountdown">10:00</span></p>
+                <div class="checkout-actions">
+                    <button id="cancelCheckout" class="btn-cancel" type="button">Hủy</button>
+                    <button id="confirmCheckout" type="button" class="btn-pay" onclick="handleCheckoutClick(event)">Thanh toán</button>
+                 </div>
+             </div>
+         </div>
+
+        <style>
+            .checkout-modal {
+                position: fixed;
+                inset: 0;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                z-index: 2147483647; /* 🔥 MAX luôn để không bị đè */
+                pointer-events: none; /* 🔥 Modal container ko block */
+            }
+
+            .checkout-overlay {
+                position: absolute;
+                inset: 0;
+                background: rgba(0,0,0,0.6);
+                z-index: 1;
+                pointer-events: auto; /* 🔥 OVERLAY CHẶN CLICK NGOÀI MODAL */
+            }
+
+            .checkout-content {
+                position: relative;
+                background: #fff;
+                padding: 20px;
+                border-radius: 6px;
+                width: 320px;
+                z-index: 2; /* 🔥 CAO HƠN OVERLAY */
+                box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+                pointer-events: auto; /* 🔥 CONTENT NHẬN CLICK */
+            }
+
+            .checkout-actions {
+                display: flex;
+                gap: 8px;
+                justify-content: flex-end;
+                margin-top: 12px;
+            }
+
+            .btn-cancel {
+                background: #ccc;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            .btn-pay {
+                background: #2b7cff;
+                color: #fff;
+                border: none;
+                padding: 8px 12px;
+                border-radius: 4px;
+                cursor: pointer;
+            }
+
+            .held {
+                opacity: 0.6;
+            }
+        </style>
     </div>
 </div>
 
+<!-- SignalR client -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
 <script>
     const selectedSeats = new Set();
-  const maxSeats = 10;
- const basePrice = @Model.BasePrice;
+    const selectedSeatIds = new Set();
+    const maxSeats = 10;
+    const basePrice = @Model.BasePrice;
     const seatTypeMap = {}; // Track seat types
+    let modalTimer = null;
+    const showTimeId = '@Model.ShowTimeId';
+
+    // SignalR connection
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl(`/seatHub?showtime=${showTimeId}`)
+        .withAutomaticReconnect()
+        .build();
+
+    connection.on("SeatsHeld", function (payload) {
+        const seatIds = payload.seatIds || [];
+        seatIds.forEach(id => {
+            const btn = document.querySelector(`[data-seat-id="${id}"]`);
+            if (btn && !btn.classList.contains('selected')) {
+                btn.classList.add('held');
+                btn.disabled = true;
+            }
+        });
+    });
+
+    connection.on("SeatBooked", function (payload) {
+        const seatId = payload.seatId;
+        const seatCode = payload.seatCode;
+        const btn = document.querySelector(`[data-seat-id="${seatId}"]`);
+        if (btn) {
+            btn.classList.add('booked');
+            btn.classList.remove('held', 'selected');
+            btn.disabled = true;
+            console.log('[SeatBooked] Seat booked:', seatCode);
+        }
+    });
+
+    connection.on("SeatsReleased", function (payload) {
+        const seatIds = payload.seatIds || [];
+        seatIds.forEach(id => {
+            const btn = document.querySelector(`[data-seat-id="${id}"]`);
+            if (btn && !btn.classList.contains('booked')) {
+                // Reset to available state
+                btn.classList.remove('held', 'selected');
+                btn.classList.add('available');
+                btn.disabled = false;
+                console.log('[SeatsReleased] Reset seat:', btn.dataset.seatCode);
+            }
+        });
+    });
+
+    connection.start()
+        .then(() => {
+            // join the showtime group explicitly
+            try { connection.invoke('JoinShowTime', showTimeId); } catch (e) { console.error(e); }
+        })
+        .catch(err => console.error(err.toString()));
 
     function toggleSeat(button) {
+        if (!button || button.disabled) return; // ignore clicks on disabled/held/booked
+
         const seatId = button.dataset.seatId;
         const seatCode = button.dataset.seatCode;
         const seatType = button.dataset.seatType;
-
-     // For Couple seats, they count as 2 seats
-        const seatCount = seatType === 'Couple' ? 2 : 1;
-
-        if (button.classList.contains('selected')) {
-   button.classList.remove('selected');
-            selectedSeats.delete(seatCode);
-            delete seatTypeMap[seatCode];
-        } else {
-      const currentCount = Array.from(selectedSeats).reduce((sum, code) => {
-   return sum + (seatTypeMap[code] === 'Couple' ? 2 : 1);
-   }, 0);
-
-            if (currentCount + seatCount > maxSeats) {
-     alert(`Ch? ???c ch?n t?i ?a ${maxSeats} gh? (gh? ?�i t�nh 2 gh?)`);
-          return;
-   }
-
-    button.classList.add('selected');
-        selectedSeats.add(seatCode);
-    seatTypeMap[seatCode] = seatType;
+        const isCouple = seatType === 'Couple';
+        
+        // For couple seats, we need to find the paired seat
+        let pairedButton = null;
+        if (isCouple) {
+            pairedButton = findPairedSeat(button);
+            if (!pairedButton) {
+                alert(`Ghế đôi ${seatCode} không tìm thấy cặp`);
+                return;
+            }
         }
 
-   updateSummary();
+        if (button.classList.contains('selected')) {
+            // UNSELECT
+            button.classList.remove('selected');
+            selectedSeats.delete(seatCode);
+            selectedSeatIds.delete(seatId);
+            delete seatTypeMap[seatCode];
+
+            if (pairedButton) {
+                const pairedCode = pairedButton.dataset.seatCode;
+                pairedButton.classList.remove('selected');
+                selectedSeats.delete(pairedCode);
+                selectedSeatIds.delete(pairedButton.dataset.seatId);
+                delete seatTypeMap[pairedCode];
+            }
+        } else {
+            // SELECT
+            const currentCount = Array.from(selectedSeats).reduce((sum, code) => {
+                return sum + (seatTypeMap[code] === 'Couple' ? 2 : 1);
+            }, 0);
+
+            // For couple seats, count as 2
+            const seatCount = isCouple ? 2 : 1;
+
+            if (currentCount + seatCount > maxSeats) {
+                alert(`Chỉ được chọn tối đa ${maxSeats} ghế (ghế đôi tính 2 ghế)`);
+                return;
+            }
+
+            // SELECT primary seat
+            button.classList.add('selected');
+            selectedSeats.add(seatCode);
+            selectedSeatIds.add(seatId);
+            seatTypeMap[seatCode] = seatType;
+
+            // SELECT paired seat if couple
+            if (pairedButton) {
+                const pairedCode = pairedButton.dataset.seatCode;
+                if (pairedButton.disabled) {
+                    alert(`Ghế đôi ${pairedCode} không có sẵn`);
+                    // Rollback
+                    button.classList.remove('selected');
+                    selectedSeats.delete(seatCode);
+                    selectedSeatIds.delete(seatId);
+                    delete seatTypeMap[seatCode];
+                    return;
+                }
+
+                pairedButton.classList.add('selected');
+                selectedSeats.add(pairedCode);
+                selectedSeatIds.add(pairedButton.dataset.seatId);
+                seatTypeMap[pairedCode] = seatType;
+            }
+        }
+
+        updateSummary();
+    }
+
+    function findPairedSeat(button) {
+        const seatId = button.dataset.seatId;
+        const seatCode = button.dataset.seatCode;
+        
+        // Get row label (first character)
+        const rowLabel = seatCode.charCodeAt(0) - 64; // Convert 'A' to 1, 'B' to 2, etc.
+        
+        // Get col number (rest of string)
+        const colNumber = parseInt(seatCode.substring(1));
+        
+        // Calculate paired col number
+        // Even → pair with ColNumber - 1
+        // Odd → pair with ColNumber + 1
+        const pairedColNumber = colNumber % 2 === 0 ? colNumber - 1 : colNumber + 1;
+        
+        // Find paired seat button
+        const pairedRow = String.fromCharCode(64 + rowLabel); // Convert 1 back to 'A'
+        const pairedSeatCode = pairedRow + pairedColNumber;
+        
+        return document.querySelector(`[data-seat-code="${pairedSeatCode}"]`);
     }
 
     function updateSummary() {
@@ -166,48 +364,394 @@
         let totalTickets = 0;
         let totalPrice = 0;
 
-        selectedSeats.forEach(code => {
-    const seatType = seatTypeMap[code];
-    const ticketCount = seatType === 'Couple' ? 2 : 1;
-         totalTickets += ticketCount;
-            totalPrice += ticketCount * basePrice;
-  });
+        // De-duplicate couple seat pairs to avoid double counting
+        const countedSeats = new Set();
 
-      const list = document.getElementById('selectedSeatsList');
+        selectedSeats.forEach(code => {
+            if (countedSeats.has(code)) return; // Already counted as part of a pair
+
+            const seatType = seatTypeMap[code];
+            
+            if (seatType === 'Couple') {
+                // This is a couple seat - find and mark both as counted
+                const pairedCode = findPairedSeatCode(code);
+                if (pairedCode && selectedSeats.has(pairedCode)) {
+                    // Both parts of couple are selected
+                    countedSeats.add(code);
+                    countedSeats.add(pairedCode);
+                    // Couple seats = 2 tickets total (not 2+2)
+                    totalTickets += 2;
+                    totalPrice += 2 * basePrice;
+                }
+            } else {
+                // Regular seat
+                countedSeats.add(code);
+                totalTickets += 1;
+                totalPrice += 1 * basePrice;
+            }
+        });
+
+        const list = document.getElementById('selectedSeatsList');
         if (count === 0) {
-     list.innerHTML = '<span class="placeholder">Ch?a ch?n gh?</span>';
+            list.innerHTML = '<span class="placeholder">Ch?a ch?n gh?</span>';
         } else {
             const seatInfo = Array.from(selectedSeats)
-    .sort()
-      .map(code => {
- const type = seatTypeMap[code];
-        return type === 'Couple' ? `${code} (?�i)` : code;
-        })
-      .join(', ');
-    list.textContent = seatInfo;
+                .sort()
+                .map(code => {
+                    const type = seatTypeMap[code];
+                    return type === 'Couple' ? `${code} (?ôi)` : code;
+                })
+                .join(', ');
+            list.textContent = seatInfo;
         }
 
         document.getElementById('totalPrice').textContent = totalPrice.toLocaleString('vi-VN') + ' vn?';
     }
 
+    function findPairedSeatCode(seatCode) {
+        const rowLabel = seatCode.charCodeAt(0) - 64;
+        const colNumber = parseInt(seatCode.substring(1));
+        const pairedColNumber = colNumber % 2 === 0 ? colNumber - 1 : colNumber + 1;
+        const pairedRow = String.fromCharCode(64 + rowLabel);
+        return pairedRow + pairedColNumber;
+    }
+
+    async function openCheckoutModal(seatsArray, seatIdsArray, totalTickets, totalPrice) {
+        document.getElementById('modalSeats').textContent = seatsArray.join(', ');
+        document.getElementById('modalTotalTickets').textContent = totalTickets + ' vé';
+        document.getElementById('modalTotalPrice').textContent = totalPrice.toLocaleString('vi-VN') + ' vn?';
+        document.getElementById('checkoutModal').style.display = 'flex';
+
+        // start 10 minute countdown (600 seconds)
+        startModalCountdown(60, seatIdsArray);
+
+        // notify server to hold these seats
+        try {
+            await connection.invoke('HoldSeats', showTimeId, seatIdsArray, 60);
+        } catch (e) {
+            console.error('HoldSeats error', e);
+        }
+    }
+
+    async function closeCheckoutModal(release = true) {
+        document.getElementById('checkoutModal').style.display = 'none';
+
+        if (modalTimer) {
+            clearInterval(modalTimer);
+            modalTimer = null;
+        }
+
+        document.getElementById('modalCountdown').textContent = '10:00';
+
+        // ✅ luôn release nếu có ghế
+        if (release && selectedSeatIds.size > 0) {
+            try {
+                await connection.invoke('ReleaseSeats', showTimeId, Array.from(selectedSeatIds));
+            } catch (e) {
+                console.error('ReleaseSeats error', e);
+            }
+        }
+
+        // ✅ reset UI giống hết giờ
+        selectedSeats.forEach(code => {
+            const btn = Array.from(document.querySelectorAll('.seat'))
+                .find(b => b.dataset.seatCode === code);
+
+            if (btn) {
+                btn.classList.remove('selected');
+                btn.classList.remove('held');
+                btn.disabled = false;
+            }
+        });
+
+        selectedSeats.clear();
+        selectedSeatIds.clear();
+        for (const k in seatTypeMap) delete seatTypeMap[k];
+
+        updateSummary();
+    }
+
+    function startModalCountdown(seconds, seatIdsArray) {
+        let remaining = seconds;
+
+        if (modalTimer) {
+            clearInterval(modalTimer);
+        }
+
+        const display = document.getElementById('modalCountdown');
+
+        async function expire() {
+            clearInterval(modalTimer);
+            modalTimer = null;
+
+            alert('Thời gian giữ ghế đã hết.');
+
+            if (seatIdsArray && seatIdsArray.length) {
+                try {
+                    await connection.invoke('ReleaseSeats', showTimeId, seatIdsArray);
+                } catch (e) {
+                    console.error('ReleaseSeats error', e);
+                }
+            }
+
+            closeCheckoutModal(false);
+        }
+
+        function update() {
+            const mins = Math.floor(remaining / 60);
+            const secs = remaining % 60;
+
+            display.textContent =
+                `${String(mins).padStart(2,'0')}:${String(secs).padStart(2,'0')}`;
+
+            if (remaining <= 0) {
+                expire();
+                return; // ⬅️ QUAN TRỌNG: dừng luôn
+            }
+
+            remaining--;
+        }
+
+        update();
+        modalTimer = setInterval(update, 1000);
+    }
+
     function proceedToCheckout() {
-    if (selectedSeats.size === 0) {
-     alert('Vui l�ng ch?n �t nh?t 1 gh?');
-  return;
-  }
+        if (selectedSeats.size === 0) {
+            alert('Vui lòng ch?n ít nh?t 1 gh?');
+            return;
+        }
 
         const seatsArray = Array.from(selectedSeats);
+        const seatIdsArray = Array.from(selectedSeatIds);
         let totalTickets = 0;
         let totalPrice = 0;
 
+        // De-duplicate couple seat pairs
+        const countedSeats = new Set();
+
         seatsArray.forEach(code => {
+            if (countedSeats.has(code)) return;
+
             const seatType = seatTypeMap[code];
-            const ticketCount = seatType === 'Couple' ? 2 : 1;
-            totalTickets += ticketCount;
-            totalPrice += ticketCount * basePrice;
+            if (seatType === 'Couple') {
+                const pairedCode = findPairedSeatCode(code);
+                if (pairedCode && selectedSeats.has(pairedCode)) {
+                    countedSeats.add(code);
+                    countedSeats.add(pairedCode);
+                    totalTickets += 2;
+                    totalPrice += 2 * basePrice;
+                }
+            } else {
+                countedSeats.add(code);
+                totalTickets += 1;
+                totalPrice += 1 * basePrice;
+            }
         });
 
-        alert(`?� ch?n gh?: ${seatsArray.join(', ')}\nT?ng v�: ${totalTickets} v�\nT?ng ti?n: ${totalPrice.toLocaleString('vi-VN')} vn?`);
-   // TODO: Redirect to payment page
+        // Open modal and hold seats via SignalR
+        openCheckoutModal(seatsArray, seatIdsArray, totalTickets, totalPrice);
     }
+
+    // Global guard to prevent duplicate requests
+    let paymentInProgress = false;
+    
+    async function handleCheckoutClick(e) {
+        console.log('CLICK OK');
+
+        if (paymentInProgress) {
+            console.warn('Payment already in progress');
+            return;
+        }
+
+        paymentInProgress = true;
+
+        const seatIdsArray = Array.from(selectedSeatIds);
+        const totalPrice = parseInt(document.getElementById('modalTotalPrice').textContent.replace(/[^0-9]/g, ''));
+        const payload = {
+            showTimeId: showTimeId,
+            seatIds: seatIdsArray,
+            totalPrice: totalPrice
+        };
+
+        console.log('REQUEST PAYLOAD:', payload);
+
+        // 🔥 Save to sessionStorage before redirect
+        sessionStorage.setItem('paymentData', JSON.stringify({
+            showTimeId: showTimeId,
+            seatIds: seatIdsArray,
+            totalPrice: totalPrice
+        }));
+
+        try {
+            const res = await fetch('/Momo/CreatePayment', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+
+            const data = await res.json();
+            console.log('RESPONSE:', data);
+
+            if (data && data.payUrl) {
+                // 🔥 Clear hold from SignalR before redirecting
+                try {
+                    await connection.invoke('ClearHold', showTimeId, seatIdsArray);
+                    console.log('Cleared hold from SignalR');
+                } catch (err) {
+                    console.error('Error clearing hold:', err);
+                }
+                
+                // Then redirect to payment
+                window.location.href = data.payUrl;
+            } else {
+                alert('No payUrl returned');
+                paymentInProgress = false;
+                sessionStorage.removeItem('paymentData');
+            }
+        } catch (err) {
+            console.error(err);
+            alert('Lỗi khi gọi thanh toán MoMo');
+            paymentInProgress = false;
+            sessionStorage.removeItem('paymentData');
+        }
+    }
+
+    // Hàm để xử lý callback từ MoMo (được gọi khi user quay lại)
+    async function processPaymentCallback(resultCode, orderId) {
+        console.log('Processing payment callback: resultCode=' + resultCode + ', orderId=' + orderId);
+        
+        // 🔥 Restore payment data from sessionStorage
+        const paymentDataStr = sessionStorage.getItem('paymentData');
+        let paymentData = null;
+        if (paymentDataStr) {
+            paymentData = JSON.parse(paymentDataStr);
+            console.log('Restored paymentData:', paymentData);
+        }
+
+        if (resultCode === 0 && paymentData) {
+            // ✅ Thanh toán thành công - tạo ticket
+            try {
+                const ticketRes = await fetch('/Booking/CreateTicket', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        showTimeId: paymentData.showTimeId,
+                        seatIds: paymentData.seatIds,
+                        orderId: orderId,
+                        totalPrice: paymentData.totalPrice
+                    })
+                });
+
+                if (ticketRes.ok) {
+                    const ticketResult = await ticketRes.json();
+                    console.log('Ticket created successfully:', ticketResult);
+                    alert('Thanh toán thành công! Vé của bạn đã được tạo.');
+                    // 🔥 Clear session data
+                    sessionStorage.removeItem('paymentData');
+                    // Quay lại trang SelectSeats với showTimeId
+                    window.location.href = `/Ticket/SelectSeats?showtimeId=${paymentData.showTimeId}`;
+                } else {
+                    const errorData = await ticketRes.json();
+                    console.error('Failed to create ticket:', errorData);
+                    alert('Thanh toán thành công nhưng có lỗi khi tạo vé: ' + (errorData.error || 'Unknown error'));
+                    sessionStorage.removeItem('paymentData');
+                    window.location.href = `/Ticket/SelectSeats?showtimeId=${paymentData.showTimeId}`;
+                }
+            } catch (err) {
+                console.error('Error creating ticket:', err);
+                alert('Lỗi khi tạo vé: ' + err.message);
+                sessionStorage.removeItem('paymentData');
+                if (paymentData) {
+                    window.location.href = `/Ticket/SelectSeats?showtimeId=${paymentData.showTimeId}`;
+                }
+            }
+        } else if (resultCode !== 0 && paymentData) {
+            // ❌ Thanh toán thất bại - release seats via API
+            console.log('Payment failed with resultCode:', resultCode);
+            
+            try {
+                // 🔥 Release seats via API endpoint (more reliable than SignalR)
+                const releaseRes = await fetch('/Booking/ReleaseSeats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        showTimeId: paymentData.showTimeId,
+                        seatIds: paymentData.seatIds
+                    })
+                });
+                
+                console.log('[ReleaseSeats] Response status:', releaseRes.status);
+                
+                const releaseData = await releaseRes.json();
+                console.log('[ReleaseSeats] Response data:', releaseData);
+                
+                if (!releaseRes.ok) {
+                    console.error('[ReleaseSeats] API returned error:', releaseData);
+                }
+            } catch (err) {
+                console.error('Error releasing seats via API:', err);
+            }
+            
+            alert('Thanh toán thất bại. Vui lòng thử lại.');
+            // 🔥 Clear session data
+            sessionStorage.removeItem('paymentData');
+            // Quay lại trang SelectSeats với showTimeId
+            window.location.href = `/Ticket/SelectSeats?showtimeId=${paymentData.showTimeId}`;
+        } else {
+            console.error('Invalid payment state: no paymentData in sessionStorage');
+            alert('Lỗi: Không tìm thấy dữ liệu thanh toán.');
+            // Fallback redirect
+            window.location.href = '/Ticket/SelectSeats';
+        }
+    }
+    
+    // Wire up modal buttons
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('checkoutModal');
+        console.log('DOMContentLoaded: modal found?', !!modal);
+        
+        const cancelBtn = document.getElementById('cancelCheckout');
+        const overlay = document.querySelector('.checkout-overlay');
+        
+        console.log('DOMContentLoaded: cancelBtn found?', !!cancelBtn);
+        console.log('DOMContentLoaded: overlay found?', !!overlay);
+        
+        if (cancelBtn) {
+            cancelBtn.addEventListener('click', function() { 
+                console.log('CANCEL clicked');
+                closeCheckoutModal(true); 
+            });
+        }
+        
+        if (overlay) {
+            overlay.addEventListener('click', function() { 
+                console.log('OVERLAY clicked');
+                closeCheckoutModal(true); 
+            });
+        }
+        
+        // REMOVED: confirmBtn addEventListener - using onclick in HTML instead
+        // confirmBtn onclick="handleCheckoutClick(event)" đã gắn trong HTML rồi
+
+        // 🔥 Check if returning from MoMo payment
+        const urlParams = new URLSearchParams(window.location.search);
+        const resultCode = urlParams.get('resultCode');
+        const orderId = urlParams.get('orderId');
+        
+        if (resultCode !== null && orderId !== null) {
+            console.log('[DOMContentLoaded] Detected payment return: resultCode=' + resultCode + ', orderId=' + orderId);
+            // Call processPaymentCallback directly
+            processPaymentCallback(parseInt(resultCode), orderId);
+            // Remove query parameters from URL
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+
+        // Release any held seats when leaving the page (optional)
+        window.addEventListener('beforeunload', function (e) {
+            if (selectedSeatIds.size > 0) {
+                navigator.sendBeacon ? navigator.sendBeacon('/api/seat/releaseOnUnload', JSON.stringify({ showTimeId: showTimeId, seatIds: Array.from(selectedSeatIds) })) : null;
+            }
+        });
+    });
 </script>
