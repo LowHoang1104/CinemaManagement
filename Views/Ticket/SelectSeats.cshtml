@@ -268,32 +268,95 @@
         const seatId = button.dataset.seatId;
         const seatCode = button.dataset.seatCode;
         const seatType = button.dataset.seatType;
-        const seatCount = seatType === 'Couple' ? 2 : 1;
+        const isCouple = seatType === 'Couple';
+        
+        // For couple seats, we need to find the paired seat
+        let pairedButton = null;
+        if (isCouple) {
+            pairedButton = findPairedSeat(button);
+            if (!pairedButton) {
+                alert(`Ghế đôi ${seatCode} không tìm thấy cặp`);
+                return;
+            }
+        }
 
         if (button.classList.contains('selected')) {
-            // unselect
+            // UNSELECT
             button.classList.remove('selected');
             selectedSeats.delete(seatCode);
             selectedSeatIds.delete(seatId);
             delete seatTypeMap[seatCode];
+
+            if (pairedButton) {
+                const pairedCode = pairedButton.dataset.seatCode;
+                pairedButton.classList.remove('selected');
+                selectedSeats.delete(pairedCode);
+                selectedSeatIds.delete(pairedButton.dataset.seatId);
+                delete seatTypeMap[pairedCode];
+            }
         } else {
-            // select
+            // SELECT
             const currentCount = Array.from(selectedSeats).reduce((sum, code) => {
                 return sum + (seatTypeMap[code] === 'Couple' ? 2 : 1);
             }, 0);
 
+            // For couple seats, count as 2
+            const seatCount = isCouple ? 2 : 1;
+
             if (currentCount + seatCount > maxSeats) {
-                alert(`Ch? ???c ch?n t?i ?a ${maxSeats} gh? (gh? ?ôi tính 2 gh?)`);
+                alert(`Chỉ được chọn tối đa ${maxSeats} ghế (ghế đôi tính 2 ghế)`);
                 return;
             }
 
+            // SELECT primary seat
             button.classList.add('selected');
             selectedSeats.add(seatCode);
             selectedSeatIds.add(seatId);
             seatTypeMap[seatCode] = seatType;
+
+            // SELECT paired seat if couple
+            if (pairedButton) {
+                const pairedCode = pairedButton.dataset.seatCode;
+                if (pairedButton.disabled) {
+                    alert(`Ghế đôi ${pairedCode} không có sẵn`);
+                    // Rollback
+                    button.classList.remove('selected');
+                    selectedSeats.delete(seatCode);
+                    selectedSeatIds.delete(seatId);
+                    delete seatTypeMap[seatCode];
+                    return;
+                }
+
+                pairedButton.classList.add('selected');
+                selectedSeats.add(pairedCode);
+                selectedSeatIds.add(pairedButton.dataset.seatId);
+                seatTypeMap[pairedCode] = seatType;
+            }
         }
 
         updateSummary();
+    }
+
+    function findPairedSeat(button) {
+        const seatId = button.dataset.seatId;
+        const seatCode = button.dataset.seatCode;
+        
+        // Get row label (first character)
+        const rowLabel = seatCode.charCodeAt(0) - 64; // Convert 'A' to 1, 'B' to 2, etc.
+        
+        // Get col number (rest of string)
+        const colNumber = parseInt(seatCode.substring(1));
+        
+        // Calculate paired col number
+        // Even → pair with ColNumber - 1
+        // Odd → pair with ColNumber + 1
+        const pairedColNumber = colNumber % 2 === 0 ? colNumber - 1 : colNumber + 1;
+        
+        // Find paired seat button
+        const pairedRow = String.fromCharCode(64 + rowLabel); // Convert 1 back to 'A'
+        const pairedSeatCode = pairedRow + pairedColNumber;
+        
+        return document.querySelector(`[data-seat-code="${pairedSeatCode}"]`);
     }
 
     function updateSummary() {
@@ -301,11 +364,31 @@
         let totalTickets = 0;
         let totalPrice = 0;
 
+        // De-duplicate couple seat pairs to avoid double counting
+        const countedSeats = new Set();
+
         selectedSeats.forEach(code => {
+            if (countedSeats.has(code)) return; // Already counted as part of a pair
+
             const seatType = seatTypeMap[code];
-            const ticketCount = seatType === 'Couple' ? 2 : 1;
-            totalTickets += ticketCount;
-            totalPrice += ticketCount * basePrice;
+            
+            if (seatType === 'Couple') {
+                // This is a couple seat - find and mark both as counted
+                const pairedCode = findPairedSeatCode(code);
+                if (pairedCode && selectedSeats.has(pairedCode)) {
+                    // Both parts of couple are selected
+                    countedSeats.add(code);
+                    countedSeats.add(pairedCode);
+                    // Couple seats = 2 tickets total (not 2+2)
+                    totalTickets += 2;
+                    totalPrice += 2 * basePrice;
+                }
+            } else {
+                // Regular seat
+                countedSeats.add(code);
+                totalTickets += 1;
+                totalPrice += 1 * basePrice;
+            }
         });
 
         const list = document.getElementById('selectedSeatsList');
@@ -323,6 +406,14 @@
         }
 
         document.getElementById('totalPrice').textContent = totalPrice.toLocaleString('vi-VN') + ' vn?';
+    }
+
+    function findPairedSeatCode(seatCode) {
+        const rowLabel = seatCode.charCodeAt(0) - 64;
+        const colNumber = parseInt(seatCode.substring(1));
+        const pairedColNumber = colNumber % 2 === 0 ? colNumber - 1 : colNumber + 1;
+        const pairedRow = String.fromCharCode(64 + rowLabel);
+        return pairedRow + pairedColNumber;
     }
 
     async function openCheckoutModal(seatsArray, seatIdsArray, totalTickets, totalPrice) {
@@ -435,11 +526,27 @@
         const seatIdsArray = Array.from(selectedSeatIds);
         let totalTickets = 0;
         let totalPrice = 0;
+
+        // De-duplicate couple seat pairs
+        const countedSeats = new Set();
+
         seatsArray.forEach(code => {
+            if (countedSeats.has(code)) return;
+
             const seatType = seatTypeMap[code];
-            const ticketCount = seatType === 'Couple' ? 2 : 1;
-            totalTickets += ticketCount;
-            totalPrice += ticketCount * basePrice;
+            if (seatType === 'Couple') {
+                const pairedCode = findPairedSeatCode(code);
+                if (pairedCode && selectedSeats.has(pairedCode)) {
+                    countedSeats.add(code);
+                    countedSeats.add(pairedCode);
+                    totalTickets += 2;
+                    totalPrice += 2 * basePrice;
+                }
+            } else {
+                countedSeats.add(code);
+                totalTickets += 1;
+                totalPrice += 1 * basePrice;
+            }
         });
 
         // Open modal and hold seats via SignalR

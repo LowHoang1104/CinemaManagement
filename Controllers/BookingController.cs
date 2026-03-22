@@ -13,13 +13,15 @@ namespace CinemaManagement.Controllers
         private readonly CinemaManagementContext _context;
         private readonly ILogger<BookingController> _logger;
         private readonly CinemaManagement.Services.ISeatNotifier _seatNotifier;
+        private readonly ICoupleSeatService _coupleSeatService;
 
         public BookingController(CinemaManagementContext context, ILogger<BookingController> logger, 
-            CinemaManagement.Services.ISeatNotifier seatNotifier)
+            CinemaManagement.Services.ISeatNotifier seatNotifier, ICoupleSeatService coupleSeatService)
         {
             _context = context;
             _logger = logger;
             _seatNotifier = seatNotifier;
+            _coupleSeatService = coupleSeatService;
         }
 
         // POST /Booking/CreateTicket
@@ -49,6 +51,35 @@ namespace CinemaManagement.Controllers
                     return NotFound(new { error = "ShowTime not found" });
                 }
 
+                // Collect all seats to book (including couple pairs)
+                var allSeatsToBook = new HashSet<Guid>();
+                var seatDetails = new Dictionary<Guid, Seat>();
+
+                foreach (var seatId in request.SeatIds)
+                {
+                    if (allSeatsToBook.Contains(seatId))
+                        continue; // Already added as part of a couple
+
+                    var seat = await _context.Seats.FirstOrDefaultAsync(s => s.SeatId == seatId);
+                    if (seat == null)
+                    {
+                        _logger.LogWarning("[CreateTicket] Seat not found: {seatId}", seatId);
+                        continue;
+                    }
+
+                    var coupleSeats = await _coupleSeatService.GetCoupleSeatsAsync(request.ShowTimeId, seat);
+                    foreach (var s in coupleSeats)
+                    {
+                        allSeatsToBook.Add(s.SeatId);
+                        seatDetails[s.SeatId] = s;
+                    }
+                }
+
+                if (allSeatsToBook.Count == 0)
+                {
+                    return BadRequest(new { error = "No valid seats found" });
+                }
+
                 // Create booking record
                 var bookingCode = $"BK{DateTime.Now:yyyyMMddHHmmss}{new Random().Next(1000, 9999)}";
                 var booking = new Booking
@@ -66,18 +97,13 @@ namespace CinemaManagement.Controllers
                 _context.Bookings.Add(booking);
                 await _context.SaveChangesAsync();
 
-                // Create tickets and update seat status
+                // Create tickets and update seat status for all seats (including couples)
                 var tickets = new List<Ticket>();
-                var pricePerSeat = request.TotalPrice / request.SeatIds.Count;
+                var pricePerSeat = request.TotalPrice / allSeatsToBook.Count;
 
-                foreach (var seatId in request.SeatIds)
+                foreach (var seatId in allSeatsToBook)
                 {
-                    var seat = await _context.Seats.FirstOrDefaultAsync(s => s.SeatId == seatId);
-                    if (seat == null)
-                    {
-                        _logger.LogWarning("[CreateTicket] Seat not found: {seatId}", seatId);
-                        continue;
-                    }
+                    var seat = seatDetails[seatId];
 
                     // Check if ticket already exists for this ShowTime-Seat combination
                     var existingTicket = await _context.Tickets
@@ -150,8 +176,8 @@ namespace CinemaManagement.Controllers
 
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("[CreateTicket] Successfully created {ticketCount} tickets for booking {bookingId}",
-                    tickets.Count, booking.BookingId);
+                _logger.LogInformation("[CreateTicket] Successfully created {ticketCount} tickets for booking {bookingId} (including {coupleCount} couple pairs)",
+                    tickets.Count, booking.BookingId, allSeatsToBook.Count / request.SeatIds.Count);
 
                 return Ok(new
                 {
@@ -192,12 +218,29 @@ namespace CinemaManagement.Controllers
                     return BadRequest(new { error = "No seat IDs provided" });
                 }
 
+                // Collect all seats to release (including couple pairs)
+                var allSeatsToRelease = new HashSet<Guid>();
+
+                foreach (var seatId in seatIds)
+                {
+                    if (allSeatsToRelease.Contains(seatId))
+                        continue;
+
+                    var seat = await _context.Seats.FirstOrDefaultAsync(s => s.SeatId == seatId);
+                    if (seat == null)
+                        continue;
+
+                    var coupleSeats = await _coupleSeatService.GetCoupleSeatsAsync(showTimeId, seat);
+                    foreach (var s in coupleSeats)
+                        allSeatsToRelease.Add(s.SeatId);
+                }
+
                 // Find all ShowTimeSeats for these seats in this showtime
                 var sts = await _context.ShowTimeSeats
-                    .Where(s => s.ShowTimeId == showTimeId && seatIds.Contains(s.SeatId))
+                    .Where(s => s.ShowTimeId == showTimeId && allSeatsToRelease.Contains(s.SeatId))
                     .ToListAsync();
 
-                _logger.LogInformation("[ReleaseSeats] Found {stCount} ShowTimeSeats to release", sts.Count);
+                _logger.LogInformation("[ReleaseSeats] Found {stCount} ShowTimeSeats to release (including couples)", sts.Count);
 
                 int updatedCount = 0;
                 var releasedSeatIds = new List<string>();

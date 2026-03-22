@@ -63,6 +63,9 @@ builder.Services.AddSession(options =>
 // Đăng ký SeatNotifier từ Services namespace để inject vào BookingController
 builder.Services.AddScoped<CinemaManagement.Services.ISeatNotifier, CinemaManagement.Services.SeatNotifier>();
 
+// Đăng ký CoupleSeatService
+builder.Services.AddScoped<ICoupleSeatService, CoupleSeatService>();
+
 var app = builder.Build();
 
 app.UseHttpsRedirection();

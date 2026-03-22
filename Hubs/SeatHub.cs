@@ -3,18 +3,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CinemaManagement.Data;
+using CinemaManagement.Models;
+using CinemaManagement.Services;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CinemaManagement.Hubs;
 
 public class SeatHub : Hub
 {
     private readonly CinemaManagementContext _db;
+    private readonly ICoupleSeatService _coupleSeatService;
+    private readonly ILogger<SeatHub> _logger;
 
-    public SeatHub(CinemaManagementContext db)
+    public SeatHub(CinemaManagementContext db, ICoupleSeatService coupleSeatService, ILogger<SeatHub> logger)
     {
         _db = db;
+        _coupleSeatService = coupleSeatService;
+        _logger = logger;
     }
 
     public async Task JoinShowTime(Guid showTimeId)
@@ -27,86 +34,176 @@ public class SeatHub : Hub
         var now = DateTime.UtcNow;
         var holdUntil = now.AddSeconds(holdSeconds);
 
-        var sts = await _db.ShowTimeSeats
-            .Where(s => s.ShowTimeId == showTimeId && seatIds.Contains(s.SeatId))
-            .ToListAsync();
-
-        foreach (var s in sts)
+        try
         {
-            // If seat is holding but hold has expired → auto release
-            if (s.Status == 1 && s.HoldUntil != null && s.HoldUntil < now)
+            // For each selected seat, handle couple seat logic
+            var allSeatsToHold = new HashSet<Guid>();
+            var seatsWithPairs = new List<(Seat primary, List<Seat> couple)>();
+
+            foreach (var seatId in seatIds)
+            {
+                if (allSeatsToHold.Contains(seatId))
+                    continue; // Already processed as part of a couple
+
+                var seat = await _db.Seats.FirstOrDefaultAsync(s => s.SeatId == seatId);
+                if (seat == null)
+                {
+                    _logger.LogWarning("[HoldSeats] Seat not found: {seatId}", seatId);
+                    throw new HubException($"Ghế không tồn tại: {seatId}");
+                }
+
+                var coupleSeats = await _coupleSeatService.GetCoupleSeatsAsync(showTimeId, seat);
+                seatsWithPairs.Add((seat, coupleSeats));
+
+                foreach (var s in coupleSeats)
+                    allSeatsToHold.Add(s.SeatId);
+            }
+
+            // Now check status of all seats to hold
+            var sts = await _db.ShowTimeSeats
+                .Where(s => s.ShowTimeId == showTimeId && allSeatsToHold.Contains(s.SeatId))
+                .ToListAsync();
+
+            foreach (var st in sts)
+            {
+                // If seat is holding but hold has expired → auto release
+                if (st.Status == 1 && st.HoldUntil != null && st.HoldUntil < now)
+                {
+                    st.Status = 0; // Reset to Available
+                    st.HoldUntil = null;
+                    st.HoldSessionId = null;
+                }
+
+                // If seat is being held by someone else → block
+                if (st.Status == 1 && st.HoldSessionId != Context.ConnectionId)
+                {
+                    throw new HubException("Ghế đang được người khác giữ");
+                }
+
+                // If seat is already booked → block
+                if (st.Status == 2)
+                {
+                    throw new HubException("Ghế đã được đặt");
+                }
+
+                // Set seat to holding (Status = 1)
+                st.Status = 1;
+                st.HoldUntil = holdUntil;
+                st.HoldSessionId = Context.ConnectionId;
+            }
+
+            await _db.SaveChangesAsync();
+
+            // Notify other clients about held seats (including coupled seats)
+            await Clients.GroupExcept(showTimeId.ToString(), Context.ConnectionId)
+                .SendAsync("SeatsHeld", new
+                {
+                    showTimeId,
+                    seatIds = allSeatsToHold.ToList(),
+                    holdUntil = holdUntil.ToString("o")
+                });
+
+            _logger.LogInformation("[HoldSeats] Held {count} seats (including couples)", allSeatsToHold.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[HoldSeats] Error");
+            throw new HubException($"Lỗi giữ ghế: {ex.Message}");
+        }
+    }
+    public async Task ReleaseSeats(Guid showTimeId, List<Guid> seatIds)
+    {
+        try
+        {
+            // For each selected seat, handle couple seat logic
+            var allSeatsToRelease = new HashSet<Guid>();
+
+            foreach (var seatId in seatIds)
+            {
+                if (allSeatsToRelease.Contains(seatId))
+                    continue; // Already processed
+
+                var seat = await _db.Seats.FirstOrDefaultAsync(s => s.SeatId == seatId);
+                if (seat == null)
+                    continue;
+
+                var coupleSeats = await _coupleSeatService.GetCoupleSeatsAsync(showTimeId, seat);
+                foreach (var s in coupleSeats)
+                    allSeatsToRelease.Add(s.SeatId);
+            }
+
+            var sts = await _db.ShowTimeSeats
+                .Where(s => s.ShowTimeId == showTimeId && allSeatsToRelease.Contains(s.SeatId))
+                .ToListAsync();
+
+            foreach (var s in sts)
             {
                 s.Status = 0; // Reset to Available
                 s.HoldUntil = null;
                 s.HoldSessionId = null;
             }
 
-            // If seat is being held by someone else → block
-            if (s.Status == 1 && s.HoldSessionId != Context.ConnectionId)
-            {
-                throw new HubException("Ghế đang được người khác giữ");
-            }
+            await _db.SaveChangesAsync();
 
-            // If seat is already booked → block
-            if (s.Status == 2)
-            {
-                throw new HubException("Ghế đã được đặt");
-            }
-
-            // Set seat to holding (Status = 1)
-            s.Status = 1;
-            s.HoldUntil = holdUntil;
-            s.HoldSessionId = Context.ConnectionId;
-        }
-
-        await _db.SaveChangesAsync();
-
-        // Notify other clients about held seats
-        await Clients.GroupExcept(showTimeId.ToString(), Context.ConnectionId)
-            .SendAsync("SeatsHeld", new
+            // Broadcast SeatsReleased event with all related seats
+            await Clients.Group(showTimeId.ToString()).SendAsync("SeatsReleased", new
             {
                 showTimeId,
-                seatIds,
-                holdUntil = holdUntil.ToString("o")
+                seatIds = allSeatsToRelease.ToList()
             });
-    }
-    public async Task ReleaseSeats(Guid showTimeId, List<Guid> seatIds)
-    {
-        var sts = await _db.ShowTimeSeats
-            .Where(s => s.ShowTimeId == showTimeId && seatIds.Contains(s.SeatId))
-            .ToListAsync();
 
-        foreach (var s in sts)
-        {
-            s.Status = 0; // Reset to Available
-            s.HoldUntil = null;
-            s.HoldSessionId = null;
+            _logger.LogInformation("[ReleaseSeats] Released {count} seats (including couples)", allSeatsToRelease.Count);
         }
-
-        await _db.SaveChangesAsync();
-
-        // Broadcast SeatsReleased event
-        await Clients.Group(showTimeId.ToString()).SendAsync("SeatsReleased", new { showTimeId, seatIds });
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ReleaseSeats] Error");
+            throw;
+        }
     }
 
     public async Task ClearHold(Guid showTimeId, List<Guid> seatIds)
     {
-        var sts = await _db.ShowTimeSeats
-            .Where(s => s.ShowTimeId == showTimeId && seatIds.Contains(s.SeatId))
-            .ToListAsync();
-
-        foreach (var s in sts)
+        try
         {
-            // Only clear hold from this session, don't change seat status
-            if (s.HoldSessionId == Context.ConnectionId)
-            {
-                s.HoldSessionId = null;
-                s.HoldUntil = null;
-                // Keep Status = 2 so seat remains "holding" visually
-            }
-        }
+            // For each selected seat, handle couple seat logic
+            var allSeatsToClear = new HashSet<Guid>();
 
-        await _db.SaveChangesAsync();
+            foreach (var seatId in seatIds)
+            {
+                if (allSeatsToClear.Contains(seatId))
+                    continue;
+
+                var seat = await _db.Seats.FirstOrDefaultAsync(s => s.SeatId == seatId);
+                if (seat == null)
+                    continue;
+
+                var coupleSeats = await _coupleSeatService.GetCoupleSeatsAsync(showTimeId, seat);
+                foreach (var s in coupleSeats)
+                    allSeatsToClear.Add(s.SeatId);
+            }
+
+            var sts = await _db.ShowTimeSeats
+                .Where(s => s.ShowTimeId == showTimeId && allSeatsToClear.Contains(s.SeatId))
+                .ToListAsync();
+
+            foreach (var s in sts)
+            {
+                // Only clear hold from this session, don't change seat status
+                if (s.HoldSessionId == Context.ConnectionId)
+                {
+                    s.HoldSessionId = null;
+                    s.HoldUntil = null;
+                    // Keep Status as is
+                }
+            }
+
+            await _db.SaveChangesAsync();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "[ClearHold] Error");
+            throw;
+        }
     }
 
     public override async Task OnConnectedAsync()
