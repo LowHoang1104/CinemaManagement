@@ -340,7 +340,7 @@ namespace CinemaManagement.Controllers
         }
 
         // Internal: process IPN-like payload (JSON string)
-        private Task ProcessIpnAsync(string ipnJson)
+        private async Task ProcessIpnAsync(string ipnJson)
         {
             // ipnJson contains orderId, amount, resultCode, extraData
             try
@@ -386,13 +386,16 @@ namespace CinemaManagement.Controllers
 
                             if (resultCode == 0)
                             {
-                                // simulate booking
+                                // Thanh toán thành công - booking seats
                                 _logger.LogInformation("[MockMoMo][IPN] Booking seats for showTime {showTimeId}: {seatIds}", showTimeId, string.Join(',', seatIds));
                             }
                             else
                             {
-                                // simulate release
-                                _logger.LogInformation("[MockMoMo][IPN] Releasing seats for showTime {showTimeId}: {seatIds}", showTimeId, string.Join(',', seatIds));
+                                // Thanh toán th?t b?i - release seats
+                                _logger.LogInformation("[MockMoMo][IPN] Releasing seats for showTime {showTimeId}: {seatIds} (Payment failed)", showTimeId, string.Join(',', seatIds));
+                                
+                                // Call internal release endpoint to reset seats and broadcast via SignalR
+                                await ReleaseSeatsInternalAsync(showTimeId, seatIds);
                             }
                         }
                         catch (Exception ex)
@@ -406,8 +409,50 @@ namespace CinemaManagement.Controllers
             {
                 _logger.LogError(ex, "[MockMoMo] invalid ipn json");
             }
+        }
 
-            return Task.CompletedTask;
+        /// <summary>
+        /// Internal helper ?? release seats khi thanh toán th?t b?i
+        /// </summary>
+        private async Task ReleaseSeatsInternalAsync(Guid showTimeId, List<Guid> seatIds)
+        {
+            // G?i /Booking/ReleaseSeats endpoint
+            try
+            {
+                using var httpClient = new HttpClient();
+                var releaseRequest = new
+                {
+                    showTimeId = showTimeId,
+                    seatIds = seatIds
+                };
+
+                var json = JsonSerializer.Serialize(releaseRequest);
+                var content = new StringContent(json, System.Text.Encoding.UTF8, "application/json");
+
+                // Construct the URL - adjust domain as needed for your environment
+                var releaseUrl = $"http://localhost:5000/Booking/ReleaseSeats";
+                if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ASPNETCORE_URLS")))
+                {
+                    // Try to use current request's base URL
+                    releaseUrl = $"http://localhost/Booking/ReleaseSeats";
+                }
+
+                var response = await httpClient.PostAsync(releaseUrl, content);
+                
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation("[MockMoMo][IPN] Successfully released {seatCount} seats for showTimeId {showTimeId}", 
+                        seatIds.Count, showTimeId);
+                }
+                else
+                {
+                    _logger.LogWarning("[MockMoMo][IPN] Failed to release seats: HTTP {statusCode}", response.StatusCode);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "[MockMoMo][IPN] Error calling ReleaseSeats endpoint");
+            }
         }
 
         public class CreatePaymentRequest

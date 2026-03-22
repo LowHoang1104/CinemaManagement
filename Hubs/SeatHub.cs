@@ -12,10 +12,6 @@ public class SeatHub : Hub
 {
     private readonly CinemaManagementContext _db;
 
-    // GUIDs for seat statuses (match scripts)
-    private static readonly Guid SeatStatusActive = Guid.Parse("550e8400-e29b-41d4-a716-000000000001");
-    private static readonly Guid SeatStatusInactive = Guid.Parse("550e8400-e29b-41d4-a716-000000000002");
-
     public SeatHub(CinemaManagementContext db)
     {
         _db = db;
@@ -37,47 +33,35 @@ public class SeatHub : Hub
 
         foreach (var s in sts)
         {
-            // ✅ 1. Nếu ghế đang giữ nhưng đã hết hạn → auto release
-            if (s.Status == 2 && s.HoldUntil != null && s.HoldUntil < now)
+            // If seat is holding but hold has expired → auto release
+            if (s.Status == 1 && s.HoldUntil != null && s.HoldUntil < now)
             {
-                s.Status = 0;
+                s.Status = 0; // Reset to Available
                 s.HoldUntil = null;
                 s.HoldSessionId = null;
-
-                var oldSeat = await _db.Seats.FindAsync(s.SeatId);
-                if (oldSeat != null)
-                {
-                    oldSeat.SeatStatusId = SeatStatusActive;
-                }
             }
 
-            // ✅ 2. Nếu vẫn đang bị giữ bởi người khác → chặn
-            if (s.Status == 2 && s.HoldSessionId != Context.ConnectionId)
+            // If seat is being held by someone else → block
+            if (s.Status == 1 && s.HoldSessionId != Context.ConnectionId)
             {
                 throw new HubException("Ghế đang được người khác giữ");
             }
 
-            // ✅ 3. Nếu đã book (nếu bạn có status = 3)
-            if (s.Status == 3)
+            // If seat is already booked → block
+            if (s.Status == 2)
             {
                 throw new HubException("Ghế đã được đặt");
             }
 
-            // ✅ 4. Set giữ ghế
-            s.Status = 2;
+            // Set seat to holding (Status = 1)
+            s.Status = 1;
             s.HoldUntil = holdUntil;
             s.HoldSessionId = Context.ConnectionId;
-
-            var seat = await _db.Seats.FindAsync(s.SeatId);
-            if (seat != null)
-            {
-                seat.SeatStatusId = SeatStatusInactive;
-            }
         }
 
         await _db.SaveChangesAsync();
 
-        // ✅ 5. Notify realtime
+        // Notify other clients about held seats
         await Clients.GroupExcept(showTimeId.ToString(), Context.ConnectionId)
             .SendAsync("SeatsHeld", new
             {
@@ -90,49 +74,19 @@ public class SeatHub : Hub
     {
         var sts = await _db.ShowTimeSeats
             .Where(s => s.ShowTimeId == showTimeId && seatIds.Contains(s.SeatId))
-            .Include(s => s.Seat)
             .ToListAsync();
 
         foreach (var s in sts)
         {
-            s.Status = 0; // available
+            s.Status = 0; // Reset to Available
             s.HoldUntil = null;
             s.HoldSessionId = null;
-
-            // 🔥 Detach old seat tracking and fetch fresh from DB
-            if (s.Seat != null)
-            {
-                var seatId = s.Seat.SeatId;
-                // Detach the included seat
-                _db.Entry(s.Seat).State = EntityState.Detached;
-                
-                // Fetch fresh seat from database
-                var freshSeat = await _db.Seats.FindAsync(seatId);
-                if (freshSeat != null)
-                {
-                    freshSeat.SeatStatusId = SeatStatusActive;
-                    _db.Entry(freshSeat).State = EntityState.Modified;
-                }
-            }
         }
 
         await _db.SaveChangesAsync();
 
-        // 🔥 Broadcast SeatsReleased event
+        // Broadcast SeatsReleased event
         await Clients.Group(showTimeId.ToString()).SendAsync("SeatsReleased", new { showTimeId, seatIds });
-
-        // 🔥 Broadcast SeatStatusChanged for each seat (Available status)
-        foreach (var st in sts)
-        {
-            if (st.Seat != null)
-            {
-                await Clients.Group(showTimeId.ToString()).SendAsync("SeatStatusChanged", new
-                {
-                    seatCode = st.Seat.SeatCode,
-                    status = "Available"
-                });
-            }
-        }
     }
 
     public async Task ClearHold(Guid showTimeId, List<Guid> seatIds)
@@ -188,44 +142,15 @@ public class SeatHub : Hub
 
             foreach (var s in kv)
             {
-                s.Status = 0;
+                s.Status = 0; // Reset to Available
                 s.HoldSessionId = null;
                 s.HoldUntil = null;
-
-                // 🔥 Detach old seat tracking and fetch fresh from DB
-                if (s.Seat != null)
-                {
-                    var seatId = s.Seat.SeatId;
-                    // Detach the included seat
-                    _db.Entry(s.Seat).State = EntityState.Detached;
-                    
-                    // Fetch fresh seat from database
-                    var freshSeat = await _db.Seats.FindAsync(seatId);
-                    if (freshSeat != null)
-                    {
-                        freshSeat.SeatStatusId = SeatStatusActive;
-                        _db.Entry(freshSeat).State = EntityState.Modified;
-                    }
-                }
             }
 
             await _db.SaveChangesAsync();
 
-            // 🔥 Broadcast SeatsReleased event
+            // Broadcast SeatsReleased event
             await Clients.Group(showTimeId.ToString()).SendAsync("SeatsReleased", new { showTimeId, seatIds });
-
-            // 🔥 Broadcast SeatStatusChanged for each seat (Available status)
-            foreach (var st in kv)
-            {
-                if (st.Seat != null)
-                {
-                    await Clients.Group(showTimeId.ToString()).SendAsync("SeatStatusChanged", new
-                    {
-                        seatCode = st.Seat.SeatCode,
-                        status = "Available"
-                    });
-                }
-            }
         }
 
         await base.OnDisconnectedAsync(exception);

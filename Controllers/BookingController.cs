@@ -1,8 +1,7 @@
 using CinemaManagement.Data;
-using CinemaManagement.Hubs;
 using CinemaManagement.Models;
+using CinemaManagement.Services;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 
 namespace CinemaManagement.Controllers
@@ -13,18 +12,13 @@ namespace CinemaManagement.Controllers
     {
         private readonly CinemaManagementContext _context;
         private readonly ILogger<BookingController> _logger;
-        private readonly IHubContext<SeatHub> _seatHubContext;
-        private readonly ISeatNotifier _seatNotifier;
-
-        // SeatStatus Booked
-        private static readonly Guid SeatStatusBooked = Guid.Parse("550e8400-e29b-41d4-a716-000000000003");
+        private readonly CinemaManagement.Services.ISeatNotifier _seatNotifier;
 
         public BookingController(CinemaManagementContext context, ILogger<BookingController> logger, 
-            IHubContext<SeatHub> seatHubContext, ISeatNotifier seatNotifier)
+            CinemaManagement.Services.ISeatNotifier seatNotifier)
         {
             _context = context;
             _logger = logger;
-            _seatHubContext = seatHubContext;
             _seatNotifier = seatNotifier;
         }
 
@@ -85,30 +79,57 @@ namespace CinemaManagement.Controllers
                         continue;
                     }
 
-                    // Create ticket
-                    var ticketCode = $"TK{DateTime.Now:yyyyMMddHHmmss}{new Random().Next(100000, 999999)}";
-                    var ticket = new Ticket
+                    // Check if ticket already exists for this ShowTime-Seat combination
+                    var existingTicket = await _context.Tickets
+                        .FirstOrDefaultAsync(t => t.ShowTimeId == request.ShowTimeId && t.SeatId == seatId);
+
+                    if (existingTicket != null)
                     {
-                        TicketId = Guid.NewGuid(),
-                        BookingId = booking.BookingId,
-                        ShowTimeId = request.ShowTimeId,
-                        SeatId = seatId,
-                        UnitPrice = pricePerSeat,
-                        TicketCode = ticketCode,
-                        Status = true // true = Active/Valid
-                    };
+                        _logger.LogWarning("[CreateTicket] Ticket already exists for ShowTime {showTimeId} and Seat {seatId}. " +
+                            "TicketId={ticketId}, Status={status}", request.ShowTimeId, seatId, existingTicket.TicketId, existingTicket.Status);
+                        
+                        // If status is false (cancelled), reuse it
+                        if (!existingTicket.Status)
+                        {
+                            existingTicket.Status = true;
+                            existingTicket.BookingId = booking.BookingId;
+                            existingTicket.UnitPrice = pricePerSeat;
+                            tickets.Add(existingTicket);
+                        }
+                        else
+                        {
+                            // Skip this seat if ticket is already active
+                            _logger.LogWarning("[CreateTicket] Ticket is already active, skipping seat {seatId}", seatId);
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        // Create new ticket
+                        var ticketCode = $"TK{DateTime.Now:yyyyMMddHHmmss}{new Random().Next(100000, 999999)}";
+                        var ticket = new Ticket
+                        {
+                            TicketId = Guid.NewGuid(),
+                            BookingId = booking.BookingId,
+                            ShowTimeId = request.ShowTimeId,
+                            SeatId = seatId,
+                            UnitPrice = pricePerSeat,
+                            TicketCode = ticketCode,
+                            Status = true // true = Active/Valid
+                        };
 
-                    tickets.Add(ticket);
-                    _context.Tickets.Add(ticket);
+                        tickets.Add(ticket);
+                        _context.Tickets.Add(ticket);
+                    }
 
-                    // Update ShowTimeSeats to mark as booked (status = 1)
+                    // Update ShowTimeSeats to mark as booked (Status = 2)
                     var showTimeSeat = await _context.ShowTimeSeats
                         .FirstOrDefaultAsync(sts => sts.ShowTimeId == request.ShowTimeId && sts.SeatId == seatId);
 
                     if (showTimeSeat != null)
                     {
-                        showTimeSeat.Status = 1; // 1 = Booked
-                        showTimeSeat.HoldSessionId = null; // ?? Clear hold
+                        showTimeSeat.Status = 2; // 2 = Booked
+                        showTimeSeat.HoldSessionId = null; // Clear hold
                         showTimeSeat.HoldUntil = null;
                     }
                     else
@@ -118,17 +139,12 @@ namespace CinemaManagement.Controllers
                         {
                             ShowTimeId = request.ShowTimeId,
                             SeatId = seatId,
-                            Status = 1 // 1 = Booked
+                            Status = 2 // 2 = Booked
                         };
                         _context.ShowTimeSeats.Add(showTimeSeat);
                     }
 
-                    // ?? Set SeatStatusId to Booked
-                    seat.SeatStatusId = SeatStatusBooked;
-                    // ?? Mark seat as modified to ensure SaveChanges captures the change
-                    _context.Entry(seat).State = EntityState.Modified;
-
-                    // ?? Broadcast via ISeatNotifier
+                    // Broadcast via ISeatNotifier
                     await _seatNotifier.NotifySeatBooked(request.ShowTimeId.ToString(), seatId.ToString(), seat.SeatCode);
                 }
 
@@ -146,6 +162,11 @@ namespace CinemaManagement.Controllers
                     totalPrice = booking.TotalAmount
                 });
             }
+            catch (DbUpdateException dbEx)
+            {
+                _logger.LogError(dbEx, "[CreateTicket] Database error creating ticket. Inner: {innerException}", dbEx.InnerException?.Message);
+                return BadRequest(new { error = $"Database error: {dbEx.InnerException?.Message ?? dbEx.Message}" });
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "[CreateTicket] Error creating ticket");
@@ -153,7 +174,7 @@ namespace CinemaManagement.Controllers
             }
         }
 
-        // ?? POST /Booking/ReleaseSeats - API endpoint for releasing seats (used when payment fails)
+        // POST /Booking/ReleaseSeats - API endpoint for releasing seats (used when payment fails)
         [HttpPost("ReleaseSeats")]
         public async Task<IActionResult> ReleaseSeatsApi([FromBody] ReleaseSeatsRequest request)
         {
@@ -171,49 +192,33 @@ namespace CinemaManagement.Controllers
                     return BadRequest(new { error = "No seat IDs provided" });
                 }
 
-                // ?? Find all ShowTimeSeats for these seats in this showtime
+                // Find all ShowTimeSeats for these seats in this showtime
                 var sts = await _context.ShowTimeSeats
                     .Where(s => s.ShowTimeId == showTimeId && seatIds.Contains(s.SeatId))
-                    .Include(s => s.Seat)
                     .ToListAsync();
 
                 _logger.LogInformation("[ReleaseSeats] Found {stCount} ShowTimeSeats to release", sts.Count);
 
                 int updatedCount = 0;
+                var releasedSeatIds = new List<string>();
+
                 foreach (var s in sts)
                 {
-                    // ?? Reset ShowTimeSeats to available
-                    s.Status = 0; // 0 = available
+                    // Reset ShowTimeSeats to available (Status = 0)
+                    s.Status = 0;
                     s.HoldUntil = null;
                     s.HoldSessionId = null;
-
-                    if (s.Seat != null)
-                    {
-                        var seatId = s.Seat.SeatId;
-                        var seatCode = s.Seat.SeatCode;
-                        
-                        _context.Entry(s.Seat).State = EntityState.Detached;
-                        
-                        // ?? Fetch fresh seat and reset SeatStatusId to Active
-                        var freshSeat = await _context.Seats.FindAsync(seatId);
-                        if (freshSeat != null)
-                        {
-                            var oldStatus = freshSeat.SeatStatusId;
-                            freshSeat.SeatStatusId = Guid.Parse("550e8400-e29b-41d4-a716-000000000001"); // Active
-                            _context.Entry(freshSeat).State = EntityState.Modified;
-                            updatedCount++;
-                            
-                            _logger.LogInformation("[ReleaseSeats] Seat {seatCode} updated: ShowTimeSeats.Status=0, SeatStatusId={newStatus}", 
-                                seatCode, freshSeat.SeatStatusId);
-                        }
-                    }
+                    updatedCount++;
+                    releasedSeatIds.Add(s.SeatId.ToString());
                 }
 
-                var saveResult = await _context.SaveChangesAsync();
-                _logger.LogInformation("[ReleaseSeats] SaveChangesAsync returned {changeCount}, updated {updatedCount} seats and {stCount} ShowTimeSeats", 
-                    saveResult, updatedCount, sts.Count);
+                await _context.SaveChangesAsync();
+                _logger.LogInformation("[ReleaseSeats] Successfully released {updatedCount} ShowTimeSeats", updatedCount);
 
-                return Ok(new { success = true, message = $"Seats released successfully ({updatedCount} seats updated, {sts.Count} ShowTimeSeats reset)", updatedCount, stCount = sts.Count });
+                // Broadcast to all clients that seats have been released (thanh toán th?t b?i)
+                await _seatNotifier.NotifySeatsReleased(showTimeId.ToString(), releasedSeatIds);
+
+                return Ok(new { success = true, message = $"Seats released successfully ({updatedCount} ShowTimeSeats reset)", updatedCount });
             }
             catch (Exception ex)
             {

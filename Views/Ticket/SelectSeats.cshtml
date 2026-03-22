@@ -229,41 +229,30 @@
         });
     });
 
+    connection.on("SeatBooked", function (payload) {
+        const seatId = payload.seatId;
+        const seatCode = payload.seatCode;
+        const btn = document.querySelector(`[data-seat-id="${seatId}"]`);
+        if (btn) {
+            btn.classList.add('booked');
+            btn.classList.remove('held', 'selected');
+            btn.disabled = true;
+            console.log('[SeatBooked] Seat booked:', seatCode);
+        }
+    });
+
     connection.on("SeatsReleased", function (payload) {
         const seatIds = payload.seatIds || [];
         seatIds.forEach(id => {
             const btn = document.querySelector(`[data-seat-id="${id}"]`);
             if (btn && !btn.classList.contains('booked')) {
-                // 🔥 Reset to available state
+                // Reset to available state
                 btn.classList.remove('held', 'selected');
                 btn.classList.add('available');
                 btn.disabled = false;
                 console.log('[SeatsReleased] Reset seat:', btn.dataset.seatCode);
             }
         });
-    });
-
-    // 🔥 Handle SeatStatusChanged event (for Booked status)
-    connection.on("SeatStatusChanged", function (data) {
-        const { seatCode, status } = data;
-        console.log('[SeatStatusChanged]', seatCode, '→', status);
-        
-        const btn = Array.from(document.querySelectorAll('.seat')).find(b => b.dataset.seatCode === seatCode);
-        if (!btn) return;
-
-        if (status === "Booked") {
-            // Mark as booked (permanently)
-            btn.classList.remove('held', 'available', 'selected');
-            btn.classList.add('booked');
-            btn.disabled = true;
-            console.log('[SeatStatusChanged] Seat booked:', seatCode);
-        } else if (status === "Available") {
-            // Reset to available
-            btn.classList.remove('held', 'booked', 'selected');
-            btn.classList.add('available');
-            btn.disabled = false;
-            console.log('[SeatStatusChanged] Seat available:', seatCode);
-        }
     });
 
     connection.start()
