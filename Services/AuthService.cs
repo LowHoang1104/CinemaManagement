@@ -150,7 +150,7 @@ namespace CinemaManagement.Services
             {
                 TokenId = Guid.NewGuid(),
                 UserId = user.UserId,
-                OTPCode = otp,
+                Otpcode = otp,
                 ExpiryTime = DateTime.UtcNow.AddMinutes(5),
                 IsUsed = false
             };
@@ -202,7 +202,7 @@ namespace CinemaManagement.Services
 
             var token = await _db.PasswordResetTokens
                 .Where(x => x.UserId == user.UserId &&
-                            x.OTPCode == otp &&
+                            x.Otpcode == otp &&
                             !x.IsUsed &&
                             x.ExpiryTime > DateTime.UtcNow)
                 .OrderByDescending(x => x.CreatedAt)

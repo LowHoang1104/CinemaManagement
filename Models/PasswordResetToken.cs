@@ -13,7 +13,7 @@ public class PasswordResetToken
     public Guid UserId { get; set; }
 
     [Required, StringLength(6)]
-    public string OTPCode { get; set; } = null!;
+    public string Otpcode { get; set; } = null!;
 
     [Required]
     public DateTime ExpiryTime { get; set; }

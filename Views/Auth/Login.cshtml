@@ -95,6 +95,15 @@
                 <form asp-action="Login" asp-controller="Auth" method="post" id="loginForm" novalidate>
                     @Html.AntiForgeryToken()
 
+                    <!-- Hidden returnUrl field -->
+                    @{
+                        var returnUrl = ViewContext.HttpContext.Request.Query["returnUrl"].ToString();
+                    }
+                    @if (!string.IsNullOrEmpty(returnUrl))
+                    {
+                        <input type="hidden" name="returnUrl" value="@returnUrl" />
+                    }
+
                     <div class="form-group">
                         <label asp-for="Credential"></label>
                         <input asp-for="Credential" class="form-control" placeholder="Email hoặc Số điện thoại" autofocus />

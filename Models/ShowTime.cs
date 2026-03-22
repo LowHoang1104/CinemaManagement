@@ -29,8 +29,6 @@ public partial class ShowTime
 
     public Guid? LastUpdatedBy { get; set; }
 
-    public string? Format { get; set; }
-
     public virtual ICollection<Booking> Bookings { get; set; } = new List<Booking>();
 
     public virtual Movie Movie { get; set; } = null!;

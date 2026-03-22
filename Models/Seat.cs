@@ -27,8 +27,6 @@ public partial class Seat
 
     public Guid? LastUpdatedBy { get; set; }
 
-    public Guid SeatStatusId { get; set; }
-
     public virtual Room Room { get; set; } = null!;
 
     public virtual SeatStatus SeatStatus { get; set; } = null!;

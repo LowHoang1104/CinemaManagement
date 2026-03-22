@@ -20,6 +20,17 @@ namespace CinemaManagement.Controllers
 
         public AuthController(IAuthService authService) => _authService = authService;
 
+        [HttpGet]
+        public IActionResult Index()
+        {
+            // Redirect to Login with returnUrl if provided
+            var returnUrl = HttpContext.Request.Query["returnUrl"].ToString();
+            if (!string.IsNullOrEmpty(returnUrl))
+            {
+                return RedirectToAction(nameof(Login), new { returnUrl });
+            }
+            return RedirectToAction(nameof(Login));
+        }
 
         [HttpGet]
         public IActionResult Login()
@@ -47,7 +58,7 @@ namespace CinemaManagement.Controllers
                 return View(model);
             }
 
-            // create claims and sign in (unchanged)
+            // Tạo claims và đăng nhập
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.NameIdentifier, result.User!.UserId.ToString()),
@@ -67,18 +78,27 @@ namespace CinemaManagement.Controllers
                 ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : null
             });
 
-            // Phân quyền redirect theo role
+            // Lưu session sau khi đăng nhập thành công
+            HttpContext.Session.SetString("UserId", result.User.UserId.ToString());
+            HttpContext.Session.SetString("UserEmail", result.User.Email ?? "");
+            HttpContext.Session.SetString("UserFullName", result.User.FullName ?? "");
+
+            // Kiểm tra returnUrl từ model
+            if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
+            {
+                return Redirect(model.ReturnUrl);
+            }
+
+            // Phân quyền redirect theo role nếu không có returnUrl
             var isAdmin = result.User.Roles.Any(r => r.Name == "Admin");
 
             if (isAdmin)
             {
-                //return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-                return View("AdminLogin");
+                return RedirectToAction("Dashboard", "ManagerReports");
             }
 
             // Customer
-            //return RedirectToAction("Index", "Home");
-            return View("CustomerLogin");
+            return RedirectToAction("Index", "Home");
         }
 
 
@@ -147,13 +167,18 @@ namespace CinemaManagement.Controllers
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity));
+
+            // Lưu session khi sign in
+            HttpContext.Session.SetString("UserId", user.UserId.ToString());
+            HttpContext.Session.SetString("UserEmail", user.Email ?? "");
+            HttpContext.Session.SetString("UserFullName", user.FullName ?? "");
         }
         private IActionResult RedirectUserByRole(User user)
         {
             if (user.Roles.Any(r => r.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
-                return View("AdminLogin");
+                return RedirectToAction("Dashboard", "ManagerReports");
 
-            return View("CustomerLogin");
+            return RedirectToAction("Index", "Home");
         }
 
 
@@ -434,14 +459,13 @@ namespace CinemaManagement.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction(nameof(Login));
-        }
-
-
-
+            // Xóa tất cả session khi logout
+            HttpContext.Session.Clear();
        
-
-
+    // Xóa authentication cookie
+        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+ 
+return RedirectToAction(nameof(Login));
+ }
     }
 }
