@@ -62,31 +62,9 @@
                 color: #fff;
             }
 
+        /* Single-column profile layout (avatar removed) */
         .profile-grid {
-            display: grid;
-            grid-template-columns: 260px 1fr;
-            gap: 20px;
-            align-items: start;
-        }
-
-        .avatar-card {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            align-items: center;
-            padding-top: 6px;
-        }
-
-        .avatar-preview {
-            width: 140px;
-            height: 140px;
-            border-radius: 6px;
-            background: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            overflow: hidden;
-            border: 1px solid #e6e6e6;
+            display: block;
         }
 
         .form-area {
@@ -166,17 +144,8 @@
         }
 
         @@media (max-width: 900px) {
-            .profile-grid {
-                grid-template-columns: 1fr;
-            }
-
             .two-col {
                 grid-template-columns: 1fr;
-            }
-
-            .avatar-preview {
-                width: 84px;
-                height: 84px;
             }
 
             .auth-card {
@@ -187,108 +156,102 @@
 
 </head>
 <body>
-<main class="auth-section" role="main">
-    <div class="auth-card">
-        @if (TempData["ProfileUpdateSuccess"] != null)
-        {
-            <div style="padding:10px 14px; background:#e6ffed; color:#064e3b; border-radius:6px; margin-bottom:12px;">
-                @TempData["ProfileUpdateSuccess"]
-            </div>
-        }
-
-        <div class="tabs" style="margin-bottom:18px;">
-            <div class="tab active">THÔNG TIN TÀI KHOẢN</div>
-            <div class="tab">THẺ THÀNH VIÊN</div>
-            <div class="tab">ĐƠN HÀNG CỦA TÔI</div>
-            <div class="tab">ĐIỂM BETA</div>
-            <div class="tab">CHỨNG TỪ</div>
-        </div>
-
-        <div class="profile-grid">
-            <div class="avatar-card" aria-hidden="true">
-                <div class="avatar-preview">
-                    <div style="color:#94a3b8; font-size:14px;">No avatar</div>
+    <main class="auth-section" role="main">
+        <div class="auth-card">
+            @if (TempData["ProfileUpdateSuccess"] != null)
+            {
+                <div style="padding:10px 14px; background:#e6ffed; color:#064e3b; border-radius:6px; margin-bottom:12px;">
+                    @TempData["ProfileUpdateSuccess"]
                 </div>
+            }
+
+            <div class="tabs" style="margin-bottom:18px;">
+                <div class="tab active">THÔNG TIN TÀI KHOẢN</div>
+                <div class="tab">THẺ THÀNH VIÊN</div>
+                <div class="tab">ĐƠN HÀNG CỦA TÔI</div>
+                <div class="tab">ĐIỂM BETA</div>
+                <div class="tab">CHỨNG TỪ</div>
             </div>
 
-            <div class="form-area">
-                <form asp-action="Profile" asp-controller="Auth" method="post" id="profileForm" novalidate>
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" asp-for="UserId" />
+            <div class="profile-grid">
+                <div class="form-area">
+                    <form asp-action="Profile" asp-controller="Auth" method="post" id="profileForm" novalidate>
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" asp-for="UserId" />
 
-                    <div class="two-col">
-                        <div>
-                            <div class="form-group">
-                                <label asp-for="FullName"><span class="required">*</span>Họ và tên</label>
-                                <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên" />
-                                <span asp-validation-for="FullName" class="text-danger"></span>
+                        <div class="two-col">
+                            <div>
+                                <div class="form-group">
+                                    <label asp-for="FullName"><span class="required">*</span>Họ và tên</label>
+                                    <input asp-for="FullName" class="form-control" placeholder="Nhập họ và tên" />
+                                    <span asp-validation-for="FullName" class="text-danger"></span>
+                                </div>
+
+                                <div class="form-group">
+                                    <label asp-for="PhoneNumber"><span class="required">*</span>Điện thoại</label>
+                                    <input asp-for="PhoneNumber" class="form-control" placeholder="0*********" />
+                                    <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                                </div>
                             </div>
 
-                            <div class="form-group">
-                                <label asp-for="PhoneNumber"><span class="required">*</span>Điện thoại</label>
-                                <input asp-for="PhoneNumber" class="form-control" placeholder="0*********" />
-                                <span asp-validation-for="PhoneNumber" class="text-danger"></span>
+                            <div>
+                                <div class="form-group">
+                                    <label asp-for="Email"><span class="required">*</span>Email</label>
+                                    <input asp-for="Email" class="form-control" placeholder="example@gmail.com" />
+                                    <span asp-validation-for="Email" class="text-danger"></span>
+                                </div>
+
+                                <!-- Replaced anchor with button (non-submit) so it won't submit profile form -->
+                                <button type="button" id="btnOpenChangePassword" class="note-link">Đổi mật khẩu?</button>
                             </div>
                         </div>
 
-                        <div>
-                            <div class="form-group">
-                                <label asp-for="Email"><span class="required">*</span>Email</label>
-                                <input asp-for="Email" class="form-control" placeholder="example@gmail.com" />
-                                <span asp-validation-for="Email" class="text-danger"></span>
-                            </div>
-
-                            <!-- Replaced anchor with button (non-submit) so it won't submit profile form -->
-                            <button type="button" id="btnOpenChangePassword" class="note-link">Đổi mật khẩu?</button>
+                        <div class="actions">
+                            <button type="submit" class="btn-save">CẬP NHẬT</button>
                         </div>
-                    </div>
+                    </form>
 
-                    <div class="actions">
-                        <button type="submit" class="btn-save">CẬP NHẬT</button>
-                    </div>
-                </form>
+                    <!-- MOVE modal OUTSIDE the profile <form> (important) -->
+                    <div id="cpOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1200; align-items:center; justify-content:center;">
+                        <div id="cpModal" style="width:520px; max-width:94%; background:#fff; border-radius:6px; box-shadow:0 10px 30px rgba(0,0,0,0.3); padding:18px; position:relative;">
+                            <button id="cpClose" type="button" style="position:absolute; right:12px; top:12px; border:0; background:transparent; font-size:18px; cursor:pointer;">✕</button>
+                            <h3 style="margin:0 0 14px 0; font-weight:700;">ĐỔI MẬT KHẨU</h3>
 
-                <!-- MOVE modal OUTSIDE the profile <form> (important) -->
-                <div id="cpOverlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:1200; align-items:center; justify-content:center;">
-                    <div id="cpModal" style="width:520px; max-width:94%; background:#fff; border-radius:6px; box-shadow:0 10px 30px rgba(0,0,0,0.3); padding:18px; position:relative;">
-                        <button id="cpClose" type="button" style="position:absolute; right:12px; top:12px; border:0; background:transparent; font-size:18px; cursor:pointer;">✕</button>
-                        <h3 style="margin:0 0 14px 0; font-weight:700;">ĐỔI MẬT KHẨU</h3>
+                            <form id="changePasswordForm" method="post" novalidate>
+                                @Html.AntiForgeryToken()
+                                <div style="display:grid; gap:12px;">
+                                    <div>
+                                        <label style="font-weight:700;">Mật khẩu hiện tại <span style="color:#d33">*</span></label>
+                                        <input name="CurrentPassword" type="password" placeholder="Nhập mật khẩu hiện tại" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;" />
+                                        <div class="cp-error text-danger" data-for="CurrentPassword" style="margin-top:6px;"></div>
+                                    </div>
 
-                        <form id="changePasswordForm" method="post" novalidate>
-                            @Html.AntiForgeryToken()
-                            <div style="display:grid; gap:12px;">
-                                <div>
-                                    <label style="font-weight:700;">Mật khẩu hiện tại <span style="color:#d33">*</span></label>
-                                    <input name="CurrentPassword" type="password" placeholder="Nhập mật khẩu hiện tại" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;" />
-                                    <div class="cp-error text-danger" data-for="CurrentPassword" style="margin-top:6px;"></div>
+                                    <div>
+                                        <label style="font-weight:700;">Mật khẩu mới <span style="color:#d33">*</span></label>
+                                        <input name="NewPassword" type="password" placeholder="Nhập mật khẩu mới" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;" />
+                                        <div class="cp-error text-danger" data-for="NewPassword" style="margin-top:6px;"></div>
+                                    </div>
+
+                                    <div>
+                                        <label style="font-weight:700;">Xác nhận mật khẩu mới <span style="color:#d33">*</span></label>
+                                        <input name="ConfirmPassword" type="password" placeholder="Nhập xác nhận mật khẩu mới" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;" />
+                                        <div class="cp-error text-danger" data-for="ConfirmPassword" style="margin-top:6px;"></div>
+                                    </div>
+
+                                    <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:6px;">
+                                        <button id="cpCancel" type="button" style="padding:10px 14px; border-radius:6px; background:#f3f4f6; border:1px solid #e5e7eb; cursor:pointer;">Hủy</button>
+                                        <button id="cpSubmit" type="submit" style="padding:10px 16px; border-radius:6px; background:#0b5cb6; color:#fff; border:0; cursor:pointer;">CẬP NHẬT</button>
+                                    </div>
+
+                                    <div id="cpGlobalMsg" style="margin-top:6px;"></div>
                                 </div>
-
-                                <div>
-                                    <label style="font-weight:700;">Mật khẩu mới <span style="color:#d33">*</span></label>
-                                    <input name="NewPassword" type="password" placeholder="Nhập mật khẩu mới" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;" />
-                                    <div class="cp-error text-danger" data-for="NewPassword" style="margin-top:6px;"></div>
-                                </div>
-
-                                <div>
-                                    <label style="font-weight:700;">Xác nhận mật khẩu mới <span style="color:#d33">*</span></label>
-                                    <input name="ConfirmPassword" type="password" placeholder="Nhập xác nhận mật khẩu mới" style="width:100%; padding:10px; border:1px solid #ddd; border-radius:4px;" />
-                                    <div class="cp-error text-danger" data-for="ConfirmPassword" style="margin-top:6px;"></div>
-                                </div>
-
-                                <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:6px;">
-                                    <button id="cpCancel" type="button" style="padding:10px 14px; border-radius:6px; background:#f3f4f6; border:1px solid #e5e7eb; cursor:pointer;">Hủy</button>
-                                    <button id="cpSubmit" type="submit" style="padding:10px 16px; border-radius:6px; background:#0b5cb6; color:#fff; border:0; cursor:pointer;">CẬP NHẬT</button>
-                                </div>
-
-                                <div id="cpGlobalMsg" style="margin-top:6px;"></div>
-                            </div>
-                        </form>
+                            </form>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-</main>
+    </main>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>

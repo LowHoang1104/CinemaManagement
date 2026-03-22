@@ -25,23 +25,23 @@ namespace CinemaManagement.Controllers
        var nowUtc = DateTime.UtcNow;
         var moviesWithShowTimes = new List<Movie>();
 
-  if (selectedCinemaId != Guid.Empty)
-{
-        moviesWithShowTimes = _context.Movies
-      .Where(m => m.Status == 1)
-         .Include(m => m.ShowTimes)
-   .ThenInclude(st => st.Room)
-   .ThenInclude(r => r.Cinema)
-         .Where(m => m.ShowTimes.Any(st => 
-  st.Room.Cinema.CinemaId == selectedCinemaId && 
-   st.StartAt > nowUtc && 
-       st.Status == 1))
-        .OrderBy(x => x.CreatedAt)
-    .ToList();
-  }
+            if (selectedCinemaId != Guid.Empty)
+            {
+                moviesWithShowTimes = _context.Movies
+              .Where(m => m.Status == 1)
+                 .Include(m => m.ShowTimes)
+           .ThenInclude(st => st.Room)
+           .ThenInclude(r => r.Cinema)
+                 .Where(m => m.ShowTimes.Any(st =>
+          st.Room.Cinema.CinemaId == selectedCinemaId &&
+           st.StartAt > nowUtc &&
+               st.Status == 1))
+                .OrderBy(x => x.CreatedAt)
+            .ToList();
+            }
 
             // Initialize user session with first user from database
-         InitializeUserSession();
+            InitializeUserSession();
 
    return View(moviesWithShowTimes);
     }
