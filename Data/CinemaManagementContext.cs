@@ -100,7 +100,7 @@ public partial class CinemaManagementContext : DbContext
 
             entity.HasIndex(e => e.ExpiryTime, "IX_PasswordResetTokens_ExpiryTime");
 
-            entity.HasIndex(e => new { e.UserId, e.OTPCode }, "IX_PasswordResetTokens_User_OTP");
+            entity.HasIndex(e => new { e.UserId, e.Otpcode }, "IX_PasswordResetTokens_User_OTP");
 
             entity.Property(e => e.TokenId).ValueGeneratedNever();
             entity.Property(e => e.CreatedAt)
@@ -108,7 +108,7 @@ public partial class CinemaManagementContext : DbContext
                 .HasDefaultValueSql("now()");
             entity.Property(e => e.ExpiryTime).HasPrecision(6);
             entity.Property(e => e.IsUsed).HasDefaultValue(false);
-            entity.Property(e => e.OTPCode)
+            entity.Property(e => e.Otpcode)
                 .HasMaxLength(6)
                 .HasColumnName("OTPCode");
 
