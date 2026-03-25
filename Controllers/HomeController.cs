@@ -12,18 +12,18 @@ namespace CinemaManagement.Controllers
 
         public HomeController(ILogger<HomeController> logger, CinemaManagementContext context)
      : base(context)
- {
-      _logger = logger;
-   }
-
-   public IActionResult Index()
         {
-        var selectedCinemaId = GetSelectedCinemaId();
-      ViewData["SelectedCinemaId"] = selectedCinemaId;
+            _logger = logger;
+        }
 
-      // Get movies with showtimes for selected cinema
-       var nowUtc = DateTime.UtcNow;
-        var moviesWithShowTimes = new List<Movie>();
+        public IActionResult Index()
+        {
+            var selectedCinemaId = GetSelectedCinemaId();
+            ViewData["SelectedCinemaId"] = selectedCinemaId;
+
+            // Get movies with showtimes for selected cinema
+            var nowUtc = DateTime.UtcNow;
+            var moviesWithShowTimes = new List<Movie>();
 
             if (selectedCinemaId != Guid.Empty)
             {
@@ -43,84 +43,84 @@ namespace CinemaManagement.Controllers
             // Initialize user session with first user from database
             InitializeUserSession();
 
-   return View(moviesWithShowTimes);
-    }
+            return View(moviesWithShowTimes);
+        }
 
-     private void InitializeUserSession()
+        private void InitializeUserSession()
         {
-         var userIdStr = HttpContext.Session.GetString("UserId");
- if (userIdStr == null)
-   {
-       // Get first user from database
-  var firstUser = _context.Users.FirstOrDefault();
+            var userIdStr = HttpContext.Session.GetString("UserId");
+            if (userIdStr == null)
+            {
+                // Get first user from database
+                var firstUser = _context.Users.FirstOrDefault();
 
-       if (firstUser != null)
-  {
-  // Save user info to session
-HttpContext.Session.SetString("UserId", firstUser.UserId.ToString());
-     HttpContext.Session.SetString("UserEmail", firstUser.Email ?? "");
-    HttpContext.Session.SetString("UserFullName", firstUser.FullName ?? "");
-       }
-      }
-     }
+                if (firstUser != null)
+                {
+                    // Save user info to session
+                    HttpContext.Session.SetString("UserId", firstUser.UserId.ToString());
+                    HttpContext.Session.SetString("UserEmail", firstUser.Email ?? "");
+                    HttpContext.Session.SetString("UserFullName", firstUser.FullName ?? "");
+                }
+            }
+        }
 
         [HttpPost]
-   public IActionResult SelectCinema([FromBody] SelectCinemaRequest request)
- {
+        public IActionResult SelectCinema([FromBody] SelectCinemaRequest request)
+        {
             try
-   {
-  var cinema = _context.Cinemas.FirstOrDefault(x => x.CinemaId == request.CinemaId && x.Status == 1);
+            {
+                var cinema = _context.Cinemas.FirstOrDefault(x => x.CinemaId == request.CinemaId && x.Status == 1);
 
-            if (cinema == null)
-       {
-       return Json(new { success = false, message = "C? s? không h?p l?" });
-    }
+                if (cinema == null)
+                {
+                    return Json(new { success = false, message = "C? s? không h?p l?" });
+                }
 
-  // Save to session
-      HttpContext.Session.SetString("SelectedCinemaId", request.CinemaId.ToString());
-      HttpContext.Session.SetString("SelectedCinemaName", cinema.Name);
+                // Save to session
+                HttpContext.Session.SetString("SelectedCinemaId", request.CinemaId.ToString());
+                HttpContext.Session.SetString("SelectedCinemaName", cinema.Name);
 
-       return Json(new { success = true, cinemaName = cinema.Name });
-    }
+                return Json(new { success = true, cinemaName = cinema.Name });
+            }
             catch (Exception ex)
-      {
-      _logger.LogError(ex, "Error selecting cinema");
-       return Json(new { success = false, message = "Có l?i x?y ra khi ch?n c? s?" });
-   }
-   }
+            {
+                _logger.LogError(ex, "Error selecting cinema");
+                return Json(new { success = false, message = "Có l?i x?y ra khi ch?n c? s?" });
+            }
+        }
 
-   [HttpGet]
+        [HttpGet]
         public IActionResult GetSelectedCinema()
-    {
-   var cinemaId = HttpContext.Session.GetString("SelectedCinemaId");
+        {
+            var cinemaId = HttpContext.Session.GetString("SelectedCinemaId");
             var cinemaName = HttpContext.Session.GetString("SelectedCinemaName");
 
-        if (string.IsNullOrEmpty(cinemaId))
-         {
- // Return first cinema as default
-   var firstCinema = _context.Cinemas.Where(x => x.Status == 1).OrderBy(x => x.Name).FirstOrDefault();
+            if (string.IsNullOrEmpty(cinemaId))
+            {
+                // Return first cinema as default
+                var firstCinema = _context.Cinemas.Where(x => x.Status == 1).OrderBy(x => x.Name).FirstOrDefault();
                 if (firstCinema != null)
- {
-    // Set as default in session
-       HttpContext.Session.SetString("SelectedCinemaId", firstCinema.CinemaId.ToString());
-      HttpContext.Session.SetString("SelectedCinemaName", firstCinema.Name);
-      return Json(new { cinemaId = firstCinema.CinemaId, cinemaName = firstCinema.Name });
-     }
- return Json(new { cinemaId = "", cinemaName = "Ch?a ch?n c? s?" });
+                {
+                    // Set as default in session
+                    HttpContext.Session.SetString("SelectedCinemaId", firstCinema.CinemaId.ToString());
+                    HttpContext.Session.SetString("SelectedCinemaName", firstCinema.Name);
+                    return Json(new { cinemaId = firstCinema.CinemaId, cinemaName = firstCinema.Name });
+                }
+                return Json(new { cinemaId = "", cinemaName = "Ch?a ch?n c? s?" });
             }
 
-      return Json(new { cinemaId = cinemaId, cinemaName = cinemaName });
-      }
+            return Json(new { cinemaId = cinemaId, cinemaName = cinemaName });
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-    public IActionResult Error()
-{
-    return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-     }
+        public IActionResult Error()
+        {
+            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
+        }
     }
 
- public class SelectCinemaRequest
- {
-     public Guid CinemaId { get; set; }
+    public class SelectCinemaRequest
+    {
+        public Guid CinemaId { get; set; }
     }
 }
