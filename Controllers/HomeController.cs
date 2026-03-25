@@ -25,25 +25,44 @@ namespace CinemaManagement.Controllers
        var nowUtc = DateTime.UtcNow;
         var moviesWithShowTimes = new List<Movie>();
 
-  if (selectedCinemaId != Guid.Empty)
-{
-        moviesWithShowTimes = _context.Movies
-      .Where(m => m.Status == 1)
-         .Include(m => m.ShowTimes)
-   .ThenInclude(st => st.Room)
-   .ThenInclude(r => r.Cinema)
-         .Where(m => m.ShowTimes.Any(st => 
-  st.Room.Cinema.CinemaId == selectedCinemaId && 
-   st.StartAt > nowUtc && 
-       st.Status == 1))
-        .OrderBy(x => x.CreatedAt)
-    .ToList();
-  }
+            if (selectedCinemaId != Guid.Empty)
+            {
+                moviesWithShowTimes = _context.Movies
+              .Where(m => m.Status == 1)
+                 .Include(m => m.ShowTimes)
+           .ThenInclude(st => st.Room)
+           .ThenInclude(r => r.Cinema)
+                 .Where(m => m.ShowTimes.Any(st =>
+          st.Room.Cinema.CinemaId == selectedCinemaId &&
+           st.StartAt > nowUtc &&
+               st.Status == 1))
+                .OrderBy(x => x.CreatedAt)
+            .ToList();
+            }
 
             // Initialize user session with first user from database
+            InitializeUserSession();
 
    return View(moviesWithShowTimes);
     }
+
+     private void InitializeUserSession()
+        {
+         var userIdStr = HttpContext.Session.GetString("UserId");
+ if (userIdStr == null)
+   {
+       // Get first user from database
+  var firstUser = _context.Users.FirstOrDefault();
+
+       if (firstUser != null)
+  {
+  // Save user info to session
+HttpContext.Session.SetString("UserId", firstUser.UserId.ToString());
+     HttpContext.Session.SetString("UserEmail", firstUser.Email ?? "");
+    HttpContext.Session.SetString("UserFullName", firstUser.FullName ?? "");
+       }
+      }
+     }
 
         [HttpPost]
    public IActionResult SelectCinema([FromBody] SelectCinemaRequest request)
