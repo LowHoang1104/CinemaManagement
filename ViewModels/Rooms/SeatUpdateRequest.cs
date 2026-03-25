@@ -1,6 +1,6 @@
 using CinemaManagement.Models;
 
-namespace CinemaManagement.ViewModels.Cinema
+namespace CinemaManagement.ViewModels.Rooms
 {
     /// <summary>
     /// DTO nhận từ AJAX – chỉ chứa những field cần cập nhật

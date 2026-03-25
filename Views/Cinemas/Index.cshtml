@@ -1,28 +1,23 @@
-@model IEnumerable<CinemaManagement.Models.Cinema>
+﻿@model CinemaManagement.ViewModels.Cinema.CinemaIndexViewModel
 
 @{
     ViewData["Title"] = "Quản lý Rạp chiếu";
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
 
-    var cinemas = Model?.ToList() ?? new List<Cinema>();
+    var totalCinemas = Model.Stats.TotalCinemas;
+    var activeCinemas = Model.Stats.ActiveCinemas;
+    var inactiveCinemas = Model.Stats.InactiveCinemas;
+    var totalRooms = Model.Stats.TotalRooms;
 
-    // Stats from ViewData
-    var totalCinemas = ViewData["TotalCinemas"] as int? ?? cinemas.Count;
-    var activeCinemas = ViewData["ActiveCinemas"] as int? ?? cinemas.Count(c => c.Status == 1);
-    var inactiveCinemas = ViewData["InactiveCinemas"] as int? ?? cinemas.Count(c => c.Status == 0);
-    var totalRooms = ViewData["TotalRooms"] as int? ?? cinemas.Sum(c => c.Rooms.Count);
-
-    // Filter state
-    var searchKeyword = ViewData["SearchKeyword"] as string ?? "";
-    var statusFilter = ViewData["StatusFilter"] as int?;
-    var sortBy = ViewData["SortBy"] as string ?? "";
-    var totalPages = ViewData["TotalPages"] as int? ?? 1;
-    var totalItems = ViewData["TotalItems"] as int? ?? 0;
+    var searchKeyword = Model.SearchKeyword;
+    var statusFilter = Model.StatusFilter;
+    var sortBy = Model.SortBy;
+    var totalItems = Model.TotalItems;
 
     // Filter label helpers
     var statusLabel = statusFilter switch {
-        1 => "Hoạt động",
         0 => "Ngừng hoạt động",
+        1 => "Hoạt động",
         _ => null
     };
     var sortLabel = sortBy switch {
@@ -123,48 +118,34 @@
                 <div class="flex flex-col gap-3 lg:flex-row items-stretch">
                     @* Search *@
                     <div class="relative flex-1 group">
-                        <span class="absolute inset-y-0 left-4 flex items-center text-slate-400 group-focus-within:text-indigo-500 transition-colors">
-                            <svg class="h-4.5 w-4.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></svg>
-                        </span>
                         <input type="text" name="search" value="@searchKeyword" placeholder="Tìm tên rạp, địa chỉ..."
-                               class="w-full px-3 py-2.5 rounded-lg border border-slate-200 bg-white pl-11 pr-4 text-[14px] font-medium text-slate-900 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all placeholder:text-slate-400 shadow-sm" />
+                               class="w-full px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] font-medium text-slate-900 outline-none focus:border-indigo-400 focus:ring-4 focus:ring-indigo-50 transition-all placeholder:text-slate-400 shadow-sm" />
                     </div>
 
                     @* Status Dropdown *@
                     <input type="hidden" name="status" id="statusInput" value="@(statusFilter?.ToString() ?? "")" />
                     <div class="relative lg:w-48" data-filter-dropdown>
                         <button type="button" id="statusTrigger" onclick="toggleFilterDropdown('statusPanel', event)"
-                                class="flex px-3 py-2.5 w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 hover:border-indigo-300 hover:bg-slate-50 transition-all shadow-sm">
-                            <span id="statusLabel" class="flex-1 truncate text-left @(statusFilter.HasValue ? "text-slate-900" : "text-slate-500")">@(statusLabel ?? "Trạng thái")</span>
-                            @if (statusFilter.HasValue)
-                            {
-                                <span class="flex-shrink-0 rounded-full bg-indigo-100 p-0.5">
-                                    <svg class="h-3 w-3 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="2,6 5,9 10,3"/>
-                                    </svg>
-                                </span>
-                            }
-                            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+                                class="flex w-full items-center justify-between px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] hover:border-indigo-300 hover:bg-slate-50 transition-all shadow-sm">
+                            <span id="statusLabel" class="truncate @(statusFilter.HasValue ? "text-indigo-700 font-bold" : "text-slate-700 font-medium")">@(statusLabel ?? "Trạng thái (Tất cả)")</span>
+                            <svg class="h-4 w-4 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        <div id="statusPanel" class="filter-dropdown-panel absolute left-0 top-full z-50 mt-2 hidden w-full overflow-hidden rounded-lg border border-slate-200 bg-white shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div id="statusPanel" class="absolute left-0 top-full z-50 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
                             @{ var isAllStatus = !statusFilter.HasValue; }
-                            <button type="button" onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','','Trạng thái',false, this)" class="relative flex w-full items-center justify-start pl-11 pr-4 py-3 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap border-b border-slate-50 last:border-0">
-                                <span class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isAllStatus ? "" : "hidden")">
-                                    <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
-                                </span>
-                                <span class="filter-text @(isAllStatus ? "font-semibold text-indigo-700" : "text-slate-600")">Tất cả</span>
+                            <button type="button" onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','','Trạng thái (Tất cả)', this)"
+                             class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0
+                                filter-opt-btn @(isAllStatus ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
+                                Tất cả
                             </button>
-                            <button type="button" onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','1','Hoạt động',true, this)" class="relative flex w-full items-center justify-start pl-11 pr-4 py-3 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap border-b border-slate-50 last:border-0">
-                                <span class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(statusFilter == 1 ? "" : "hidden")">
-                                    <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
-                                </span>
-                                <span class="filter-text @(statusFilter == 1 ? "font-semibold text-indigo-700" : "text-slate-600")">Hoạt động</span>
+                            <button type="button" onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','1','Hoạt động', this)"
+                             class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0
+                                filter-opt-btn @(statusFilter == 1 ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
+                                Hoạt động
                             </button>
-                            <button type="button" onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','0','Ngừng hoạt động',true, this)" class="relative flex w-full items-center justify-start pl-11 pr-4 py-3 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap border-b border-slate-50 last:border-0">
-                                <span class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(statusFilter == 0 ? "" : "hidden")">
-                                    <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
-                                </span>
-                                <span class="filter-text @(statusFilter == 0 ? "font-semibold text-indigo-700" : "text-slate-600")">Ngừng hoạt động</span>
+                            <button type="button" onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','0','Ngừng hoạt động', this)" 
+                            class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 
+                                filter-opt-btn @(statusFilter == 0 ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
+                                Ngừng hoạt động
                             </button>
                         </div>
                     </div>
@@ -173,41 +154,25 @@
                     <input type="hidden" name="sortBy" id="sortInput" value="@sortBy" />
                     <div class="relative lg:w-48" data-filter-dropdown>
                         <button type="button" id="sortTrigger" onclick="toggleFilterDropdown('sortPanel', event)"
-                                class="flex px-3 py-2.5 w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 hover:border-indigo-300 hover:bg-slate-50 transition-all shadow-sm">
-                            <span id="sortLabelDisplay" class="flex-1 truncate text-left @(!string.IsNullOrEmpty(sortBy) ? "text-slate-900" : "text-slate-500")">@(sortLabel ?? "Sắp xếp theo")</span>
-                            @if (!string.IsNullOrEmpty(sortBy))
-                            {
-                                <span class="flex-shrink-0 rounded-full bg-indigo-100 p-0.5">
-                                    <svg class="h-3 w-3 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2">
-                                        <polyline points="2,6 5,9 10,3"/>
-                                    </svg>
-                                </span>
-                            }
-                            <svg class="h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
+                                class="flex w-full items-center justify-between px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] hover:border-indigo-300 hover:bg-slate-50 transition-all shadow-sm">
+                            <span id="sortLabelDisplay" class="truncate @(!string.IsNullOrEmpty(sortBy) ? "text-indigo-700 font-bold" : "text-slate-700 font-medium")">@(sortLabel ?? "Sắp xếp mặc định")</span>
+                            <svg class="h-4 w-4 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M19 9l-7 7-7-7"/></svg>
                         </button>
-                        <div id="sortPanel" class="filter-dropdown-panel absolute left-0 top-full z-50 mt-2 hidden w-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl animate-in fade-in slide-in-from-top-2 duration-200">
+                        <div id="sortPanel" class="absolute left-0 top-full z-50 mt-2 hidden w-full overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl animate-in fade-in slide-in-from-top-2 duration-200">
                             @{ var isAllSort = string.IsNullOrEmpty(sortBy); }
-                            <button type="button" onclick="selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','','Sắp xếp theo',false, this)" class="relative flex w-full items-center justify-start pl-11 pr-4 py-3 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap border-b border-slate-50 last:border-0">
-                                <span class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isAllSort ? "" : "hidden")">
-                                    <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
-                                </span>
-                                <span class="filter-text @(isAllSort ? "font-semibold text-indigo-700" : "text-slate-600")">Mặc định</span>
+                            <button type="button" onclick="selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','','Sắp xếp mặc định', this)" class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 filter-opt-btn @(isAllSort ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
+                                Mặc định
                             </button>
-                            <button type="button" onclick="selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','name','Tên (A-Z)',true, this)" class="relative flex w-full items-center justify-start pl-11 pr-4 py-3 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap border-b border-slate-50 last:border-0">
-                                <span class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(sortBy == "name" ? "" : "hidden")">
-                                    <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
-                                </span>
-                                <span class="filter-text @(sortBy == "name" ? "font-semibold text-indigo-700" : "text-slate-600")">Tên (A-Z)</span>
+                            <button type="button" onclick="selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','name','Tên (A-Z)', this)" class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 filter-opt-btn @(sortBy == "name" ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
+                                Tên (A-Z)
                             </button>
-                            <button type="button" onclick="selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','rooms','Số phòng',true, this)" class="relative flex w-full items-center justify-start pl-11 pr-4 py-3 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap border-b border-slate-50 last:border-0">
-                                <span class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(sortBy == "rooms" ? "" : "hidden")">
-                                    <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="2,6 5,9 10,3"/></svg>
-                                </span>
-                                <span class="filter-text @(sortBy == "rooms" ? "font-semibold text-indigo-700" : "text-slate-600")">Số phòng</span>
+                            <button type="button" onclick="selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','rooms','Số phòng', this)" class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 filter-opt-btn @(sortBy == "rooms" ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
+                                Số phòng
                             </button>
                         </div>
                     </div>
 
+                    @* Submit Button *@
                     <button type="submit"
                             class="flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-lg text-sm font-bold hover:bg-slate-800 transition-all active:scale-[0.98] whitespace-nowrap shadow-sm">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -215,6 +180,8 @@
                         </svg>
                         Lọc
                     </button>
+
+                    @* Clear Filter Button *@
                     <div id="ajax-clear-filter-wrapper">
                         @if (hasFilters)
                         {
@@ -264,40 +231,10 @@
 </div>
 
 @* ── Side Drawer for Create Cinema ── *@
-<div id="cinemaCreateDrawer" class="invisible fixed inset-0 z-[1060] overflow-hidden" role="dialog" aria-modal="true">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-500 opacity-0" id="cinemaCreateBackdrop" onclick="toggleCinemaCreate(false)"></div>
-    
-    <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-        <div id="cinemaCreatePanel" class="pointer-events-auto w-screen max-w-lg transform transition duration-500 ease-in-out translate-x-full bg-white shadow-2xl flex flex-col">
-            <!-- Content will be loaded here via AJAX -->
-            <div id="cinemaCreateContent" class="flex h-full flex-col overflow-y-auto custom-scrollbar">
-                <div class="flex h-full items-center justify-center py-20">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+<partial name="_CreateDrawer" />
 
 @* ── Side Drawer for Edit Cinema ── *@
-<div id="cinemaEditDrawer" class="invisible fixed inset-0 z-[1060] overflow-hidden" role="dialog" aria-modal="true">
-    <!-- Backdrop -->
-    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-500 opacity-0" id="cinemaEditBackdrop" onclick="toggleCinemaEdit(false)"></div>
-    
-    <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
-        <div id="cinemaEditPanel" class="pointer-events-auto w-screen max-w-lg transform transition duration-500 ease-in-out translate-x-full bg-white shadow-2xl flex flex-col">
-            <!-- Content will be loaded here via AJAX -->
-            <div id="cinemaEditContent" class="flex h-full flex-col overflow-y-auto custom-scrollbar">
-                <div class="flex h-full items-center justify-center py-20">
-                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<div id="cinemaDetailContainer"></div>
+<partial name="_EditDrawer" />
 
 @* ── Hidden form for status toggle ── *@
 <form id="statusChangeForm" method="post" class="hidden">
@@ -305,636 +242,8 @@
     <input type="hidden" id="statusId" name="id" />
 </form>
 
-<!-- MODAL: NGỪNG HOẠT ĐỘNG -->
-<div id="modal-deactivate" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
-    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="closeStatusModal('deactivate')"></div>
-        <div class="relative inline-block transform overflow-hidden rounded-[2rem] bg-white px-6 pt-6 pb-6 text-left align-middle shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
-            <div class="absolute top-4 right-4">
-                <button type="button" onclick="closeStatusModal('deactivate')" class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
-                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
-                </button>
-            </div>
-            <div class="flex flex-col items-center text-center mb-6 pt-2">
-                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 mb-4 shadow-sm">
-                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                </div>
-                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Ngừng hoạt động rạp chiếu</h3>
-                <p class="text-sm text-slate-500 mt-2">Dừng toàn bộ hoạt động của rạp: <span id="deactivate-room-name" class="font-bold text-slate-900"></span>?</p>
-            </div>
-            <div class="mb-6 rounded-2xl bg-amber-50/60 p-4 border border-amber-100/50">
-                <div class="flex items-center gap-2 mb-3 text-amber-700 font-bold text-[11px] uppercase tracking-widest">
-                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                    </svg>
-                    Lưu ý quan trọng
-                </div>
-                <ul class="space-y-2.5">
-                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>Hệ thống sẽ không cho phép tạo thêm lịch chiếu tại rạp này</li>
-                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>Cần kiểm tra kỹ các lịch trình đang chạy trước khi thực hiện</li>
-                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>Mã định danh và dữ liệu lịch sử vẫn được bảo tồn</li>
-                </ul>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <button type="button" onclick="closeStatusModal('deactivate')" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Hủy bỏ</button>
-                <button type="button" id="confirmDeactivateBtn" onclick="handleDeactivateSubmit()" class="flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-3 text-[14px] font-bold text-white shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95">
-                    <span class="spinner-border spinner-border-sm d-none" id="deactivateSpinner" role="status" aria-hidden="true" style="width: 1rem; height: 1rem;"></span>
-                    <span id="deactivateBtnText">Xác nhận</span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- MODAL: KÍCH HOẠT -->
-<div id="modal-activate" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title-activate" role="dialog" aria-modal="true">
-    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="closeStatusModal('activate')"></div>
-        <div class="relative inline-block transform overflow-hidden rounded-[2rem] bg-white px-6 pt-6 pb-6 text-left align-middle shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
-            <div class="absolute top-4 right-4"><button type="button" onclick="closeStatusModal('activate')" class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div>
-            <div class="flex flex-col items-center text-center mb-6 pt-2">
-                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 border border-emerald-100 mb-4 shadow-sm"><svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></div>
-                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Kích hoạt rạp chiếu</h3>
-                <p class="text-sm text-slate-500 mt-2">Đưa rạp <span id="activate-room-name" class="font-bold text-slate-900"></span> trở lại trạng thái hoạt động?</p>
-            </div>
-            <div class="mb-8 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
-                <p class="text-[13px] text-emerald-800/80 leading-relaxed font-medium">Rạp sẽ sẵn sàng để quản lý phòng chiếu và thiết lập lịch chiếu phim ngay lập tức.</p>
-            </div>
-            <div class="grid grid-cols-2 gap-3">
-                <button type="button" onclick="closeStatusModal('activate')" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Hủy bỏ</button>
-                <button type="button" id="confirmActivateBtn" onclick="handleActivateSubmit()" class="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-[14px] font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95">
-                    <span class="spinner-border spinner-border-sm d-none" id="activateSpinner" role="status" aria-hidden="true" style="width: 1rem; height: 1rem;"></span>
-                    <span id="activateBtnText">Xác nhận</span>
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
+<partial name="_StatusModals" />
 
 @section Scripts {
-    <script>
-        // ══════════════════════════════════════════════════════════════
-        // GLOBAL UTILITIES & STATE
-        // ══════════════════════════════════════════════════════════════
-        let openFilterPanelId = null;
-        let openActionMenuId = null;
-        let currentCinemaId = null;
-
-        function debounce(func, timeout = 500) {
-            let timer;
-            return (...args) => {
-                clearTimeout(timer);
-                timer = setTimeout(() => { func.apply(this, args); }, timeout);
-            };
-        }
-
-        function resetInputState(input, feedback, btn, tick) {
-            input.classList.remove('!border-red-500', '!ring-red-100', '!border-emerald-500', '!ring-emerald-100');
-            feedback.classList.add('hidden');
-            if (tick) tick.classList.add('hidden');
-            btn.disabled = false;
-        }
-
-        function setInputError(input, feedback, btn, tick, message) {
-            input.classList.add('!border-red-500', '!ring-red-100');
-            input.classList.remove('!border-emerald-500', '!ring-emerald-100');
-            if (tick) tick.classList.add('hidden');
-            feedback.textContent = message;
-            feedback.classList.remove('hidden', 'text-emerald-500');
-            feedback.classList.add('text-red-500');
-            btn.disabled = true;
-        }
-
-        function setInputSuccess(input, feedback, btn, tick) {
-            input.classList.add('!border-emerald-500', '!ring-emerald-100');
-            input.classList.remove('!border-red-500', '!ring-red-100');
-            feedback.classList.add('hidden');
-            if (tick) tick.classList.remove('hidden');
-            btn.disabled = false;
-        }
-
-        // ══════════════════════════════════════════════════════════════
-        // AJAX FILTERING & PAGINATION (Global Scope)
-        // ══════════════════════════════════════════════════════════════
-        function fetchCinemas(url) {
-            const gridContainer = document.getElementById('cinema-grid-container');
-            if (!gridContainer) return;
-
-            // Show loading state
-            gridContainer.style.opacity = '0.5';
-            gridContainer.style.pointerEvents = 'none';
-
-            fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(res => res.text())
-            .then(html => {
-                const tempDiv = document.createElement('div');
-                tempDiv.innerHTML = html;
-
-                // 1. Update Grid Content
-                const gridContent = tempDiv.querySelector('#cinema-grid-ajax-content');
-                if (gridContent) {
-                    gridContainer.innerHTML = gridContent.innerHTML;
-                }
-
-                // 2. Teleport UI elements
-                ['ajax-clear-filter-wrapper', 'ajax-chips-wrapper'].forEach(id => {
-                    const source = tempDiv.querySelector(`#teleport-${id}`);
-                    const target = document.getElementById(id);
-                    if (source && target) target.innerHTML = source.innerHTML;
-                });
-
-                // 3. Update URL
-                window.history.pushState(null, '', url);
-            })
-            .catch(err => console.error("Error fetching cinemas:", err))
-            .finally(() => {
-                gridContainer.style.opacity = '1';
-                gridContainer.style.pointerEvents = 'auto';
-            });
-        }
-
-        document.addEventListener('DOMContentLoaded', () => {
-            const filterForm = document.getElementById('cinemaFilterForm');
-            const gridContainer = document.getElementById('cinema-grid-container');
-
-            if (filterForm) {
-                filterForm.addEventListener('submit', (e) => {
-                    e.preventDefault();
-                    const formData = new FormData(filterForm);
-                    const params = new URLSearchParams();
-                    for (const [key, value] of formData.entries()) {
-                        if (value) params.append(key, value);
-                    }
-                    fetchCinemas(`${filterForm.action || window.location.pathname}?${params.toString()}`);
-                });
-            }
-
-            if (gridContainer) {
-                gridContainer.addEventListener('click', (e) => {
-                    const link = e.target.closest('a[data-page], a[href*="sortBy"]');
-                    if (link) {
-                        e.preventDefault();
-                        fetchCinemas(link.href);
-                    }
-                });
-            }
-
-            window.addEventListener('popstate', () => fetchCinemas(window.location.href));
-        });
-
-        // ══════════════════════════════════════════════════════════════
-        // Custom Dropdowns (Filters)
-        // ══════════════════════════════════════════════════════════════
-        function toggleFilterDropdown(panelId, evt) {
-            evt.stopPropagation();
-            const panel = document.getElementById(panelId);
-            const isHidden = panel.classList.contains('hidden');
-            closeFilterPanels();
-            if (isHidden) {
-                panel.classList.remove('hidden');
-                openFilterPanelId = panelId;
-            }
-        }
-
-        function selectFilterOpt(panelId, inputId, labelId, value, label, hasValue, btnElement) {
-            document.getElementById(inputId).value = value;
-            const labelEl = document.getElementById(labelId);
-            labelEl.textContent = label;
-            
-            if (hasValue) {
-                labelEl.classList.remove('text-slate-500');
-                labelEl.classList.add('text-slate-900');
-            } else {
-                labelEl.classList.add('text-slate-500');
-                labelEl.classList.remove('text-slate-900');
-            }
-
-            if (btnElement) {
-                const panel = document.getElementById(panelId);
-                panel.querySelectorAll('.filter-tick').forEach(el => el.classList.add('hidden'));
-                panel.querySelectorAll('.filter-text').forEach(el => {
-                    el.classList.remove('font-semibold', 'text-indigo-700');
-                    el.classList.add('text-slate-600');
-                });
-                
-                const activeTick = btnElement.querySelector('.filter-tick');
-                if (activeTick) activeTick.classList.remove('hidden');
-                const activeText = btnElement.querySelector('.filter-text');
-                if (activeText) {
-                    activeText.classList.remove('text-slate-600');
-                    activeText.classList.add('font-semibold', 'text-indigo-700');
-                }
-            }
-            closeFilterPanels();
-        }
-
-        function closeFilterPanels() {
-            if (openFilterPanelId) {
-                document.getElementById(openFilterPanelId)?.classList.add('hidden');
-                openFilterPanelId = null;
-            }
-        }
-
-        // ══════════════════════════════════════════════════════════════
-        // Action Menus (⋮)
-        // ══════════════════════════════════════════════════════════════
-        function toggleActionMenu(id, evt) {
-            evt.stopPropagation();
-            const menu = document.getElementById(id);
-            const isHidden = menu.classList.contains('invisible');
-            closeActionMenus();
-            if (isHidden) {
-                menu.classList.remove('invisible', 'opacity-0', 'scale-95');
-                openActionMenuId = id;
-            }
-        }
-
-        function closeActionMenus() {
-            if (openActionMenuId) {
-                const m = document.getElementById(openActionMenuId);
-                if (m) m.classList.add('invisible', 'opacity-0', 'scale-95');
-                openActionMenuId = null;
-            }
-        }
-
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('[data-filter-dropdown]')) closeFilterPanels();
-            if (!e.target.closest('[data-action-root]'))    closeActionMenus();
-        });
-
-        // ══════════════════════════════════════════════════════════════
-        // Status Modals & Lifecycle
-        // ══════════════════════════════════════════════════════════════
-        function openStatusModal(type, cinemaId, cinemaName) {
-            currentCinemaId = cinemaId;
-            const modalId = 'modal-' + type;
-            const nameSpanId = type + '-room-name';
-            document.getElementById(nameSpanId).textContent = cinemaName;
-            document.getElementById(modalId).classList.remove('hidden');
-            document.body.style.overflow = 'hidden';
-            closeActionMenus();
-        }
-
-        function closeStatusModal(type) {
-            document.getElementById('modal-' + type).classList.add('hidden');
-            document.body.style.overflow = '';
-        }
-
-        async function handleActivateSubmit() {
-            if (!currentCinemaId) return;
-            const submitBtn = document.getElementById('confirmActivateBtn');
-            const spinner = document.getElementById('activateSpinner');
-            const btnText = document.getElementById('activateBtnText');
-            
-            submitBtn.disabled = true;
-            spinner.classList.remove('d-none');
-            btnText.textContent = 'Đang xử lý...';
-
-            try {
-                const form = document.getElementById('statusChangeForm');
-                const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
-                const formData = new FormData();
-                formData.append('id', currentCinemaId);
-                formData.append('__RequestVerificationToken', token);
-
-                const response = await fetch(`/Cinemas/Activate/${currentCinemaId}`, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    closeStatusModal('activate');
-                    showToast('Thành công', data.message, 'success');
-                    fetchCinemas(window.location.href);
-                } else {
-                    showToast('Lỗi', data.message, 'error');
-                }
-            } catch (err) {
-                showToast('Lỗi', 'Lỗi hệ thống khi thực hiện yêu cầu.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                spinner.classList.add('d-none');
-                btnText.textContent = 'Xác nhận';
-            }
-        }
-
-        async function handleDeactivateSubmit() {
-            if (!currentCinemaId) return;
-            const submitBtn = document.getElementById('confirmDeactivateBtn');
-            const spinner = document.getElementById('deactivateSpinner');
-            const btnText = document.getElementById('deactivateBtnText');
-            
-            submitBtn.disabled = true;
-            spinner.classList.remove('d-none');
-            btnText.textContent = 'Đang xử lý...';
-
-            try {
-                const form = document.getElementById('statusChangeForm');
-                const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
-                const formData = new FormData();
-                formData.append('id', currentCinemaId);
-                formData.append('__RequestVerificationToken', token);
-
-                const response = await fetch(`/Cinemas/Deactivate/${currentCinemaId}`, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-
-                const data = await response.json();
-
-                if (data.success) {
-                    closeStatusModal('deactivate');
-                    showToast('Thành công', data.message, 'success');
-                    fetchCinemas(window.location.href);
-                } else {
-                    showToast('Lỗi', data.message, 'error');
-                }
-            } catch (err) {
-                showToast('Lỗi', 'Lỗi hệ thống khi thực hiện yêu cầu.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                spinner.classList.add('d-none');
-                btnText.textContent = 'Xác nhận';
-            }
-        }
-
-        function openCinemaDetail(id) {
-            fetch(`/Cinemas/Detail/${id}`)
-                .then(r => r.text())
-                .then(html => {
-                    document.getElementById('cinemaDetailContainer').innerHTML = html;
-                    const modalEl = document.getElementById('cinemaDetailModal');
-                    if (modalEl) {
-                        const modal = new bootstrap.Modal(modalEl);
-                        modal.show();
-                    }
-                });
-        }
-
-        // ══════════════════════════════════════════════════════════════
-        // Edit Cinema (Slide-out Drawer)
-        // ══════════════════════════════════════════════════════════════
-        const cinemaEditDrawer = document.getElementById('cinemaEditDrawer');
-        const cinemaEditPanel = document.getElementById('cinemaEditPanel');
-        const cinemaEditBackdrop = document.getElementById('cinemaEditBackdrop');
-        const cinemaEditContent = document.getElementById('cinemaEditContent');
-
-        function toggleCinemaEdit(show) {
-            if (show) {
-                cinemaEditDrawer.classList.remove('invisible');
-                setTimeout(() => {
-                    cinemaEditBackdrop.classList.remove('opacity-0');
-                    cinemaEditPanel.classList.remove('translate-x-full');
-                }, 10);
-                document.body.style.overflow = 'hidden';
-            } else {
-                cinemaEditBackdrop.classList.add('opacity-0');
-                cinemaEditPanel.classList.add('translate-x-full');
-                setTimeout(() => {
-                    cinemaEditDrawer.classList.add('invisible');
-                    cinemaEditContent.innerHTML = `<div class="flex h-full items-center justify-center py-20"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div></div>`;
-                }, 500);
-                document.body.style.overflow = '';
-            }
-        }
-
-        async function openCinemaEdit(id) {
-            closeActionMenus();
-            toggleCinemaEdit(true);
-            try {
-                const response = await fetch(`/Cinemas/Edit/${id}`, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                if (response.ok) {
-                    const html = await response.text();
-                    cinemaEditContent.innerHTML = html;
-                    initEditLiveValidation();
-                } else {
-                    cinemaEditContent.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Lỗi không thể tải dữ liệu.</div>';
-                }
-            } catch (e) {
-                cinemaEditContent.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Lỗi hệ thống.</div>';
-            }
-        }
-
-        function initEditLiveValidation() {
-            const nameInput = document.getElementById('editCinemaNameInput');
-            const cinemaId = document.getElementById('editCinemaId')?.value;
-            const submitBtn = document.getElementById('submitEditBtn');
-            const nameFeedback = document.getElementById('editNameFeedback');
-            const tickIcon = document.getElementById('editNameTickIcon');
-            
-            if (!nameInput) return;
-
-            const validateName = debounce(async (name) => {
-                if (!name || name.trim().length === 0) {
-                    resetInputState(nameInput, nameFeedback, submitBtn, tickIcon);
-                    return;
-                }
-
-                submitBtn.disabled = true;
-                if (tickIcon) tickIcon.classList.add('hidden');
-
-                try {
-                    const url = `/Cinemas/VerifyName?name=${encodeURIComponent(name)}&currentId=${cinemaId}`;
-                    const response = await fetch(url);
-                    const data = await response.json();
-                    
-                    if (!data.isUnique) {
-                        setInputError(nameInput, nameFeedback, submitBtn, tickIcon, "Tên rạp này đã tồn tại trong hệ thống.");
-                    } else {
-                        setInputSuccess(nameInput, nameFeedback, submitBtn, tickIcon);
-                    }
-                } catch (error) {
-                    console.error("Validation error:", error);
-                    submitBtn.disabled = false;
-                }
-            });
-
-            nameInput.addEventListener('input', (e) => validateName(e.target.value));
-        }
-
-        async function handleEditSubmit(event) {
-            event.preventDefault();
-            const form = event.target;
-            const submitBtn = document.getElementById('submitEditBtn');
-            const spinner = document.getElementById('submitEditSpinner');
-            const btnText = document.getElementById('submitEditText');
-
-            submitBtn.disabled = true;
-            spinner.classList.remove('d-none');
-            btnText.textContent = 'Đang xử lý...';
-
-            try {
-                const formData = new FormData(form);
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-
-                if (response.ok) {
-                    const contentType = response.headers.get("content-type");
-                    if (contentType && contentType.indexOf("application/json") !== -1) {
-                         const data = await response.json();
-                         if (data.success) {
-                            toggleCinemaEdit(false);
-                            showToast('Thành công', data.message, 'success');
-                            fetchCinemas(window.location.href);
-                        } else {
-                            showToast('Lỗi', data.message || 'Có lỗi xảy ra', 'error');
-                        }
-                    } else {
-                        const html = await response.text();
-                        cinemaEditContent.innerHTML = html;
-                        initEditLiveValidation();
-                    }
-                } else {
-                    showToast('Lỗi', 'Lỗi hệ thống khi gửi yêu cầu.', 'error');
-                }
-            } catch (err) {
-                showToast('Lỗi', 'Lỗi kết nối khi gửi yêu cầu.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                spinner.classList.add('d-none');
-                btnText.textContent = 'Lưu thay đổi';
-            }
-        }
-
-        // ══════════════════════════════════════════════════════════════
-        // Create Cinema (Slide-out Drawer)
-        // ══════════════════════════════════════════════════════════════
-        const cinemaCreateDrawer = document.getElementById('cinemaCreateDrawer');
-        const cinemaCreatePanel = document.getElementById('cinemaCreatePanel');
-        const cinemaCreateBackdrop = document.getElementById('cinemaCreateBackdrop');
-        const cinemaCreateContent = document.getElementById('cinemaCreateContent');
-
-        function toggleCinemaCreate(show) {
-            if (show) {
-                cinemaCreateDrawer.classList.remove('invisible');
-                setTimeout(() => {
-                    cinemaCreateBackdrop.classList.remove('opacity-0');
-                    cinemaCreatePanel.classList.remove('translate-x-full');
-                }, 10);
-                document.body.style.overflow = 'hidden';
-            } else {
-                cinemaCreateBackdrop.classList.add('opacity-0');
-                cinemaCreatePanel.classList.add('translate-x-full');
-                setTimeout(() => {
-                    cinemaCreateDrawer.classList.add('invisible');
-                    cinemaCreateContent.innerHTML = `<div class="flex h-full items-center justify-center py-20"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div></div>`;
-                }, 500);
-                document.body.style.overflow = '';
-            }
-        }
-
-        async function openCinemaCreate() {
-            toggleCinemaCreate(true);
-            try {
-                const response = await fetch('/Cinemas/Create', {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-                if (response.ok) {
-                    const html = await response.text();
-                    cinemaCreateContent.innerHTML = html;
-                    initCreateLiveValidation();
-                } else {
-                    cinemaCreateContent.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Lỗi không thể tải dữ liệu.</div>';
-                }
-            } catch (e) {
-                cinemaCreateContent.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Lỗi hệ thống.</div>';
-            }
-        }
-
-        function initCreateLiveValidation() {
-            const nameInput = document.getElementById('cinemaNameInput');
-            const submitBtn = document.getElementById('submitCreateBtn');
-            const nameFeedback = document.getElementById('nameFeedback');
-            const tickIcon = document.getElementById('nameTickIcon');
-            
-            if (!nameInput) return;
-
-            const validateName = debounce(async (name) => {
-                if (!name || name.trim().length === 0) {
-                    resetInputState(nameInput, nameFeedback, submitBtn, tickIcon);
-                    return;
-                }
-
-                submitBtn.disabled = true;
-                if (tickIcon) tickIcon.classList.add('hidden');
-                
-                try {
-                    const response = await fetch(`/Cinemas/VerifyName?name=${encodeURIComponent(name)}`);
-                    const data = await response.json();
-                    
-                    if (!data.isUnique) {
-                        setInputError(nameInput, nameFeedback, submitBtn, tickIcon, "Tên rạp này đã tồn tại trong hệ thống.");
-                    } else {
-                        setInputSuccess(nameInput, nameFeedback, submitBtn, tickIcon);
-                    }
-                } catch (error) {
-                    console.error("Validation error:", error);
-                    submitBtn.disabled = false;
-                }
-            });
-
-            nameInput.addEventListener('input', (e) => validateName(e.target.value));
-        }
-
-        async function handleCreateSubmit(event) {
-            event.preventDefault();
-            const form = event.target;
-            const submitBtn = document.getElementById('submitCreateBtn');
-            const spinner = document.getElementById('submitCreateSpinner');
-            const btnText = document.getElementById('submitCreateText');
-
-            submitBtn.disabled = true;
-            spinner.classList.remove('d-none');
-            btnText.textContent = 'Đang xử lý...';
-
-            try {
-                const formData = new FormData(form);
-                const response = await fetch(form.action, {
-                    method: 'POST',
-                    body: formData,
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                });
-
-                if (response.ok) {
-                    const contentType = response.headers.get("content-type");
-                    if (contentType && contentType.indexOf("application/json") !== -1) {
-                         const data = await response.json();
-                         if (data.success) {
-                            toggleCinemaCreate(false);
-                            showToast('Thành công', data.message, 'success');
-                            fetchCinemas(window.location.href);
-                        } else {
-                            showToast('Lỗi', data.message || 'Có lỗi xảy ra', 'error');
-                        }
-                    } else {
-                        const html = await response.text();
-                        cinemaCreateContent.innerHTML = html;
-                        initCreateLiveValidation();
-                    }
-                } else {
-                    showToast('Lỗi', 'Lỗi hệ thống khi gửi yêu cầu.', 'error');
-                }
-            } catch (err) {
-                showToast('Lỗi', 'Lỗi kết nối khi gửi yêu cầu.', 'error');
-            } finally {
-                submitBtn.disabled = false;
-                spinner.classList.add('d-none');
-                btnText.textContent = 'Tạo rạp mới';
-            }
-        }
-    </script>
+    <script src="~/js/admin/cinema-index.js" asp-append-version="true"></script>
 }
-

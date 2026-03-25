@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using CinemaManagement.Data;
 using CinemaManagement.Models;
-using CinemaManagement.ViewModels.Cinema;
+using CinemaManagement.ViewModels.Rooms;
 using System.Security.Claims;
 
 namespace CinemaManagement.Controllers

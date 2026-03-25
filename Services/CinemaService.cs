@@ -54,12 +54,12 @@ namespace CinemaManagement.Services
             return (items, totalItems);
         }
 
-        public async Task<CinemaStatsVm> GetStatsAsync()
+        public async Task<CinemaStatsViewModel> GetStatsAsync()
         {
             // Tối ưu hóa: Để SQL Server tự đếm, không kéo dữ liệu về RAM
             var baseQuery = _context.Cinemas.AsNoTracking();
             
-            return new CinemaStatsVm
+            return new CinemaStatsViewModel
             {
                 TotalCinemas = await baseQuery.CountAsync(),
                 ActiveCinemas = await baseQuery.CountAsync(c => c.Status == 1),
@@ -167,12 +167,12 @@ public async Task UpdateAsync(UpdateCinemaRequest request, Guid? userId)
             await _context.SaveChangesAsync();  
         }
 
-        public async Task<CinemaDetailsVm?> GetCinemaDetailsAsync(Guid id)
+        public async Task<CinemaDetailsViewModel?> GetCinemaDetailsAsync(Guid id)
         {
             return await _context.Cinemas
                 .Include(c => c.Rooms)
                 .Where(c => c.CinemaId == id)
-                .Select(c => new CinemaDetailsVm
+                .Select(c => new CinemaDetailsViewModel
                 {
                     CinemaId = c.CinemaId,
                     Name = c.Name,
@@ -189,11 +189,11 @@ public async Task UpdateAsync(UpdateCinemaRequest request, Guid? userId)
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<EditCinemaVm?> GetEditByIdAsync(Guid id)
+        public async Task<EditCinemaViewModel?> GetEditByIdAsync(Guid id)
         {
             return await _context.Cinemas
                 .Where(c => c.CinemaId == id)
-                .Select(c => new EditCinemaVm
+                .Select(c => new EditCinemaViewModel
                 {
                     CinemaId = c.CinemaId,
                     Name = c.Name,
