@@ -1,5 +1,5 @@
 @using CinemaManagement.Models
-@model CinemaManagement.ViewModels.RoomListViewModel
+@model CinemaManagement.ViewModels.Rooms.RoomListViewModel
 
 @functions {
     string PageUrl(int p) {
@@ -309,75 +309,14 @@
 <!-- Pagination Controls -->
 @if (Model.TotalPages > 0)
 {
-    int startIdx = (Model.CurrentPage - 1) * Model.PageSize + 1;
-    int endIdx   = Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalItems);
-    if (Model.TotalItems == 0) { startIdx = 0; endIdx = 0; }
-    
-    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-8 pt-6 border-t border-slate-100">
-        <!-- Left: Record count info -->
-        <span class="text-sm text-slate-500 font-medium">
-            Hiển thị <span class="font-bold text-slate-700">@startIdx-@endIdx</span> trên <span class="font-bold text-slate-700">@Model.TotalItems</span> phòng chiếu
-        </span>
-
-        <!-- Right: Page buttons -->
-        @if (Model.TotalPages > 1)
-        {
-            <div class="flex items-center gap-1">
-                @if (Model.CurrentPage > 1)
-                {
-                    <a href="@PageUrl(Model.CurrentPage - 1)" class="flex items-center gap-1 px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Trước
-                    </a>
-                }
-                else
-                {
-                    <span class="flex items-center gap-1 px-3 py-2 border border-slate-100 rounded-xl text-sm font-bold text-slate-300 bg-white cursor-not-allowed">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
-                        </svg>
-                        Trước
-                    </span>
-                }
-
-                @for (int i = 1; i <= Model.TotalPages; i++)
-                {
-                    if (i == Model.CurrentPage)
-                    {
-                        <span class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white text-sm font-bold rounded-xl shadow-lg shadow-indigo-200 min-w-[40px] text-center">@i</span>
-                    }
-                    else if (i == 1 || i == Model.TotalPages || (i >= Model.CurrentPage - 1 && i <= Model.CurrentPage + 1))
-                    {
-                        <a href="@PageUrl(i)" class="px-4 py-2 border border-slate-200 text-slate-600 text-sm font-bold rounded-xl bg-white hover:bg-slate-50 hover:border-slate-300 transition-all min-w-[40px] text-center">@i</a>
-                    }
-                    else if (i == Model.CurrentPage - 2 || i == Model.CurrentPage + 2)
-                    {
-                        <span class="px-2 py-2 text-slate-400 text-sm font-bold">...</span>
-                    }
-                }
-
-                @if (Model.CurrentPage < Model.TotalPages)
-                {
-                    <a href="@PageUrl(Model.CurrentPage + 1)" class="flex items-center gap-1 px-3 py-2 border border-slate-200 rounded-xl text-sm font-bold text-slate-600 bg-white hover:bg-slate-50 hover:border-slate-300 transition-all">
-                        Sau
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </a>
-                }
-                else
-                {
-                    <span class="flex items-center gap-1 px-3 py-2 border border-slate-100 rounded-xl text-sm font-bold text-slate-300 bg-white cursor-not-allowed">
-                        Sau
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
-                        </svg>
-                    </span>
-                }
-            </div>
-        }
+    <div class="mt-8 pt-6 border-t border-slate-100">
+        <partial name="_PaginationPartial" model='new CinemaManagement.ViewModels.Shared.PaginationViewModel {
+            CurrentPage = Model.CurrentPage,
+            TotalPages = Model.TotalPages,
+            TotalItems = Model.TotalItems,
+            PageSize = Model.PageSize,
+            GenerateUrl = p => PageUrl(p)
+        }' />
     </div>
 }
 </div>

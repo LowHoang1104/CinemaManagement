@@ -2,9 +2,6 @@ using CinemaManagement.Models;
 
 namespace CinemaManagement.ViewModels.Rooms
 {
-    /// <summary>
-    /// DTO nhận từ AJAX – chỉ chứa những field cần cập nhật
-    /// </summary>
     public class SeatUpdateRequest
     {
         public Guid Id { get; set; }
