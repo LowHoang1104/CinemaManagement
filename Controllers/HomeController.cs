@@ -25,23 +25,21 @@ namespace CinemaManagement.Controllers
        var nowUtc = DateTime.UtcNow;
         var moviesWithShowTimes = new List<Movie>();
 
-  if (selectedCinemaId != Guid.Empty)
-{
-        moviesWithShowTimes = _context.Movies
-      .Where(m => m.Status == 1)
-         .Include(m => m.ShowTimes)
-   .ThenInclude(st => st.Room)
-   .ThenInclude(r => r.Cinema)
-         .Where(m => m.ShowTimes.Any(st => 
-  st.Room.Cinema.CinemaId == selectedCinemaId && 
-   st.StartAt > nowUtc && 
-       st.Status == 1))
-        .OrderBy(x => x.CreatedAt)
-    .ToList();
-  }
-
-            // Initialize user session with first user from database
-
+            if (selectedCinemaId != Guid.Empty)
+            {
+                moviesWithShowTimes = _context.Movies
+              .Where(m => m.Status == 1)
+                 .Include(m => m.ShowTimes)
+           .ThenInclude(st => st.Room)
+           .ThenInclude(r => r.Cinema)
+                 .Where(m => m.ShowTimes.Any(st =>
+          st.Room.Cinema.CinemaId == selectedCinemaId &&
+           st.StartAt > nowUtc &&
+               st.Status == 1))
+                .OrderBy(x => x.CreatedAt)
+            .ToList();
+            }
+            InitializeUserSession();
    return View(moviesWithShowTimes);
     }
 
@@ -54,7 +52,7 @@ namespace CinemaManagement.Controllers
 
             if (cinema == null)
        {
-       return Json(new { success = false, message = "C? s? không h?p l?" });
+       return Json(new { success = false, message = "C? s? khï¿½ng h?p l?" });
     }
 
   // Save to session
@@ -66,7 +64,7 @@ namespace CinemaManagement.Controllers
             catch (Exception ex)
       {
       _logger.LogError(ex, "Error selecting cinema");
-       return Json(new { success = false, message = "Có l?i x?y ra khi ch?n c? s?" });
+       return Json(new { success = false, message = "Cï¿½ l?i x?y ra khi ch?n c? s?" });
    }
    }
 

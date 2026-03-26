@@ -20,17 +20,6 @@ namespace CinemaManagement.Controllers
 
         public AuthController(IAuthService authService) => _authService = authService;
 
-        [HttpGet]
-        public IActionResult Index()
-        {
-            // Redirect to Login with returnUrl if provided
-            var returnUrl = HttpContext.Request.Query["returnUrl"].ToString();
-            if (!string.IsNullOrEmpty(returnUrl))
-            {
-                return RedirectToAction(nameof(Login), new { returnUrl });
-            }
-            return RedirectToAction(nameof(Login));
-        }
 
         [HttpGet]
         public IActionResult Login()
@@ -58,7 +47,7 @@ namespace CinemaManagement.Controllers
                 return View(model);
             }
 
-            // Tạo claims và đăng nhập
+            // create claims and sign in (unchanged)
             var claims = new List<Claim>
     {
         new Claim(ClaimTypes.NameIdentifier, result.User!.UserId.ToString()),
@@ -78,27 +67,18 @@ namespace CinemaManagement.Controllers
                 ExpiresUtc = model.RememberMe ? DateTimeOffset.UtcNow.AddDays(30) : null
             });
 
-            // Lưu session sau khi đăng nhập thành công
-            HttpContext.Session.SetString("UserId", result.User.UserId.ToString());
-            HttpContext.Session.SetString("UserEmail", result.User.Email ?? "");
-            HttpContext.Session.SetString("UserFullName", result.User.FullName ?? "");
-
-            // Kiểm tra returnUrl từ model
-            if (!string.IsNullOrEmpty(model.ReturnUrl) && Url.IsLocalUrl(model.ReturnUrl))
-            {
-                return Redirect(model.ReturnUrl);
-            }
-
-            // Phân quyền redirect theo role nếu không có returnUrl
+            // Phân quyền redirect theo role
             var isAdmin = result.User.Roles.Any(r => r.Name == "Admin");
 
             if (isAdmin)
             {
-                return RedirectToAction("Dashboard", "ManagerReports");
+                //return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+                return View("AdminLogin");
             }
 
             // Customer
-            return RedirectToAction("Index", "Home");
+            //return RedirectToAction("Index", "Home");
+            return View("CustomerLogin");
         }
 
 
@@ -167,18 +147,13 @@ namespace CinemaManagement.Controllers
             await HttpContext.SignInAsync(
                 CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity));
-
-            // Lưu session khi sign in
-            HttpContext.Session.SetString("UserId", user.UserId.ToString());
-            HttpContext.Session.SetString("UserEmail", user.Email ?? "");
-            HttpContext.Session.SetString("UserFullName", user.FullName ?? "");
         }
         private IActionResult RedirectUserByRole(User user)
         {
             if (user.Roles.Any(r => r.Name.Equals("Admin", StringComparison.OrdinalIgnoreCase)))
-                return RedirectToAction("Dashboard", "ManagerReports");
+                return View("AdminLogin");
 
-            return RedirectToAction("Index", "Home");
+            return View("CustomerLogin");
         }
 
 
@@ -274,7 +249,7 @@ namespace CinemaManagement.Controllers
         [HttpGet]
         public IActionResult VerifyOtp()
         {
-            // If user navigated directly, redirect back to forgot password
+            //Ko cho người dùng truy cập trực tiếp VerifyOtp
             var email = TempData.Peek("OtpEmail") as string;
             if (string.IsNullOrEmpty(email))
                 return RedirectToAction(nameof(ForgotPassword));
@@ -315,40 +290,59 @@ namespace CinemaManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> VerifyOtp(VerifyOtpViewModel model)
         {
-            // Email is retrieved from TempData (not from URL or visible query)
-            var email = TempData.Peek("OtpEmail") as string;
+            var email = model?.Email?.Trim();
+            if (string.IsNullOrEmpty(email) && Request.HasFormContentType && Request.Form.ContainsKey("Email"))
+                email = Request.Form["Email"].ToString().Trim();
+            if (string.IsNullOrEmpty(email))
+                email = TempData.Peek("OtpEmail") as string;
+
             if (string.IsNullOrEmpty(email))
             {
-                ModelState.AddModelError(string.Empty, "Phiên đã hết. Vui lòng yêu cầu lại mã OTP.");
-                return RedirectToAction(nameof(ForgotPassword));
+                ModelState.AddModelError(string.Empty, "Phiên đã hết hoặc không lấy được email. Vui lòng yêu cầu mã OTP lại.");
+                return View(model ?? new VerifyOtpViewModel());
             }
 
             var result = await _authService.VerifyOtpAsync(email, model.Otp);
-
             if (!result.Success)
             {
-                // Attach error to the Otp field so the view shows it under the OTP inputs
                 ModelState.AddModelError(nameof(VerifyOtpViewModel.Otp), result.Error);
-
-                // Keep TempData so user can retry
                 TempData.Keep("OtpEmail");
                 TempData.Keep("OtpExpiryUtc");
                 TempData.Keep("OtpContactMasked");
+                model.Email = email;
                 return View(model);
             }
 
-            // remove TempData entries once used
+            if (result.UserId == null)
+            {
+                ModelState.AddModelError(string.Empty, "Không tìm thấy người dùng liên quan. Vui lòng thử lại.");
+                return View(model);
+            }
+
+            // lưu user id vào server session
+            HttpContext.Session.SetString("ResetUserId", result.UserId.Value.ToString());
+
+            // xóa OTP TempData entries
             TempData.Remove("OtpEmail");
             TempData.Remove("OtpExpiryUtc");
             TempData.Remove("OtpContactMasked");
 
-            return RedirectToAction("ResetPassword", new { userId = result.UserId });
+            return RedirectToAction(nameof(ResetPassword));
         }
 
         [HttpGet]
-        public IActionResult ResetPassword(Guid userId)
+        public IActionResult ResetPassword()
         {
-            return View(new ResetPasswordViewModel { UserId = userId });
+            // lấy user id từ session 
+            var idStr = HttpContext.Session.GetString("ResetUserId");
+            if (string.IsNullOrEmpty(idStr) || !Guid.TryParse(idStr, out var parsedUserId))
+            {
+                // expired or missing → go back to forgot
+                return RedirectToAction(nameof(ForgotPassword));
+            }
+
+            // tạo ResetPassword view với hidden UserId in form
+            return View(new ResetPasswordViewModel { UserId = parsedUserId });
         }
 
         [HttpPost]
@@ -367,13 +361,15 @@ namespace CinemaManagement.Controllers
                 return View(model);
             }
 
+            // xóa user ID from session khi cập nhật mk thanh công
+            HttpContext.Session.Remove("ResetUserId");
             TempData["ResetSuccess"] = "Cập nhật mật khẩu thành công. Vui lòng đăng nhập lại.";
 
             return RedirectToAction(nameof(Login));
         }
 
 
-        // GET: load profile (no avatar)
+        // load profile 
         [HttpGet]
         public async Task<IActionResult> Profile()
         {
@@ -390,7 +386,7 @@ namespace CinemaManagement.Controllers
             return View(model);
         }
 
-        // POST: update profile (no avatar)
+        // POST: update profile 
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Profile(ProfileViewModel model)
@@ -447,7 +443,7 @@ namespace CinemaManagement.Controllers
                 return Json(new { success = false, error = "Mật khẩu hiện tại không đúng." });
             }
 
-            // All good: update password
+            // update password
             var updated = await _authService.ResetPasswordAsync(userId, model.NewPassword);
             if (!updated)
             {
@@ -459,13 +455,14 @@ namespace CinemaManagement.Controllers
 
         public async Task<IActionResult> Logout()
         {
-            // Xóa tất cả session khi logout
-            HttpContext.Session.Clear();
-       
-    // Xóa authentication cookie
-        await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
- 
-return RedirectToAction(nameof(Login));
- }
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            return RedirectToAction(nameof(Login));
+        }
+
+
+
+
+
+
     }
 }

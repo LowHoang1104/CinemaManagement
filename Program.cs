@@ -57,7 +57,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(30);
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
-    options.Cookie.SameSite = SameSiteMode.Lax; 
+    options.Cookie.SameSite = SameSiteMode.Lax;
 });
 // Đăng ký SeatNotifier để inject vào BookingService
 builder.Services.AddScoped<ISeatNotifier, SeatNotifier>();
@@ -76,8 +76,8 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-
 // Map SignalR Hub
 app.MapHub<SeatHub>("/hubs/seat");
 
 app.Run();
+

@@ -26,10 +26,8 @@ namespace CinemaManagement.Services
 
         Task<bool> ResetPasswordAsync(Guid userId, string newPassword);
 
-        // Profile operations (no avatar / no upload)
         Task<ProfileViewModel?> GetUserProfileAsync(Guid userId);
 
-        // Update profile (no avatar file parameter)
         Task<(bool Success, string? Error)> UpdateUserProfileAsync(Guid userId, ProfileViewModel model);
     
 }
