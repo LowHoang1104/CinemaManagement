@@ -14,8 +14,9 @@ namespace CinemaManagement
             services.AddScoped<IBookingService, BookingService>();
             services.AddScoped<IReportService, ReportService>();
             services.AddScoped<IAdminUserService, AdminUserService>();
+            services.AddScoped<IAuthService, AuthService>();
+            services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IExportService, ExportService>();   
-
             services.AddScoped<ICinemaService, CinemaService>();
 
             return services;

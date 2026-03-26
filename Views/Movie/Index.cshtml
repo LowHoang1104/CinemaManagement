@@ -1,0 +1,34 @@
+﻿@model List<Movie>
+@{
+    ViewData["Title"] = "Phim";
+}
+
+<div class="page-shell">
+    <section class="page-hero">
+        <h1>Phim Đang Chiếu</h1>
+        <p>Danh sách phim đang hoạt động theo cơ sở bạn đã chọn.</p>
+    </section>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            Hiện chưa có phim phù hợp với cơ sở đã chọn.
+        </div>
+    }
+    else
+    {
+        <div class="info-grid">
+            @foreach (var movie in Model)
+            {
+                <article class="info-card">
+                    <h3>@movie.Title</h3>
+                    <div class="info-meta">Thời lượng: @movie.DurationMin phút</div>
+                    <div class="info-meta">Thể loại: @(string.IsNullOrWhiteSpace(movie.Genre) ? "Đang cập nhật" : movie.Genre)</div>
+                    <div class="info-meta">Đạo diễn: @(string.IsNullOrWhiteSpace(movie.Director) ? "Đang cập nhật" : movie.Director)</div>
+                    <div class="info-meta">Độ tuổi: @(movie.AgeRating.HasValue ? $"T{movie.AgeRating}" : "P")</div>
+                    <a class="pill" href="@Url.Action("Detail", "Movie", new { id = movie.MovieId })">Xem chi tiết</a>
+                </article>
+            }
+        </div>
+    }
+</div>

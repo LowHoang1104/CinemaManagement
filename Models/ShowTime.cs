@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace CinemaManagement.Models;
@@ -16,6 +16,8 @@ public partial class ShowTime
     public DateTime EndAt { get; set; }
 
     public decimal BasePrice { get; set; }
+
+    public string? Format { get; set; }
 
     public int Status { get; set; }
 
@@ -37,3 +39,4 @@ public partial class ShowTime
 
     public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }
+  

@@ -1,0 +1,121 @@
+﻿@model CinemaManagement.ViewModels.Auth.VerifyOtpViewModel
+@*
+    Verify OTP page: email is not exposed in the URL. Countdown runs from RemainingSeconds.
+*@
+@{
+}
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Xác thực OTP | PRIME NINE Cinema</title>
+    <style>
+        body { font-family: 'Roboto', sans-serif; background:#f4f7f9; }
+        .auth-section { padding:60px 0; min-height:100vh; display:flex; justify-content:center; align-items:center; }
+        .auth-card { width:100%; max-width:400px; background:#fff; padding:40px; border-radius:12px; box-shadow:0 15px 35px rgba(0,0,0,0.12); text-align:center; }
+        .otp-inputs { display:flex; gap:8px; justify-content:space-between; margin-bottom:8px; }
+        .otp-inputs input { width:50px; height:60px; text-align:center; font-size:24px; border:2px solid #eee; border-radius:8px; }
+        .btn-verify { width:100%; padding:12px; background:#0056b3; color:#fff; border:none; border-radius:6px; font-weight:bold; cursor:pointer; }
+        .text-danger { color:#d9534f; margin-top:8px; display:block; }
+        #timer { color:#d9534f; font-weight:bold; }
+        .resend-link { color:#0056b3; text-decoration:none; font-weight:bold; }
+    </style>
+</head>
+<body>
+    <main class="auth-section">
+        <div class="auth-card">
+            <h2>XÁC THỰC OTP</h2>
+            <p>Mã xác thực đã được gửi đến <br /><strong>@Model.ContactMasked</strong></p>
+
+            @Html.AntiForgeryToken()
+            <form asp-action="VerifyOtp" method="post" id="otp-form" novalidate>
+                <div class="otp-inputs" aria-label="OTP inputs">
+                    @for (int i = 0; i < 6; i++)
+                    {
+                        <input type="text" maxlength="1" inputmode="numeric" pattern="[0-9]*" class="otp-box" />
+                    }
+                </div>
+
+                <!-- Inline validation message bound to the Otp model property -->
+                <span asp-validation-for="Otp" class="text-danger"></span>
+
+                <input type="hidden" name="Otp" id="Otp" />
+
+                <button type="submit" class="btn-verify" id="verifyBtn">XÁC NHẬN</button>
+
+                <div class="text-danger" id="serverError" style="display:none">
+                    @* keep for any global messages if needed *@
+                </div>
+            </form>
+
+            <div style="margin-top:18px; font-size:14px; color:#666;">
+                Bạn không nhận được mã? <br />
+                <span id="resendArea">Gửi lại sau <span id="timer">--:--</span></span>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        (function () {
+            // Fill OTP hidden input on submit (runs when form actually submits)
+            document.getElementById('otp-form').addEventListener('submit', function (e) {
+                var otp = '';
+                document.querySelectorAll('.otp-box').forEach(function (el) { otp += (el.value || '').trim(); });
+                document.getElementById('Otp').value = otp;
+                // let normal submit continue; server-side validation will handle OTP
+            });
+
+            // Autofocus + navigation between boxes
+            const boxes = document.querySelectorAll('.otp-box');
+            boxes.forEach((box, idx) => {
+                box.addEventListener('input', () => {
+                    box.value = box.value.replace(/[^0-9]/g, '');
+                    if (box.value && idx < boxes.length - 1) boxes[idx + 1].focus();
+                });
+                box.addEventListener('keydown', (e) => {
+                    if (e.key === 'Backspace' && !box.value && idx > 0) boxes[idx - 1].focus();
+                });
+            });
+
+            // Countdown logic
+            let remaining = @Model.RemainingSeconds;
+            const timerEl = document.getElementById('timer');
+            const verifyBtn = document.getElementById('verifyBtn');
+            const resendArea = document.getElementById('resendArea');
+            let intervalId = null;
+
+            function formatTime(sec) {
+                const m = Math.floor(sec / 60).toString().padStart(2, '0');
+                const s = Math.floor(sec % 60).toString().padStart(2, '0');
+                return m + ':' + s;
+            }
+
+            function updateUIForExpired() {
+                timerEl.textContent = '00:00';
+                resendArea.innerHTML = '<span style="color:#d9534f; font-weight:bold">Mã OTP của bạn đã hết hiệu lực.</span> <br/> <a class="resend-link" href="@Url.Action("ForgotPassword", "Auth")">Yêu cầu mã mới</a>';
+                verifyBtn.disabled = true;
+                if (intervalId) {
+                    clearInterval(intervalId);
+                    intervalId = null;
+                }
+            }
+
+            function tick() {
+                if (remaining <= 0) {
+                    updateUIForExpired();
+                    return;
+                }
+                timerEl.textContent = formatTime(remaining);
+                remaining--;
+            }
+
+            if (typeof remaining !== 'number' || remaining <= 0) {
+                remaining = 5 * 60;
+            }
+            timerEl.textContent = formatTime(remaining);
+            intervalId = setInterval(tick, 1000);
+        })();
+    </script>
+</body>
+</html>

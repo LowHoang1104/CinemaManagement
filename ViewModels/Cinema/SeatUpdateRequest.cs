@@ -9,6 +9,6 @@ namespace CinemaManagement.ViewModels.Cinema
     {
         public Guid Id { get; set; }
         public SeatTypeEnum SeatType { get; set; }
-        public bool IsActive { get; set; }
+        public Guid SeatStatusId { get; set; }
     }
 }

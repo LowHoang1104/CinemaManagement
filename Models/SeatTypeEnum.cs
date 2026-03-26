@@ -1,6 +1,3 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Models/Seat.cs  (tham khảo – enum dùng trong project)
-// ─────────────────────────────────────────────────────────────────────────────
 namespace CinemaManagement.Models
 {
     public enum SeatTypeEnum

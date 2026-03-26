@@ -1,0 +1,30 @@
+@model List<CinemaManagement.ViewModels.CinemaSystemItemViewModel>
+@{
+    ViewData["Title"] = "Hệ thống rạp";
+}
+
+<div class="page-shell">
+    <section class="page-hero">
+        <h1>Hệ Thống Rạp</h1>
+        <p>Tổng quan các cơ sở đang hoạt động trong hệ thống PRIME NINE Cinema.</p>
+    </section>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">Chưa có cơ sở hoạt động.</div>
+    }
+    else
+    {
+        <div class="info-grid">
+            @foreach (var item in Model)
+            {
+                <article class="info-card">
+                    <h3>@item.CinemaName</h3>
+                    <div class="info-meta">@item.Address</div>
+                    <span class="pill">@item.ActiveRooms phòng chiếu</span>
+                    <span class="pill">@item.TotalSeats ghế</span>
+                </article>
+            }
+        </div>
+    }
+</div>

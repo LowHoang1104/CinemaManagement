@@ -16,7 +16,7 @@
         <div class="nav-section-title">Main Menu</div>
         <ul class="nav flex-column">
             <li class="nav-item">
-                <a asp-controller="Home" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" ? "active" : "")">
+                <a asp-controller="ManagerReports" asp-action="Dashboard" class="nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "ManagerReports" ? "active" : "")">
                     <span class="nav-icon"><i class="bi bi-grid-1x2"></i></span>
                     <span class="nav-text">Dashboard</span>
                 </a>

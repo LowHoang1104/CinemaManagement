@@ -326,8 +326,8 @@ namespace CinemaManagement.Controllers
                                 SeatCode = $"{rowLetter}{c}", // VD: A1, A2, B10...
                                 RowLabel = r,
                                 ColNumber = c,
-                                SeatType = SeatTypeEnum.Standard.ToString(), // Mặc định là ghế thường
-                                IsActive = true,
+                                SeatType = SeatTypeEnum.Standard.ToString(), // Mặc định là ghế Standard
+                                SeatStatusId = SeatStatusConstants.Active,
                                 CreatedAt = DateTime.UtcNow,
                                 CreatedBy = adminId
                             });
@@ -434,7 +434,7 @@ namespace CinemaManagement.Controllers
                                 ColNumber = c,
                                 SeatCode = $"{rowLetter}{c}",
                                 SeatType = "Standard",
-                                IsActive = false, // Những ghế lỗi không có trong DB thì mặc định khởi tạo mờ thành 'Lối đi'
+                                SeatStatusId = SeatStatusConstants.Inactive, // Những ghế lỗi không có trong DB thì mặc định khởi tạo mờ thành 'Lối đi' (Inactive)
                                 CreatedAt = DateTime.UtcNow
                             };
                             missingSeats.Add(newSeat);
@@ -469,10 +469,30 @@ namespace CinemaManagement.Controllers
             using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
+                // ── BẮT ĐẦU: KIỂM TRA RÀNG BUỘC NGHIỆP VỤ (Sold Ticket Constraint) ──
+                // Tìm những ghế bị chuyển từ Active sang trạng thái khác (Inactive/Maintenance)
+                var nonActiveStatusIds = new[] { SeatStatusConstants.Inactive, SeatStatusConstants.Maintenance };
+                var seatsToDisable = seats.Where(s => nonActiveStatusIds.Contains(s.SeatStatusId)).Select(s => s.Id).ToList();
+
+                if (seatsToDisable.Any())
+                {
+                    // Business Rule: Không cho phép disable ghế nếu đã có vé bán (status != 0) ở các suất chiếu tương lai
+                    var hasFutureBookings = await _context.ShowTimeSeats
+                        .AnyAsync(sts => seatsToDisable.Contains(sts.SeatId) 
+                                      && sts.Status != 0 // 0: Available, khác 0: Sold/Reserved
+                                      && sts.ShowTime.StartAt > DateTime.UtcNow);
+
+                    if (hasFutureBookings)
+                    {
+                        return BadRequest(new { success = false, message = "Không thể hủy kích hoạt ghế vì đã có khách đặt vé trong các suất chiếu tương lai." });
+                    }
+                }
+                // ── KẾT THÚC: KIỂM TRA RÀNG BUỘC NGHIỆP VỤ ──
+
                 int totalUpdated = 0;
 
-                // 1. Group dữ liệu lại theo SeatType và IsActive (Gom nhóm O(N))
-                var groupedSeats = seats.GroupBy(s => new { s.SeatType, s.IsActive }).ToList();
+                // 1. Group dữ liệu lại theo SeatType và SeatStatusId (Gom nhóm O(N))
+                var groupedSeats = seats.GroupBy(s => new { s.SeatType, s.SeatStatusId }).ToList();
 
                 foreach (var group in groupedSeats)
                 {
@@ -482,7 +502,7 @@ namespace CinemaManagement.Controllers
 
                     var seatIdsToUpdate = group.Select(s => s.Id).ToList();
                     string seatTypeString = group.Key.SeatType.ToString();
-                    bool isActive = group.Key.IsActive;
+                    Guid seatStatusId = group.Key.SeatStatusId;
 
                     // 3. Performance: Sử dụng ExecuteUpdateAsync của EF Core 7+ (Batch Update)
                     // - Bỏ qua hoàn toàn Change Tracker
@@ -491,7 +511,7 @@ namespace CinemaManagement.Controllers
                         .Where(s => seatIdsToUpdate.Contains(s.SeatId))
                         .ExecuteUpdateAsync(s => s
                             .SetProperty(p => p.SeatType, seatTypeString)
-                            .SetProperty(p => p.IsActive, isActive)
+                            .SetProperty(p => p.SeatStatusId, seatStatusId)
                             .SetProperty(p => p.LastUpdatedAt, DateTime.UtcNow)); // Cập nhật luôn Audit log
                     
                     totalUpdated += updatedCount;

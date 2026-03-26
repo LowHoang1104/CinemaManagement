@@ -1,0 +1,38 @@
+﻿@model List<Room>
+@{
+    ViewData["Title"] = "Rạp";
+}
+
+<div class="page-shell">
+    <section class="page-hero">
+        <h1>Danh Sách Rạp</h1>
+        <p>Hiển thị theo cơ sở và tên rạp đang hoạt động.</p>
+    </section>
+
+    @if (!Model.Any())
+    {
+        <div class="empty-state">
+            Hiện chưa có rạp/phòng chiếu đang hoạt động.
+        </div>
+    }
+    else
+    {
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Cơ sở</th>
+                    <th>Tên rạp</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var room in Model)
+                {
+                    <tr>
+                        <td>@room.Cinema.Name</td>
+                        <td>@room.Name</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
