@@ -14,7 +14,7 @@ namespace CinemaManagement.Services
             _context = context;
         }
 
-        public async Task<RoomListViewModel> GetAllAsync(Guid? cinemaId, string? search, RoomStatus? status, string? sortBy, string? sortDir, int page = 1, int pageSize = 3)
+        public async Task<RoomListViewModel> GetAllAsync(Guid? cinemaId, string? search, RoomStatus? status, string? sortBy, string? sortDir, int page = 1, int pageSize = 10)
         {
             IQueryable<Room> baseQuery = _context.Rooms
                 .Include(r => r.Cinema)

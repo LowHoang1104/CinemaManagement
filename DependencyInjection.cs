@@ -18,6 +18,7 @@ namespace CinemaManagement
 
             services.AddScoped<ICinemaService, CinemaService>();
             services.AddScoped<IRoomService, RoomService>();
+            services.AddScoped<IShowTimeService, ShowTimeService>();
 
             return services;
         }

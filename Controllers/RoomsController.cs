@@ -19,7 +19,7 @@ namespace CinemaManagement.Controllers
 
         // GET: Rooms
         public async Task<IActionResult> Index(Guid? cinemaId, string? search, RoomStatus? status,
-                                               string? sortBy, string? sortDir, int page = 1, int pageSize = 3)
+                                               string? sortBy, string? sortDir, int page = 1, int pageSize = 10)
         {
             var viewModel = await _roomService.GetAllAsync(cinemaId, search, status, sortBy, sortDir, page, pageSize);
 
