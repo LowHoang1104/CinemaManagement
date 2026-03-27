@@ -1,14 +1,14 @@
-@model IEnumerable<CinemaManagement.Models.Cinema>
+@model CinemaManagement.ViewModels.Cinema.CinemaIndexViewModel
 
 @{
-    var searchKeyword = ViewData["SearchKeyword"] as string ?? "";
-    var statusFilter = ViewData["StatusFilter"] as int?;
-    var sortBy = ViewData["SortBy"] as string ?? "";
-    var sortDir = ViewData["SortDir"] as string ?? "asc";
-    var currentPage = ViewData["CurrentPage"] as int? ?? 1;
-    var totalPages = ViewData["TotalPages"] as int? ?? 0;
-    var totalItems = ViewData["TotalItems"] as int? ?? 0;
-    var pageSize = ViewData["PageSize"] as int? ?? 2;
+    var searchKeyword = Model.SearchKeyword;
+    var statusFilter = Model.StatusFilter;
+    var sortBy = Model.SortBy;
+    var sortDir = Model.SortDir;
+    var currentPage = Model.CurrentPage;
+    var totalPages = Model.TotalPages;
+    var totalItems = Model.TotalItems;
+    var pageSize = Model.PageSize;
 
     var statusLabel = statusFilter switch {
         1 => "Hoạt động",
@@ -21,23 +21,14 @@
         _ => null
     };
     bool hasFilters = statusFilter.HasValue || !string.IsNullOrWhiteSpace(searchKeyword) || !string.IsNullOrWhiteSpace(sortBy);
-}
 
-@functions {
     string PageUrl(int p) {
-        // Since we are using AJAX, the href can still be a valid URL for SEO/fallback
-        // but the JS will intercept it.
-        var search = ViewData["SearchKeyword"] as string;
-        var status = ViewData["StatusFilter"] as int?;
-        var sortBy = ViewData["SortBy"] as string;
-        var sortDir = ViewData["SortDir"] as string;
-
         var qs = new System.Collections.Generic.Dictionary<string, string?> {
             ["page"] = p.ToString(),
-            ["search"] = search,
-            ["status"] = status?.ToString(),
-            ["sortBy"] = sortBy,
-            ["sortDir"] = sortDir
+            ["search"] = Model.SearchKeyword,
+            ["status"] = Model.StatusFilter?.ToString(),
+            ["sortBy"] = Model.SortBy,
+            ["sortDir"] = Model.SortDir
         };
         var parts = qs
             .Where(kv => !string.IsNullOrEmpty(kv.Value))
@@ -86,7 +77,7 @@
 </div>
 
 <div id="cinema-grid-ajax-content">
-    @if (!Model.Any())
+    @if (!Model.Cinemas.Any())
     {
         <div class="flex flex-col items-center justify-center py-20 bg-white rounded-[2.5rem] border border-dashed border-slate-300">
             <div class="h-20 w-20 bg-slate-50 rounded-3xl flex items-center justify-center text-slate-300 mb-6">
@@ -99,7 +90,7 @@
     else
     {
         <div class="grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
-            @foreach (var c in Model)
+            @foreach (var c in Model.Cinemas)
             {
                 <div class="group relative flex flex-col rounded-[2.25rem] bg-white border border-slate-100 p-6 shadow-sm transition-all hover:shadow-xl hover:border-indigo-200/50 hover:-translate-y-1">
                     
@@ -190,68 +181,12 @@
             }
         </div>
 
-        <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mt-12 pt-8 border-t border-slate-200">
-            @* Record Info *@
-            <span class="text-sm text-slate-500 font-medium">
-                Hiển thị <span class="font-bold text-slate-700">@(totalItems == 0 ? 0 : (currentPage - 1) * pageSize + 1)-@Math.Min(currentPage * pageSize, totalItems)</span> trên <span class="font-bold text-slate-700">@totalItems</span> rạp chiếu
-            </span>
-
-            @* Page Buttons *@
-            @if (totalPages > 1)
-            {
-                <div class="flex items-center gap-1.5">
-                    @* Prev *@
-                    @if (currentPage > 1)
-                    {
-                        <a href="@PageUrl(currentPage - 1)" data-page="@(currentPage - 1)" class="flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 19l-7-7 7-7"/></svg>
-                            Trước
-                        </a>
-                    }
-                    else
-                    {
-                        <span class="flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-100 bg-slate-50/50 px-4 text-sm font-bold text-slate-300 cursor-not-allowed">
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15 19l-7-7 7-7"/></svg>
-                            Trước
-                        </span>
-                    }
-
-                    @* Pages *@
-                    <div class="flex items-center gap-1">
-                        @for (int i = 1; i <= totalPages; i++)
-                        {
-                            if (i == currentPage)
-                            {
-                                <span class="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-900 text-sm font-black text-white shadow-lg shadow-slate-200">@i</span>
-                            }
-                            else if (i == 1 || i == totalPages || (i >= currentPage - 1 && i <= currentPage + 1))
-                            {
-                                <a href="@PageUrl(i)" data-page="@i" class="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-sm font-bold text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm active:scale-95">@i</a>
-                            }
-                            else if (i == currentPage - 2 || i == currentPage + 2)
-                            {
-                                <span class="px-2 text-slate-300 font-bold">···</span>
-                            }
-                        }
-                    </div>
-
-                    @* Next *@
-                    @if (currentPage < totalPages)
-                    {
-                        <a href="@PageUrl(currentPage + 1)" data-page="@(currentPage + 1)" class="flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">
-                            Sau
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M9 5l7 7-7 7"/></svg>
-                        </a>
-                    }
-                    else
-                    {
-                        <span class="flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-100 bg-slate-50/50 px-4 text-sm font-bold text-slate-300 cursor-not-allowed">
-                            Sau
-                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M9 5l7 7-7 7"/></svg>
-                        </span>
-                    }
-                </div>
-            }
-        </div>
+        <partial name="_PaginationPartial" model="@(new CinemaManagement.ViewModels.Shared.PaginationViewModel {
+            CurrentPage = currentPage,
+            TotalPages = totalPages,
+            TotalItems = totalItems,
+            PageSize = pageSize,
+            GenerateUrl = PageUrl
+        })" />
     }
 </div>

@@ -73,7 +73,6 @@ public partial class CinemaManagementContext : DbContext
                 .HasDefaultValueSql("now()");
             entity.Property(e => e.LastUpdatedAt).HasPrecision(6);
             entity.Property(e => e.Name).HasMaxLength(120);
-            entity.Property(e => e.Status).HasDefaultValue(1);
         });
 
         modelBuilder.Entity<Movie>(entity =>
@@ -152,7 +151,6 @@ public partial class CinemaManagementContext : DbContext
                 .HasDefaultValueSql("now()");
             entity.Property(e => e.LastUpdatedAt).HasPrecision(6);
             entity.Property(e => e.Name).HasMaxLength(50);
-            entity.Property(e => e.Status).HasDefaultValue(1);
 
             entity.HasOne(d => d.Cinema).WithMany(p => p.Rooms)
                 .HasForeignKey(d => d.CinemaId)
@@ -208,7 +206,6 @@ public partial class CinemaManagementContext : DbContext
             entity.Property(e => e.EndAt).HasPrecision(6);
             entity.Property(e => e.LastUpdatedAt).HasPrecision(6);
             entity.Property(e => e.StartAt).HasPrecision(6);
-            entity.Property(e => e.Status).HasDefaultValue(1);
 
             entity.HasOne(d => d.Movie).WithMany(p => p.ShowTimes)
                 .HasForeignKey(d => d.MovieId)

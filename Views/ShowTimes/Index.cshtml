@@ -1,8 +1,5 @@
 @model CinemaManagement.ViewModels.ShowTimeListViewModel
 @using System.Text.Json
-@using Microsoft.AspNetCore.Http.Extensions
-
-
 
 @{
     ViewData["Title"] = "Quản lý suất chiếu";
@@ -28,57 +25,66 @@
     </div>
 
     <!-- Summary Stats -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
+    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-10 mt-8">
         <!-- Upcoming -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 transition-all hover:shadow-md">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div class="relative overflow-hidden rounded-[1rem] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md group">
+            <div class="flex items-center gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-indigo-50 text-indigo-500 shadow-sm border border-indigo-100/50 group-hover:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <span class="text-slate-500 font-bold text-sm uppercase tracking-wider">Sắp chiếu</span>
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Sắp chiếu</p>
+                    <p class="text-2xl font-black text-slate-900 leading-tight">@Model.UpcomingCount</p>
+                </div>
             </div>
-            <div class="text-4xl font-extrabold text-slate-900">@Model.UpcomingCount</div>
         </div>
 
-        <!-- Active -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 transition-all hover:shadow-md">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="p-2 bg-green-50 rounded-lg text-green-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <!-- Now Showing -->
+        <div class="relative overflow-hidden rounded-[1rem] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md group">
+            <div class="flex items-center gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 shadow-sm border border-emerald-100/50 group-hover:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4" />
+                        <circle cx="12" cy="12" r="9" />
                     </svg>
                 </div>
-                <span class="text-slate-500 font-bold text-sm uppercase tracking-wider">Đang chiếu</span>
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Đang chiếu</p>
+                    <p class="text-2xl font-black text-emerald-600 leading-tight">@Model.NowShowingCount</p>
+                </div>
             </div>
-            <div class="text-4xl font-extrabold text-slate-900">@Model.NowShowingCount</div>
         </div>
 
         <!-- Cancelled -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 transition-all hover:shadow-md">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="p-2 bg-red-50 rounded-lg text-red-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div class="relative overflow-hidden rounded-[1rem] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md group">
+            <div class="flex items-center gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 shadow-sm border border-rose-100/50 group-hover:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <span class="text-slate-500 font-bold text-sm uppercase tracking-wider">Đã hủy</span>
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Đã hủy</p>
+                    <p class="text-2xl font-black text-rose-600 leading-tight">@Model.CancelledCount</p>
+                </div>
             </div>
-            <div class="text-4xl font-extrabold text-slate-900">@Model.CancelledCount</div>
         </div>
 
         <!-- Today -->
-        <div class="bg-white border border-slate-200 rounded-2xl p-6 transition-all hover:shadow-md">
-            <div class="flex items-center gap-3 mb-3">
-                <div class="p-2 bg-purple-50 rounded-lg text-purple-600">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+        <div class="relative overflow-hidden rounded-[1rem] border border-slate-100 bg-white p-6 shadow-sm transition-all hover:shadow-md group">
+            <div class="flex items-center gap-4">
+                <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-500 shadow-sm border border-amber-100/50 group-hover:scale-110 transition-transform">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </div>
-                <span class="text-slate-500 font-bold text-sm uppercase tracking-wider">Hôm nay</span>
+                <div>
+                    <p class="text-[10px] font-extrabold uppercase tracking-widest text-slate-400">Suất hôm nay</p>
+                    <p class="text-2xl font-black text-amber-600 leading-tight">@Model.TodayCount</p>
+                </div>
             </div>
-            <div class="text-4xl font-extrabold text-slate-900">@Model.TodayCount</div>
         </div>
     </div>
 
@@ -108,8 +114,8 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center flex-wrap">
             <!-- Cinema custom dropdown -->
             @{
-                var cinemaCurrent = Model.CinemaIdFilter.HasValue
-                    ? (((IEnumerable<SelectListItem>)ViewBag.Cinemas).FirstOrDefault(c => c.Value == Model.CinemaIdFilter.ToString())?.Text ?? "Tất cả rạp")
+                var cinemaCurrent = Model.CinemaIdFilter.HasValue && Model.Cinemas != null
+                    ? (Model.Cinemas.FirstOrDefault(c => c.Value == Model.CinemaIdFilter.ToString())?.Text ?? "Tất cả rạp")
                     : "Tất cả rạp";
             }
             <input type="hidden" name="cinemaId" id="cinemaIdInput" value="@(Model.CinemaIdFilter?.ToString() ?? "")" />
@@ -146,7 +152,7 @@
                         <span class="filter-text @(isAllCinema ? "font-semibold text-indigo-700" : "text-slate-600")">Tất cả rạp</span>
                     </button>
                     <div class="h-px bg-slate-100 mx-2"></div>
-                    @foreach (SelectListItem c in ViewBag.Cinemas)
+                    @foreach (SelectListItem c in Model.Cinemas ?? Enumerable.Empty<SelectListItem>())
                     {
                         var isSel = c.Value == Model.CinemaIdFilter?.ToString();
                         <button type="button" class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
@@ -400,11 +406,11 @@
                                 <span id="PriceStandard" class="font-extrabold text-slate-900">0 VNĐ</span>
                             </div>
                             <div class="flex justify-between items-center text-xs">
-                                <span class="text-slate-600 font-medium font-bold italic">• VIP <span class="text-[10px] font-normal text-blue-500">(+20,000)</span></span>
+                                <span class="text-slate-600 font-medium font-bold italic">• VIP <span class="text-[10px] font-normal text-blue-500">(+5,000)</span></span>
                                 <span id="PriceVIP" class="font-extrabold text-slate-900">0 VNĐ</span>
                             </div>
                             <div class="flex justify-between items-center text-xs">
-                                <span class="text-slate-600 font-medium font-bold italic">• Couple <span class="text-[10px] font-normal text-pink-500">(+50,000)</span></span>
+                                <span class="text-slate-600 font-medium font-bold italic">• Couple <span class="text-[10px] font-normal text-pink-500">(x2)</span></span>
                                 <span id="PriceCouple" class="font-extrabold text-slate-900">0 VNĐ</span>
                             </div>
                         </div>
@@ -645,653 +651,27 @@
 </style>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
-    
+    @await Html.PartialAsync("_ValidationScriptsPartial")
     <script>
-        const movieDurations = @Html.Raw(JsonSerializer.Serialize(Model.MovieDurations));
-        const roomLocations = @Html.Raw(JsonSerializer.Serialize(Model.RoomLocations));
-
-        let lastOverlapData = null;
-
-        // Modal Logic
-        const modal = document.getElementById('CreateModal');
-        const modalContent = document.getElementById('CreateModalContent');
-        const editModal = document.getElementById('EditModal');
-        const editModalContent = document.getElementById('EditModalContent');
-        const editModalBody = document.getElementById('EditModalBody');
-
-        function toggleModal(show) {
-            if (show) {
-                modal.style.display = ''; // Reset any inline style.display override
-                modal.classList.remove('hidden', 'pointer-events-none');
-                setTimeout(() => {
-                    modal.classList.remove('opacity-0');
-                    modalContent.classList.remove('translate-y-0');
-                    modalContent.classList.add('translate-y-[2rem]');
-                }, 10);
-                document.body.style.overflow = 'hidden';
-            } else {
-                modal.classList.add('opacity-0');
-                modalContent.classList.remove('translate-y-[2rem]');
-                modalContent.classList.add('translate-y-0');
-                setTimeout(() => modal.classList.add('hidden', 'pointer-events-none'), 300);
-                document.body.style.overflow = '';
-            }
-        }
-
-        function toggleEditModal(show, viewOnly = false) {
-            if (show) {
-                // Update modal header and footer based on viewOnly
-                const title = document.querySelector('#EditModalContent h1');
-                const subtitle = document.querySelector('#EditModalContent p');
-                const submitBtn = document.getElementById('EditSubmitBtn');
-
-                if (viewOnly) {
-                    if (title) title.textContent = 'Chi tiết suất chiếu';
-                    if (subtitle) subtitle.textContent = 'Thông tin chi tiết của suất chiếu (Đã hủy)';
-                    if (submitBtn) submitBtn.classList.add('hidden');
-                } else {
-                    if (title) title.textContent = 'Chỉnh sửa suất chiếu';
-                    if (subtitle) subtitle.textContent = 'Cập nhật thông tin suất chiếu';
-                    if (submitBtn) submitBtn.classList.remove('hidden');
-                }
-
-                editModal.classList.remove('hidden', 'pointer-events-none');
-                setTimeout(() => {
-                    editModal.classList.remove('opacity-0');
-                    editModalContent.classList.remove('translate-y-0');
-                    editModalContent.classList.add('translate-y-[2rem]');
-                }, 10);
-                document.body.style.overflow = 'hidden';
-            } else {
-                editModal.classList.add('opacity-0');
-                editModalContent.classList.remove('translate-y-[2rem]');
-                editModalContent.classList.add('translate-y-0');
-                setTimeout(() => {
-                    editModal.classList.add('hidden', 'pointer-events-none');
-                    editModalBody.innerHTML = `
-                        <div class="flex items-center justify-center py-20">
-                            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
-                        </div>
-                    `;
-                }, 300);
-                document.body.style.overflow = '';
-            }
-        }
-
-            // --- Details Modal ---
-            const detailsModal = document.getElementById('DetailsModal');
-            const detailsModalContent = document.getElementById('DetailsModalContent');
-            const detailsModalBody = document.getElementById('DetailsModalBody');
-
-            window.closeDetailsModal = function() {
-                if (!detailsModal) return;
-                detailsModal.classList.add('opacity-0');
-                detailsModalContent.classList.add('translate-y-0');
-                detailsModalContent.classList.remove('translate-y-[2rem]');
-                setTimeout(() => {
-                    detailsModal.classList.add('hidden', 'pointer-events-none');
-                    if (detailsModalBody) detailsModalBody.innerHTML = '<div class="flex items-center justify-center py-20"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div></div>';
-                }, 300);
-                document.body.style.overflow = '';
-            };
-
-            window.openDetailsModal = async function(id) {
-                if (!detailsModal || !detailsModalContent || !detailsModalBody) return;
-                detailsModal.classList.remove('hidden', 'pointer-events-none');
-                setTimeout(() => {
-                    detailsModal.classList.remove('opacity-0');
-                    detailsModalContent.classList.remove('translate-y-0');
-                    detailsModalContent.classList.add('translate-y-[2rem]');
-                }, 10);
-                document.body.style.overflow = 'hidden';
-                try {
-                    const response = await fetch(`/ShowTimes/Details/${id}`);
-                    if (response.ok) {
-                        const html = await response.text();
-                        detailsModalBody.innerHTML = html;
-                    } else {
-                        detailsModalBody.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Không thể tải chi tiết.</div>';
-                    }
-                } catch (e) {
-                    detailsModalBody.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Lỗi kết nối.</div>';
-                }
-            };
-
-        const conflictModal = document.getElementById('ConflictModal');
-        const conflictModalContent = document.getElementById('ConflictModalContent');
+        window.movieDurations = @Html.Raw(JsonSerializer.Serialize(Model.MovieDurations));
+        window.roomLocations = @Html.Raw(JsonSerializer.Serialize(Model.RoomLocations));
         
-        function toggleConflictModal(show) {
-            if (show) {
-                conflictModal.classList.remove('hidden', 'pointer-events-none');
-                setTimeout(() => {
-                    conflictModal.classList.remove('opacity-0');
-                    conflictModalContent.classList.add('translate-y-[2rem]');
-                    conflictModalContent.classList.remove('translate-y-0');
-                }, 10);
-            } else {
-                conflictModal.classList.add('opacity-0');
-                conflictModalContent.classList.remove('translate-y-[2rem]');
-                conflictModalContent.classList.add('translate-y-0');
-                setTimeout(() => conflictModal.classList.add('hidden', 'pointer-events-none'), 300);
-            }
-        }
-
-
-        function executeScripts(container) {
-            container.querySelectorAll('script').forEach(oldScript => {
-                const newScript = document.createElement('script');
-                Array.from(oldScript.attributes).forEach(attr =>
-                    newScript.setAttribute(attr.name, attr.value)
-                );
-                newScript.textContent = oldScript.textContent;
-                oldScript.parentNode.replaceChild(newScript, oldScript);
-            });
-        }
-
-        async function openEditModal(id, viewOnly = false) {
-            // Force-close Create modal using style.display to override ALL CSS (incl. Tailwind classes)
-            modal.style.display = 'none';
-            document.body.style.overflow = '';
-            toggleEditModal(true, viewOnly);
-            try {
-                const response = await fetch(`/ShowTimes/Edit/${id}?viewOnly=${viewOnly}`);
-                if (response.ok) {
-                    const html = await response.text();
-                    editModalBody.innerHTML = html;
-                    executeScripts(editModalBody);
-                } else {
-                    editModalBody.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Lỗi không thể tải dữ liệu.</div>';
-                }
-            } catch (e) {
-                editModalBody.innerHTML = '<div class="p-8 text-center text-red-500 font-bold">Lỗi hệ thống.</div>';
-            }
-        }
-
-        document.getElementById('OpenModalBtn').addEventListener('click', () => toggleModal(true));
-        document.getElementById('CloseModalBtn').addEventListener('click', () => toggleModal(false));
-        document.getElementById('CancelModalBtn').addEventListener('click', () => toggleModal(false));
-        document.getElementById('CloseEditModalBtn').addEventListener('click', () => toggleEditModal(false));
-        document.getElementById('CancelEditModalBtn').addEventListener('click', () => toggleEditModal(false));
-
-        // Dropdown Logic
-        let openDropdownId = null;
-        function toggleDropdown(id, e) {
-            e.stopPropagation();
-            const panel = document.getElementById(id);
-            const isHidden = panel.classList.contains('hidden');
-            closeAllDropdowns();
-            if (isHidden) { panel.classList.remove('hidden'); openDropdownId = id; }
-        }
-        function closeAllDropdowns() {
-            if (openDropdownId) { document.getElementById(openDropdownId).classList.add('hidden'); openDropdownId = null; }
-        }
-        document.addEventListener('click', closeAllDropdowns);
-
-        function selectOption(panelId, inputId, labelId, value, label, type) {
-            document.getElementById(inputId).value = value;
-            document.getElementById(labelId).textContent = label;
-            closeAllDropdowns();
-            updateRoomDetail(roomIdInput.value);
-            updatePreview();
-        }
-
-        function updateRoomDetail(id) {
-            const detail = document.getElementById('RoomDetail');
-            const text = document.getElementById('RoomDetailText');
-            const lowerId = id?.toLowerCase();
-            if (lowerId && roomLocations[lowerId]) { 
-                text.textContent = roomLocations[lowerId]; 
-                detail.classList.remove('hidden'); 
-            } else {
-                detail.classList.add('hidden');
-            }
-        }
-
-        // Form Logic
-        const movieIdInput = document.getElementById('MovieIdInput');
-        const roomIdInput = document.getElementById('RoomIdInput');
-        const startTimeInput = document.getElementById('StartTimeInput');
-        const basePriceInput = document.getElementById('BasePriceInput');
-        const movieDurationText = document.getElementById('MovieDurationText');
-        const totalDurationText = document.getElementById('TotalDurationText');
-        const movieInfo = document.getElementById('MovieInfo');
-        const timePreview = document.getElementById('TimePreview');
-        const timeRangeDisplay = document.getElementById('TimeRangeDisplay');
-        const priceStandard = document.getElementById('PriceStandard');
-        const priceVIP = document.getElementById('PriceVIP');
-        const priceCouple = document.getElementById('PriceCouple');
-        const validationBar = document.getElementById('ValidationBar');
-        const validationIcon = document.getElementById('ValidationIcon');
-        const validationText = document.getElementById('ValidationText');
-        const submitBtn = document.getElementById('SubmitBtn');
-
-        function formatCurrency(n) { return new Intl.NumberFormat('en-US').format(n) + ' VNĐ'; }
-        function updatePricing() {
-            // Robust parsing: strip EVERYTHING except digits to avoid locale dots/commas breaking it
-            const raw = basePriceInput.value.replace(/\D/g, '');
-            const b = parseInt(raw) || 0;
-            priceStandard.textContent = formatCurrency(b);
-            priceVIP.textContent = formatCurrency(b + 20000);
-            priceCouple.textContent = formatCurrency(b + 50000);
-        }
-
-        async function checkOverlap() {
-            const m = movieIdInput.value?.trim(), r = roomIdInput.value?.trim(), s = startTimeInput.value;
-            
-            const year = s ? new Date(s).getFullYear() : 0;
-            if (!m || m.length < 32 || !r || r.length < 32 || !s || year < 1800) { 
-                validationBar.classList.add('hidden'); 
-                submitBtn.disabled = true; 
-                lastOverlapData = null;
-                return; 
-            }
-
-            try {
-                const url = `/ShowTimes/CheckOverlap?roomId=${r}&startAt=${s}&movieId=${m}`;
-                const res = await fetch(url);
-                if (res.ok) {
-                    const d = await res.json();
-                    lastOverlapData = d; // <-- THIS WAS THE KEY MISSING LINE
-                    validationBar.classList.remove('hidden');
-                    if (d.isPast) {
-                        lastOverlapData = null; // past time - no modal needed
-                        validationBar.className = "rounded-xl p-4 border border-orange-200 bg-orange-50 text-orange-700 text-sm flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300";
-                        validationBar.innerHTML = `
-                            <svg class="h-5 w-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                            </svg>
-                            <div>
-                                <span class="font-bold">Không hợp lệ:</span> Thời gian bắt đầu suất chiếu không thể nằm trong quá khứ. Vui lòng chọn thời điểm khác.
-                            </div>
-                        `;
-                        submitBtn.disabled = true;
-                    } else if (d.isOverlapping) {
-                        validationBar.className = "rounded-xl p-4 border border-red-200 bg-red-50 text-red-700 text-sm flex items-start gap-3 animate-in fade-in slide-in-from-bottom-2 duration-300";
-                        validationBar.innerHTML = `
-                            <svg class="h-5 w-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-                            </svg>
-                            <div class="flex-1">
-                                <span class="font-bold">Cảnh báo:</span> Phát hiện xung đột thời gian với suất chiếu khác. <br/>
-                                <span class="text-xs font-semibold opacity-90 cursor-pointer underline mt-1 block hover:opacity-100" onclick="document.getElementById('CreateForm').requestSubmit()">Bấm 'Tạo suất chiếu' để xem chi tiết >></span>
-                            </div>
-                        `;
-                        submitBtn.disabled = false; // Allow user to click submit and see the modal!
-                    } else {
-                        lastOverlapData = null; // no conflict - don't show modal
-                        validationBar.className = "rounded-xl p-4 border border-green-200 bg-green-50 text-green-700 text-sm flex items-center gap-2 animate-in fade-in slide-in-from-bottom-2 duration-300";
-                        validationBar.innerHTML = `
-                            <svg class="h-5 w-5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
-                            </svg>
-                            <span>Không có xung đột thời gian</span>
-                        `;
-                        submitBtn.disabled = false;
-                    }
-                } else { 
-                    validationBar.classList.add('hidden'); 
-                    submitBtn.disabled = true; 
-                }
-            } catch (e) { 
-                console.error("CheckOverlap error:", e); 
-                validationBar.classList.add('hidden');
-                submitBtn.disabled = true;
-            }
-        }
-
-        function updatePreview() {
-            const m = movieIdInput.value?.toLowerCase(), s = startTimeInput.value, r = roomIdInput.value;
-            
-            const duration = m ? parseInt(movieDurations[m]) : 0;
-            
-            if (m && duration && !isNaN(duration) && duration > 0) {
-                movieDurationText.textContent = duration;
-                totalDurationText.textContent = duration + 15;
-                movieInfo.classList.remove('hidden');
-                
-                if (s) {
-                    const start = new Date(s), end = new Date(start.getTime() + duration * 60000), cl = new Date(end.getTime() + 15 * 60000);
-                    const f = (dt) => dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
-                    timeRangeDisplay.textContent = `${f(start)} - ${f(end)} (Xong dọn dẹp: ${f(cl)})`;
-                    timePreview.classList.remove('hidden');
-                } else {
-                    timePreview.classList.add('hidden');
-                }
-            } else { 
-                movieInfo.classList.add('hidden'); 
-                timePreview.classList.add('hidden'); 
-            }
-            
-            if (m && r && s) {
-                checkOverlap();
-            } else {
-                validationBar.classList.add('hidden');
-                submitBtn.disabled = true;
-                lastOverlapData = null;
-            }
-        }
-
-        // Intercept form submission to show Modal
-        document.getElementById('CreateForm').addEventListener('submit', function(e) {
-            if (lastOverlapData && lastOverlapData.isOverlapping) {
-                e.preventDefault(); // Stop creating!
-                buildAndShowConflictModal(lastOverlapData.conflicts);
-            }
-        });
-
-        function buildAndShowConflictModal(conflicts) {
-            const list = document.getElementById('ConflictList');
-            list.innerHTML = '';
-            
-            // Set Subtitle
-            const roomLabel = document.getElementById('RoomLabel').textContent || 'Phòng chiếu';
-            document.getElementById('ConflictSubtitle').textContent = `Suất chiếu bạn muốn tạo bị trùng thời gian với ${conflicts.length} suất chiếu đã tồn tại trong ${roomLabel}.`;
-
-            // Setup New Show Preview
-            const movieLabel = document.getElementById('MovieLabel').textContent;
-            document.getElementById('ConflictNewMovieName').textContent = movieLabel;
-            
-            const startStr = startTimeInput.value;
-            if (startStr) {
-                const sDate = new Date(startStr);
-                const duration = parseInt(movieDurationText.textContent) || 0;
-                const eDate = new Date(sDate.getTime() + duration * 60000);
-                const fTime = (dt) => dt.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit', hour12: false });
-                document.getElementById('ConflictNewTime').textContent = `${fTime(sDate)} - ${fTime(eDate)}`;
-                document.getElementById('ConflictNewDate').textContent = sDate.toLocaleDateString('vi-VN', { weekday: 'short', year: 'numeric', month: '2-digit', day: '2-digit' });
-                document.getElementById('ConflictNewShowBlock').classList.remove('hidden');
-            }
-
-            // Setup Conflicts
-            conflicts.forEach(c => {
-                list.innerHTML += `
-                    <div class="bg-white rounded-xl border border-red-200/60 p-4 shadow-sm">
-                        <h4 class="font-bold text-slate-800 text-base">${c.movieTitle}</h4>
-                        <div class="flex items-center gap-2 mt-1.5 text-slate-600 font-medium text-sm">
-                            <svg class="w-4 h-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            ${c.startTime} - ${c.endTime}
-                        </div>
-                        <div class="text-slate-500 text-xs mt-1">Thời lượng: ${c.duration} phút + 15 phút dọn dẹp</div>
-                    </div>
-                `;
-            });
-
-            toggleConflictModal(true);
-        }
-
-        startTimeInput.addEventListener('change', updatePreview);
-        startTimeInput.addEventListener('input', updatePreview);
-        basePriceInput.addEventListener('input', function(e) {
-            const oldValue = this.value;
-            const cursor = this.selectionStart;
-
-            // 1. Calculate how many digits were before the cursor in the original string
-            const digitsBefore = oldValue.substring(0, cursor).replace(/\D/g, '').length;
-
-            // 2. Clean and format the value
-            const digitsOnly = oldValue.replace(/\D/g, '');
-            const clean = digitsOnly.replace(/^0+/, ''); // Strip leading zeros
-
-            if (clean === '') {
-                this.value = '';
-                updatePricing();
-                return;
-            }
-
-            const formatted = new Intl.NumberFormat('en-US').format(BigInt(clean));
-            this.value = formatted;
-
-            // 3. Restore cursor position based on digit count
-            let newCursor = 0;
-            let digitsFound = 0;
-            for (let i = 0; i < formatted.length; i++) {
-                if (digitsFound < digitsBefore) {
-                    if (/\d/.test(formatted[i])) digitsFound++;
-                    newCursor = i + 1;
-                } else {
-                    break;
-                }
-            }
-            this.setSelectionRange(newCursor, newCursor);
-            updatePricing();
-        });
-        
-        const obs = new MutationObserver(() => updatePreview());
-        obs.observe(movieIdInput, { attributes: true });
-        obs.observe(roomIdInput, { attributes: true });
-
-        // Initialize display labels if form was posted back with values
-        function initDropdownLabels() {
-            if (movieIdInput.value) {
-                const movieBtn = document.querySelector(`#MoviePanel button[onclick*="'${movieIdInput.value}'"]`);
-                if (movieBtn) document.getElementById('MovieLabel').textContent = movieBtn.textContent.trim();
-            }
-            if (roomIdInput.value) {
-                const roomBtn = document.querySelector(`#RoomPanel button[onclick*="'${roomIdInput.value}'"]`);
-                if (roomBtn) {
-                    document.getElementById('RoomLabel').textContent = roomBtn.textContent.trim();
-                    updateRoomDetail(roomIdInput.value);
-                }
-            }
-        }
-
         @if (!ViewData.ModelState.IsValid) {
             <text>
-                toggleModal(true); 
-                initDropdownLabels();
-                showToast('Lỗi dữ liệu', 'Vui lòng kiểm tra lại.', 'error');
+                setTimeout(() => {
+                    window.toggleModal(true); 
+                    window.initDropdownLabels();
+                    if (window.showToast) window.showToast('Lỗi dữ liệu', 'Vui lòng kiểm tra lại.', 'error');
+                }, 100);
             </text>
         }
         @if (TempData["SuccessMessage"] != null) {
-            <text>showToast('Thành công', '@TempData["SuccessMessage"]', 'success');</text>
-        }
-
-        // Cancel Modal Logic
-        const cancelModal = document.getElementById('CancelModal');
-        const cancelModalContent = document.getElementById('CancelModalContent');
-        let currentCancelId = null;
-
-        function toggleCancelModal(show) {
-            if (show) {
-                cancelModal.classList.remove('hidden', 'pointer-events-none');
+            <text>
                 setTimeout(() => {
-                    cancelModal.classList.remove('opacity-0');
-                    cancelModalContent.classList.remove('-translate-y-full');
-                    cancelModalContent.classList.add('translate-y-[2rem]');
-                }, 10);
-                document.body.style.overflow = 'hidden';
-            } else {
-                cancelModal.classList.add('opacity-0');
-                cancelModalContent.classList.remove('translate-y-[2rem]');
-                cancelModalContent.classList.add('-translate-y-full');
-                setTimeout(() => {
-                    cancelModal.classList.add('hidden', 'pointer-events-none');
-                    currentCancelId = null;
-                }, 300);
-                document.body.style.overflow = '';
-            }
+                    if (window.showToast) window.showToast('Thành công', '@TempData["SuccessMessage"]', 'success');
+                }, 100);
+            </text>
         }
-
-        function openCancelModal(id, movie, time, date) {
-            currentCancelId = id;
-            document.getElementById('CancelMovieName').textContent = movie;
-            document.getElementById('CancelTime').textContent = time;
-            document.getElementById('CancelDate').textContent = date;
-            toggleCancelModal(true);
-        }
-
-        document.getElementById('ConfirmCancelBtn').addEventListener('click', async function() {
-            if (!currentCancelId) return;
-            
-            const btn = this;
-            btn.disabled = true;
-            btn.innerHTML = '<div class="animate-spin rounded-full h-4 w-4 border-b-2 border-white mx-auto"></div>';
-
-            try {
-                const response = await fetch(`/ShowTimes/Cancel/${currentCancelId}`, {
-                    method: 'POST',
-                    headers: {
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
-                        'Content-Type': 'application/json'
-                    }
-                });
-
-                if (response.ok) {
-                    toggleCancelModal(false);
-                    showToast('Thành công', 'Suất chiếu đã được hủy thành công!', 'success');
-                    setTimeout(() => location.reload(), 1000);
-                } else {
-                    const errorData = await response.json();
-                    showToast('Lỗi', errorData.message || 'Không thể hủy suất chiếu.', 'error');
-                }
-            } catch (error) {
-                console.error('Cancel error:', error);
-                showToast('Lỗi', 'Lỗi hệ thống khi hủy.', 'error');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = 'Xác nhận hủy';
-            }
-        });
-
-        updatePricing();
-        initDropdownLabels();
-        updatePreview();
-
-        // ══════════════════════════════════════════════════════════════
-        // Filter custom dropdowns
-        // ══════════════════════════════════════════════════════════════
-        let openFilterPanelId = null;
-
-        function toggleFilterDropdown(panelId, evt) {
-            if (evt) evt.stopPropagation();
-            const panel = document.getElementById(panelId);
-            const isHidden = panel.classList.contains('hidden');
-            closeFilterPanels();
-            if (isHidden) {
-                panel.classList.remove('hidden');
-                openFilterPanelId = panelId;
-            }
-        }
-
-        function selectFilterOpt(panelId, inputId, labelId, value, label, hasValue, btnElement) {
-            document.getElementById(inputId).value = value;
-            const labelEl = document.getElementById(labelId);
-            labelEl.textContent = label;
-            // Toggle active style on label
-            if (hasValue) {
-                labelEl.classList.remove('text-slate-500');
-                labelEl.classList.add('font-medium', 'text-slate-900');
-            } else {
-                labelEl.classList.add('text-slate-500');
-                labelEl.classList.remove('font-medium', 'text-slate-900');
-            }
-
-            // Move the checkmark icon and styling physically in the DOM
-            if (btnElement) {
-                const panel = document.getElementById(panelId);
-                // Clear all ticks and text bolding in this panel
-                panel.querySelectorAll('.filter-tick').forEach(el => el.classList.add('hidden'));
-                panel.querySelectorAll('.filter-text').forEach(el => {
-                    el.classList.remove('font-semibold', 'text-indigo-700');
-                    el.classList.add('text-slate-600');
-                });
-                
-                // Add tick and text bolding to the clicked option
-                const activeTick = btnElement.querySelector('.filter-tick');
-                if (activeTick) activeTick.classList.remove('hidden');
-                const activeText = btnElement.querySelector('.filter-text');
-                if (activeText) {
-                    activeText.classList.remove('text-slate-600');
-                    activeText.classList.add('font-semibold', 'text-indigo-700');
-                }
-            }
-
-            closeFilterPanels();
-        }
-
-        function closeFilterPanels() {
-            if (openFilterPanelId) {
-                document.getElementById(openFilterPanelId)?.classList.add('hidden');
-                openFilterPanelId = null;
-            }
-        }
-
-        // Close all menus on outside click
-        document.addEventListener('click', function (e) {
-            if (!e.target.closest('[data-filter-dropdown]')) closeFilterPanels();
-        });
-
-        // AJAX Pagination and Filtering
-        document.addEventListener('DOMContentLoaded', () => {
-            const container = document.getElementById('showtime-list-container');
-            const form = document.getElementById('filterForm');
-
-            function fetchShowTimes(url) {
-                if (!container) return;
-                container.style.opacity = '0.5';
-                container.style.pointerEvents = 'none';
-                
-                // Toggle clear filter btn visibility
-                const btn = document.getElementById('clearFilterBtn');
-                if (btn) {
-                    const urlObj = new URL(url, window.location.origin);
-                    let hasFilter = false;
-                    for (const [key, value] of urlObj.searchParams.entries()) {
-                        if (value && key !== 'page') {
-                            hasFilter = true;
-                            break;
-                        }
-                    }
-                    if (hasFilter) {
-                        btn.classList.remove('hidden');
-                    } else {
-                        btn.classList.add('hidden');
-                    }
-                }
-                
-                fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
-                .then(res => res.text())
-                .then(html => {
-                    container.innerHTML = html;
-                    window.history.pushState(null, '', url);
-                })
-                .catch(err => console.error("Error fetching showtimes via AJAX:", err))
-                .finally(() => {
-                    container.style.opacity = '1';
-                    container.style.pointerEvents = 'auto';
-                });
-            }
-
-            if (form) {
-                form.addEventListener('submit', function (e) {
-                    e.preventDefault();
-                    const formData = new FormData(form);
-                    const params = new URLSearchParams();
-                    for (const [key, value] of formData.entries()) {
-                        if (value) params.append(key, value);
-                    }
-                    const url = `${form.action}?${params.toString()}`;
-                    fetchShowTimes(url);
-                });
-            }
-
-            if (container) {
-                container.addEventListener('click', function (e) {
-                    const link = e.target.closest('a');
-                    if (link && link.href && link.href.includes('/ShowTimes/Index')) {
-                        // For pagination links inside the container
-                        e.preventDefault();
-                        fetchShowTimes(link.href);
-                    }
-                });
-            }
-
-            window.addEventListener('popstate', () => {
-                fetchShowTimes(window.location.href);
-            });
-        });
     </script>
+    <script src="~/js/admin/showtime-index.js" asp-append-version="true"></script>
 }

@@ -1,0 +1,67 @@
+<!-- MODAL: NGỪNG HOẠT ĐỘNG -->
+<div id="modal-deactivate" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="closeStatusModal('deactivate')"></div>
+        <div class="relative inline-block transform overflow-hidden rounded-[2rem] bg-white px-6 pt-6 pb-6 text-left align-middle shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
+            <div class="absolute top-4 right-4">
+                <button type="button" onclick="closeStatusModal('deactivate')" class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
+                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="flex flex-col items-center text-center mb-6 pt-2">
+                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 mb-4 shadow-sm">
+                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                </div>
+                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Ngừng hoạt động rạp chiếu</h3>
+                <p class="text-sm text-slate-500 mt-2">Dừng toàn bộ hoạt động của rạp: <span id="deactivate-room-name" class="font-bold text-slate-900"></span>?</p>
+            </div>
+            <div class="mb-6 rounded-2xl bg-amber-50/60 p-4 border border-amber-100/50">
+                <div class="flex items-center gap-2 mb-3 text-amber-700 font-bold text-[11px] uppercase tracking-widest">
+                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    Lưu ý quan trọng
+                </div>
+                <ul class="space-y-2.5">
+                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>Hệ thống sẽ không cho phép tạo thêm lịch chiếu tại rạp này</li>
+                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>Cần kiểm tra kỹ các lịch trình đang chạy trước khi thực hiện</li>
+                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug"><span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>Mã định danh và dữ liệu lịch sử vẫn được bảo tồn</li>
+                </ul>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" onclick="closeStatusModal('deactivate')" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Hủy bỏ</button>
+                <button type="button" id="confirmDeactivateBtn" onclick="handleDeactivateSubmit()" class="flex items-center justify-center gap-2 rounded-xl bg-rose-600 px-4 py-3 text-[14px] font-bold text-white shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95">
+                    <span class="spinner-border spinner-border-sm d-none" id="deactivateSpinner" role="status" aria-hidden="true" style="width: 1rem; height: 1rem;"></span>
+                    <span id="deactivateBtnText">Xác nhận</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL: KÍCH HOẠT -->
+<div id="modal-activate" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title-activate" role="dialog" aria-modal="true">
+    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
+        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" onclick="closeStatusModal('activate')"></div>
+        <div class="relative inline-block transform overflow-hidden rounded-[2rem] bg-white px-6 pt-6 pb-6 text-left align-middle shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
+            <div class="absolute top-4 right-4"><button type="button" onclick="closeStatusModal('activate')" class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all"><svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M6 18L18 6M6 6l12 12"/></svg></button></div>
+            <div class="flex flex-col items-center text-center mb-6 pt-2">
+                <div class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 border border-emerald-100 mb-4 shadow-sm"><svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M5 13l4 4L19 7"/></svg></div>
+                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Kích hoạt rạp chiếu</h3>
+                <p class="text-sm text-slate-500 mt-2">Đưa rạp <span id="activate-room-name" class="font-bold text-slate-900"></span> trở lại trạng thái hoạt động?</p>
+            </div>
+            <div class="mb-8 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
+                <p class="text-[13px] text-emerald-800/80 leading-relaxed font-medium">Rạp sẽ sẵn sàng để quản lý phòng chiếu và thiết lập lịch chiếu phim ngay lập tức.</p>
+            </div>
+            <div class="grid grid-cols-2 gap-3">
+                <button type="button" onclick="closeStatusModal('activate')" class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Hủy bỏ</button>
+                <button type="button" id="confirmActivateBtn" onclick="handleActivateSubmit()" class="flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 text-[14px] font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95">
+                    <span class="spinner-border spinner-border-sm d-none" id="activateSpinner" role="status" aria-hidden="true" style="width: 1rem; height: 1rem;"></span>
+                    <span id="activateBtnText">Xác nhận</span>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>

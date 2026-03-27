@@ -1,0 +1,17 @@
+<div id="cinemaEditDrawer" class="invisible fixed inset-0 z-[1060] overflow-hidden" role="dialog" aria-modal="true">
+    <!-- Backdrop -->
+    <div class="absolute inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-500 opacity-0"
+         id="cinemaEditBackdrop" onclick="toggleCinemaEdit(false)"></div>
+
+    <div class="pointer-events-none fixed inset-y-0 right-0 flex max-w-full pl-10">
+        <div id="cinemaEditPanel"
+             class="pointer-events-auto w-screen max-w-lg transform transition duration-500 ease-in-out translate-x-full bg-white shadow-2xl flex flex-col">
+            <!-- Content will be loaded here via AJAX -->
+            <div id="cinemaEditContent" class="flex h-full flex-col overflow-y-auto custom-scrollbar">
+                <div class="flex h-full items-center justify-center py-20">
+                    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
