@@ -542,14 +542,20 @@
                         method: 'POST',
                         headers: {
                             'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
-                            'Content-Type': 'application/json'
+                            'Content-Type': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
                         }
                     });
 
                     if (response.ok) {
-                        toggleCancelModal(false);
-                        if (window.showToast) window.showToast('Thành công', 'Suất chiếu đã được hủy thành công!', 'success');
-                        setTimeout(() => location.reload(), 1000);
+                        const data = await response.json();
+                        if (data.success) {
+                            toggleCancelModal(false);
+                            if (window.showToast) window.showToast('Thành công', 'Suất chiếu đã được hủy thành công!', 'success');
+                            setTimeout(() => location.reload(), 1000);
+                        } else {
+                            if (window.showToast) window.showToast('Lỗi', data.message || 'Không thể hủy suất chiếu.', 'error');
+                        }
                     } else {
                         const errorData = await response.json();
                         if (window.showToast) window.showToast('Lỗi', errorData.message || 'Không thể hủy suất chiếu.', 'error');

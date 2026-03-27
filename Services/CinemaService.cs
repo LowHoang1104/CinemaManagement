@@ -141,7 +141,9 @@ namespace CinemaManagement.Services
 
             if (cinema.Status == 1) throw new Exception("Cinema already active");
 
-            if (!cinema.Rooms.Any()) throw new Exception("Cinema must have at least one room");
+            // Logic mới: Rạp phải có ít nhất 1 phòng đang hoạt động (Status = 1)
+            if (!cinema.Rooms.Any(r => r.Status == 1)) 
+                throw new Exception("Rạp phải có ít nhất một phòng đang hoạt động mới có thể mở cửa.");
 
             cinema.Status = 1;
             cinema.LastUpdatedAt = DateTime.UtcNow;
@@ -158,7 +160,12 @@ namespace CinemaManagement.Services
             if (cinema.Status == 0)
                 throw new Exception("Cinema already inactive");
 
-            // TODO: check future showtimes, tickets...
+            // Logic mới: Kiểm tra nếu còn vé đã bán cho các suất chiếu trong tương lai
+            bool hasFutureTickets = await _context.Tickets
+                .AnyAsync(t => t.ShowTime.Room.CinemaId == id && t.ShowTime.StartAt > DateTime.UtcNow);
+
+            if (hasFutureTickets)
+                throw new Exception("Không thể đóng rạp vì vẫn còn vé đã bán cho các suất chiếu tương lai. Vui lòng xử lý hoàn tiền hoặc hủy suất chiếu trước khi đóng rạp.");
 
             cinema.Status = 0;
             cinema.LastUpdatedAt = DateTime.UtcNow;

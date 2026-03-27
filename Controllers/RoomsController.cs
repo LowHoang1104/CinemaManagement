@@ -41,7 +41,7 @@ namespace CinemaManagement.Controllers
             var result = await _roomService.ToggleStatusAsync(id, status);
             if (!result.Success)
             {
-                return Json(new { success = false, message = result.Message });
+                return BadRequest(new { success = false, message = result.Message });
             }
 
             return Json(new
@@ -109,15 +109,7 @@ namespace CinemaManagement.Controllers
 
             if (result.Message == "Không tìm thấy phòng chiếu.") return NotFound();
 
-            ModelState.AddModelError("Name", result.Message);
-            var existingRoomData = await _roomService.GetByIdAsync(id);
-            if (existingRoomData != null)
-            {
-                model.CinemaName = existingRoomData.Cinema?.Name;
-                model.TotalRows = existingRoomData.TotalRows;
-                model.TotalCols = existingRoomData.TotalCols;
-            }
-            return PartialView("_EditModalPartial", model);
+            return BadRequest(new { success = false, message = result.Message });
         }
 
         // GET: Rooms/Create
@@ -169,7 +161,7 @@ namespace CinemaManagement.Controllers
             if (Request.IsAjaxRequest())
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage);
-                return Json(new { success = false, message = string.Join(" ", errors) });
+                return BadRequest(new { success = false, message = string.Join(" ", errors) });
             }
 
             var cinemas = await _roomService.GetCinemasForDropdownAsync();

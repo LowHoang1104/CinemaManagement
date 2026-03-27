@@ -79,11 +79,21 @@ namespace CinemaManagement.Services
             var room = await _context.Rooms.FindAsync(id);
             if (room == null) return (false, "Không tìm thấy phòng chiếu.", 0);
 
-            if (status == 0)
+            // Logic đã gỡ bỏ: Rạp không nhất thiết phải Active mới được kích hoạt phòng.
+            // Điều này cho phép "xây dựng" phòng trước khi mở cửa rạp (Activate Cinema).
+            else if (status == 0) // Ngừng hoạt động phòng
             {
+                // Kiểm tra suất chiếu chưa kết thúc
                 var hasActiveShowtimes = await _context.ShowTimes
                     .AnyAsync(s => s.RoomId == id && s.Status == 1 && s.EndAt >= DateTime.UtcNow);
-                if (hasActiveShowtimes) return (false, "Không thể ngừng hoạt động! Phòng đang có lịch chiếu chưa kết thúc.", 0);
+                if (hasActiveShowtimes) 
+                    return (false, "Không thể ngừng hoạt động! Phòng đang có lịch chiếu chưa kết thúc.", 0);
+
+                // Kiểm tra vé đã bán trong tương lai (đảm bảo quyền lợi khách hàng)
+                var hasFutureTickets = await _context.Tickets
+                    .AnyAsync(t => t.ShowTime.RoomId == id && t.ShowTime.StartAt > DateTime.UtcNow);
+                if (hasFutureTickets)
+                    return (false, "Không thể ngừng hoạt động! Phòng vẫn còn vé đã bán cho các suất chiếu trong tương lai.", 0);
             }
 
             room.Status = status;
@@ -125,6 +135,10 @@ namespace CinemaManagement.Services
 
         public async Task<(bool Success, string Message)> CreateAsync(Room room, Guid? adminId = null)
         {
+            var cinema = await _context.Cinemas.FindAsync(room.CinemaId);
+            if (cinema == null) return (false, "Không tìm thấy rạp chiếu được chọn.");
+            // Logic đã gỡ bỏ: Cho phép tạo phòng mới ngay cả khi rạp đang ngừng hoạt động (đang chuẩn bị mở rạp).
+
             bool isRoomNameExists = await _context.Rooms
                 .AnyAsync(r => r.CinemaId == room.CinemaId && r.Name.Trim().ToLower() == room.Name.Trim().ToLower());
             
