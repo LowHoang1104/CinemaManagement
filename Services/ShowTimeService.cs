@@ -103,7 +103,7 @@ namespace CinemaManagement.Services
 
             var movies = await _context.Movies.ToListAsync();
             var rooms = await _context.Rooms.Include(r => r.Cinema).ToListAsync();
-            var activeRooms = rooms.Where(r => r.Status == 1).ToList();
+            var activeRooms = rooms.Where(r => r.Status == 1 && r.Cinema.Status == 1).ToList();
             var roomLocations = activeRooms.ToDictionary(
                 r => r.RoomId.ToString().ToLower(),
                 r => $"📍 {r.Cinema.Name} - {r.Name} - Standard"
@@ -182,6 +182,19 @@ namespace CinemaManagement.Services
             var movie = await _context.Movies.FindAsync(model.MovieId)
                         ?? throw new InvalidOperationException("Phim không tồn tại.");
 
+            if (movie.Status == 0)
+                throw new InvalidOperationException("Phim này đã ngừng kinh doanh, không thể lên lịch chiếu.");
+
+            var room = await _context.Rooms.Include(r => r.Cinema)
+                        .FirstOrDefaultAsync(r => r.RoomId == model.RoomId)
+                        ?? throw new InvalidOperationException("Phòng không tồn tại.");
+
+            if (room.Status == 0)
+                throw new InvalidOperationException("Phòng chiếu này đang bảo trì, không thể lên lịch chiếu.");
+
+            if (room.Cinema.Status == 0)
+                throw new InvalidOperationException("Rạp chiếu sở hữu phòng này đang ngừng hoạt động.");
+
             DateTime endAtUtc = startAtUtc.AddMinutes(movie.DurationMin);
             DateTime occupiedUntilUtc = endAtUtc.AddMinutes(15);
             DateTime startCheckUtc = startAtUtc.AddMinutes(-15);
@@ -217,11 +230,26 @@ namespace CinemaManagement.Services
 
             var showTime = await _context.ShowTimes
                 .Include(s => s.Movie)
+                .Include(s => s.Tickets)
+                .Include(s => s.Room).ThenInclude(r => r.Cinema)
                 .FirstOrDefaultAsync(s => s.ShowTimeId == id)
                 ?? throw new InvalidOperationException("Không tìm thấy suất chiếu.");
 
             if (showTime.Status == 0 || showTime.StartAt <= DateTime.UtcNow)
-                throw new InvalidOperationException("Chỉ có thể sửa suất chiếu khi chưa bắt đầu.");
+                throw new InvalidOperationException("Chỉ có thể sửa suất chiếu ở tương lai và chưa bị hủy.");
+
+            // QUY TẮC NGHIÊM NGẶT: Nếu đã bán vé, không được đổi giờ/giá
+            if (showTime.Tickets.Any())
+                throw new InvalidOperationException("Suất chiếu đã bán vé, không thể chỉnh sửa.");
+
+            if (showTime.Movie.Status == 0)
+                throw new InvalidOperationException("Phim này đã ngừng kinh doanh.");
+
+            if (showTime.Room.Status == 0)
+                throw new InvalidOperationException("Phòng chiếu này đang bảo trì.");
+
+            if (showTime.Room.Cinema.Status == 0)
+                throw new InvalidOperationException("Rạp chiếu sở hữu phòng này đang ngừng hoạt động.");
 
             DateTime endAtUtc = startAtUtc.AddMinutes(showTime.Movie.DurationMin);
             DateTime occupiedUntilUtc = endAtUtc.AddMinutes(15);

@@ -199,21 +199,39 @@
                     method: 'POST',
                     body: formData,
                     headers: {
-                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value
+                        'RequestVerificationToken': document.querySelector('input[name="__RequestVerificationToken"]').value,
+                        'X-Requested-With': 'XMLHttpRequest'
                     }
                 });
 
-                if (response.ok) {
-                    if (response.redirected) {
-                        window.location.href = response.url;
+                // Xử lý JSON (Success hoặc Managed Error)
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.includes("application/json")) {
+                    const data = await response.json();
+                    if (data.success) {
+                        if (window.toggleEditModal) window.toggleEditModal(false);
+                        if (window.showToast) window.showToast('Thành công', data.message || 'Cập nhật thành công', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                        return;
                     } else {
-                        const html = await response.text();
-                        const body = document.getElementById('EditModalBody');
-                        body.innerHTML = html;
-                        if (window.executeScripts) window.executeScripts(body);
+                        if (window.showToast) window.showToast('Lỗi', data.message || 'Không thể cập nhật.', 'error');
+                        return;
                     }
+                }
+
+                if (response.redirected) {
+                    window.location.href = response.url;
+                    return;
+                }
+
+                // Fallback cho PartialView (ModelState errors) hoặc status 400 html
+                if (response.ok || response.status === 400) {
+                    const html = await response.text();
+                    const body = document.getElementById('EditModalBody');
+                    body.innerHTML = html;
+                    if (window.executeScripts) window.executeScripts(body);
                 } else {
-                    if (window.showToast) window.showToast('Lỗi', 'Không thể lưu thay đổi.', 'error');
+                    if (window.showToast) window.showToast('Lỗi', 'Lỗi hệ thống khi lưu.', 'error');
                 }
             } catch (error) {
                 console.error('Submit error:', error);

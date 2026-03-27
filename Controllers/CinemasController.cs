@@ -82,13 +82,8 @@ namespace CinemaManagement.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                // 2. Bắt lỗi trùng tên từ Service và hiển thị đỏ lòm trên field "Name"
-                ModelState.AddModelError("Name", ex.Message);
-                
-                if (Request.IsAjaxRequest())
-                    return PartialView("_CreateCinemaPartial", request);
-                    
-                return View(request);
+                // Nếu gặp lỗi nghiệp vụ (ví dụ trùng tên rạp), trả về BadRequest để AJAX xử lý Toast
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
 
@@ -156,10 +151,7 @@ namespace CinemaManagement.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                ModelState.AddModelError("Name", ex.Message);
-                if (Request.IsAjaxRequest())
-                    return PartialView("_EditCinemaPartial", vm);
-                return View(vm);
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
 
@@ -176,8 +168,7 @@ namespace CinemaManagement.Controllers
             }
             catch (Exception ex)
             {
-                // Bắt lỗi (ví dụ: "Cinema must have at least one room") để đẩy về Toast/Alert
-                return Json(new { success = false, message = ex.Message });
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
 
@@ -193,7 +184,7 @@ namespace CinemaManagement.Controllers
             }
             catch (Exception ex)
             {
-                return Json(new { success = false, message = ex.Message });
+                return BadRequest(new { success = false, message = ex.Message });
             }
         }
     }

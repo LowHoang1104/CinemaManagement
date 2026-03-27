@@ -114,8 +114,8 @@
         <div class="flex flex-col gap-2 sm:flex-row sm:items-center flex-wrap">
             <!-- Cinema custom dropdown -->
             @{
-                var cinemaCurrent = Model.CinemaIdFilter.HasValue
-                    ? (((IEnumerable<SelectListItem>)ViewBag.Cinemas).FirstOrDefault(c => c.Value == Model.CinemaIdFilter.ToString())?.Text ?? "Tất cả rạp")
+                var cinemaCurrent = Model.CinemaIdFilter.HasValue && Model.Cinemas != null
+                    ? (Model.Cinemas.FirstOrDefault(c => c.Value == Model.CinemaIdFilter.ToString())?.Text ?? "Tất cả rạp")
                     : "Tất cả rạp";
             }
             <input type="hidden" name="cinemaId" id="cinemaIdInput" value="@(Model.CinemaIdFilter?.ToString() ?? "")" />
@@ -152,7 +152,7 @@
                         <span class="filter-text @(isAllCinema ? "font-semibold text-indigo-700" : "text-slate-600")">Tất cả rạp</span>
                     </button>
                     <div class="h-px bg-slate-100 mx-2"></div>
-                    @foreach (SelectListItem c in Model.Cinemas)
+                    @foreach (SelectListItem c in Model.Cinemas ?? Enumerable.Empty<SelectListItem>())
                     {
                         var isSel = c.Value == Model.CinemaIdFilter?.ToString();
                         <button type="button" class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"

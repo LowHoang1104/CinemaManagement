@@ -245,12 +245,12 @@ async function handleActivateSubmit() {
 
     const data = await response.json();
 
-    if (data.success) {
+    if (response.ok && data.success) {
       closeStatusModal("activate");
       showToast("Thành công", data.message, "success");
       fetchCinemas(window.location.href);
     } else {
-      showToast("Lỗi", data.message, "error");
+      showToast("Lỗi", data.message || "Không thể kích hoạt rạp.", "error");
     }
   } catch (err) {
     showToast("Lỗi", "Lỗi hệ thống khi thực hiện yêu cầu.", "error");
@@ -288,12 +288,12 @@ async function handleDeactivateSubmit() {
 
     const data = await response.json();
 
-    if (data.success) {
+    if (response.ok && data.success) {
       closeStatusModal("deactivate");
       showToast("Thành công", data.message, "success");
       fetchCinemas(window.location.href);
     } else {
-      showToast("Lỗi", data.message, "error");
+      showToast("Lỗi", data.message || "Không thể ngừng hoạt động rạp.", "error");
     }
   } catch (err) {
     showToast("Lỗi", "Lỗi hệ thống khi thực hiện yêu cầu.", "error");

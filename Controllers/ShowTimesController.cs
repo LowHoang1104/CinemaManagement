@@ -8,7 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using CinemaManagement.Data;
 using CinemaManagement.Models;
 using CinemaManagement.ViewModels;
-using CinemaManagement.Services; // Added for IShowTimeService
+using CinemaManagement.Services;
+using CinemaManagement.Extensions;
 
 namespace CinemaManagement.Controllers;
 
@@ -90,6 +91,11 @@ public class ShowTimesController : Controller
         }
 
         var viewModel = await _showTimeService.GetShowTimeListAsync(null, null, null, null, null, 1, 10);
+        
+        // Fix: Giữ lại SelectList cho Dropdown khi có lỗi xảy ra
+        model.Movies = viewModel.CreateForm.Movies;
+        model.Rooms = viewModel.CreateForm.Rooms;
+        
         viewModel.CreateForm = model;
         return View("Index", viewModel);
     }
@@ -103,13 +109,20 @@ public class ShowTimesController : Controller
             if (ModelState.IsValid)
             {
                 await _showTimeService.EditAsync(id, model);
+                
+                if (Request.IsAjaxRequest())
+                {
+                    return Ok(new { success = true, message = "Suất chiếu đã được cập nhật thành công!" });
+                }
+
                 TempData["SuccessMessage"] = "Suất chiếu đã được cập nhật thành công!";
                 return RedirectToAction(nameof(Index));
             }
         }
         catch (InvalidOperationException ex)
         {
-            ModelState.AddModelError("", ex.Message);
+            // Trả về JSON để AJAX dễ dàng lấy được error message
+            return BadRequest(new { success = false, message = ex.Message });
         }
         catch (Exception)
         {
@@ -130,7 +143,7 @@ public class ShowTimesController : Controller
         }
         catch (InvalidOperationException ex)
         {
-            return Json(new { success = false, message = ex.Message });
+            return BadRequest(new { success = false, message = ex.Message });
         }
     }
 

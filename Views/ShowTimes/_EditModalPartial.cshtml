@@ -4,7 +4,7 @@
 }
 
 <div class="bg-white">
-    <form asp-action="Edit" method="post" id="EditForm" class="px-8 py-6 space-y-6">
+    <form asp-action="Edit" asp-route-id="@Model.ShowTimeId" method="post" id="EditForm" class="px-8 py-6 space-y-6">
         @Html.AntiForgeryToken()
         <input type="hidden" asp-for="ShowTimeId" />
 
@@ -105,12 +105,8 @@
             <span id="EditValidationText" class="text-xs font-bold"></span>
         </div>
 
-        @if (!ViewData.ModelState.IsValid)
-        {
-            <div class="bg-red-50 border border-red-200 rounded-xl p-4">
-                <div asp-validation-summary="All" class="text-red-600 text-xs font-bold list-disc list-inside"></div>
-            </div>
-        }
+        <!-- Validation Summary -->
+        <div asp-validation-summary="ModelOnly" class="text-red-600 text-xs font-bold bg-red-50 border border-red-200 rounded-xl p-4 mb-4 empty:hidden"></div>
     </form>
 </div>
 

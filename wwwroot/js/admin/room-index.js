@@ -240,12 +240,12 @@ async function submitStatusChange() {
     });
 
     const data = await response.json();
-    if (data.success) {
+    if (response.ok && data.success) {
       closeStatusModal(type);
       showToast("Thành công", data.message, "success");
       updateUIAfterStatusChange(currentRoomId, data.newStatus);
     } else {
-      showToast("Lỗi", data.message, "error");
+      showToast("Lỗi", data.message || "Không thể thay đổi trạng thái phòng.", "error");
     }
   } catch (error) {
     console.error("ToggleStatus error:", error);
