@@ -38,7 +38,10 @@ namespace CinemaManagement.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ToggleStatus(Guid id, int status)
         {
-            var result = await _roomService.ToggleStatusAsync(id, status);
+            var adminIdStr = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            Guid? adminId = Guid.TryParse(adminIdStr, out var g) ? g : null;
+
+            var result = await _roomService.ToggleStatusAsync(id, status, adminId);
             if (!result.Success)
             {
                 return BadRequest(new { success = false, message = result.Message });
@@ -113,11 +116,11 @@ namespace CinemaManagement.Controllers
         }
 
         // GET: Rooms/Create
-        public async Task<IActionResult> Create()
+        public async Task<IActionResult> Create(Guid? cinemaId)
         {
             var cinemas = await _roomService.GetCinemasForDropdownAsync();
-            ViewData["CinemaId"] = new SelectList(cinemas, "CinemaId", "Name");
-            return View(new CreateRoomViewModel());
+            ViewData["CinemaId"] = new SelectList(cinemas, "CinemaId", "Name", cinemaId);
+            return View(new CreateRoomViewModel { CinemaId = cinemaId ?? Guid.Empty });
         }
 
         // POST: Rooms/Create
