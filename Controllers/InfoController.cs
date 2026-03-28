@@ -1,4 +1,5 @@
 using CinemaManagement.Data;
+using CinemaManagement.Extensions;
 using CinemaManagement.ViewModels;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -25,6 +26,11 @@ public class InfoController : BaseController
                 TotalSeats = c.Rooms.Where(r => r.Status == 1).Sum(r => r.TotalRows * r.TotalCols)
             })
             .ToList();
+
+        if (Request.IsAjaxRequest())
+        {
+            return PartialView("_CinemaSystemGrid", items);
+        }
 
         return View(items);
     }

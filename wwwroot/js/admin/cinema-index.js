@@ -71,7 +71,7 @@ function cinema_fetchCinemas(url) {
       }
 
       // 2. Teleport UI elements
-      ["ajax-clear-filter-wrapper", "ajax-chips-wrapper"].forEach((id) => {
+      ["ajax-clear-filter-wrapper", "ajax-chips-wrapper", "cinema-stats-container"].forEach((id) => {
         const source = tempDiv.querySelector(`#teleport-${id}`);
         const target = document.getElementById(id);
         if (source && target) target.innerHTML = source.innerHTML;

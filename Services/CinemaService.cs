@@ -15,7 +15,7 @@ namespace CinemaManagement.Services
             _context = context;
         }
 
-        public async Task<(List<Cinema> Items, int TotalItems)> GetAllAsync(string? search = null, int? status = null, string? sortBy = null, string? sortDir = null, int page = 1, int pageSize = 20)
+        public async Task<(List<Cinema> Items, int TotalItems)> GetAllAsync(string? search = null, int? status = null, string? sortBy = null, string? sortDir = null, int page = 1, int pageSize = 5)
         {
             var query = _context.Cinemas.Include(c => c.Rooms).AsNoTracking(); // Thêm AsNoTracking để tối ưu tốc độ đọc
 

@@ -1,4 +1,4 @@
-@model List<CinemaManagement.ViewModels.CinemaSystemItemViewModel>
+@model List<CinemaSystemItemViewModel>
 @{
     ViewData["Title"] = "Hệ thống rạp";
 }
@@ -9,22 +9,50 @@
         <p>Tổng quan các cơ sở đang hoạt động trong hệ thống PRIME NINE Cinema.</p>
     </section>
 
-    @if (!Model.Any())
-    {
-        <div class="empty-state">Chưa có cơ sở hoạt động.</div>
-    }
-    else
-    {
-        <div class="info-grid">
-            @foreach (var item in Model)
-            {
-                <article class="info-card">
-                    <h3>@item.CinemaName</h3>
-                    <div class="info-meta">@item.Address</div>
-                    <span class="pill">@item.ActiveRooms phòng chiếu</span>
-                    <span class="pill">@item.TotalSeats ghế</span>
-                </article>
-            }
-        </div>
-    }
+    <div id="cinema-system-container">
+        <partial name="~/Views/Info/_CinemaSystemGrid.cshtml" model="Model" />
+    </div>
 </div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const container = document.getElementById('cinema-system-container');
+
+            const connection = new signalR.HubConnectionBuilder()
+                .withUrl('/cinemaHub')
+                .withAutomaticReconnect()
+                .build();
+
+            connection.on('CinemaChanged', (action, data) => {
+                console.log('[SignalR] Hệ thống rạp có thay đổi:', action, data);
+                
+                // Hiệu ứng mờ dần khi tải lại
+                if (container) {
+                    container.style.opacity = '0.5';
+                    container.style.transition = 'opacity 0.3s ease';
+                }
+
+                fetch(window.location.href, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.text())
+                .then(html => {
+                    if (container) {
+                        container.innerHTML = html;
+                        container.style.opacity = '1';
+                    }
+                })
+                .catch(err => {
+                    console.error('Lỗi khi tải lại hệ thống rạp:', err);
+                    if (container) container.style.opacity = '1';
+                });
+            });
+
+            connection.start()
+                .then(() => console.log('[SignalR] Đã kết nối tới CinemaHub (Public)'))
+                .catch(err => console.error('[SignalR] Lỗi kết nối:', err));
+        });
+    </script>
+}
