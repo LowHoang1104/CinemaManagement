@@ -19,7 +19,7 @@ namespace CinemaManagement.Controllers
             _cinemaHub = cinemaHub;
         }
 
-        public async Task<IActionResult> Index(string? search, int? status, string? sortBy, string? sortDir, int page = 1, int pageSize = 2)
+        public async Task<IActionResult> Index(string? search, int? status, string? sortBy, string? sortDir, int page = 1, int pageSize = 20)
         {
             var result = await _cinemaService.GetAllAsync(search, status, sortBy, sortDir, page, pageSize);
             var stats = await _cinemaService.GetStatsAsync();
