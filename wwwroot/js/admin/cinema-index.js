@@ -1,8 +1,8 @@
 // ══════════════════════════════════════════════════════════════
 // GLOBAL UTILITIES & STATE
 // ══════════════════════════════════════════════════════════════
-let openFilterPanelId = null;
-let openActionMenuId = null;
+let openCinemaFilterPanelId = null;
+let openCinemaActionMenuId = null;
 let currentCinemaId = null;
 
 function debounce(func, timeout = 500) {
@@ -48,7 +48,7 @@ function setInputSuccess(input, feedback, btn, tick) {
 // ══════════════════════════════════════════════════════════════
 // AJAX FILTERING & PAGINATION (Global Scope)
 // ══════════════════════════════════════════════════════════════
-function fetchCinemas(url) {
+function cinema_fetchCinemas(url) {
   const gridContainer = document.getElementById("cinema-grid-container");
   if (!gridContainer) return;
 
@@ -99,7 +99,7 @@ document.addEventListener("DOMContentLoaded", () => {
       for (const [key, value] of formData.entries()) {
         if (value) params.append(key, value);
       }
-      fetchCinemas(
+      cinema_fetchCinemas(
         `${filterForm.action || window.location.pathname}?${params.toString()}`,
       );
     });
@@ -110,30 +110,30 @@ document.addEventListener("DOMContentLoaded", () => {
       const link = e.target.closest('a[data-page], a[href*="sortBy"]');
       if (link) {
         e.preventDefault();
-        fetchCinemas(link.href);
+        cinema_fetchCinemas(link.href);
       }
     });
   }
 
-  window.addEventListener("popstate", () => fetchCinemas(window.location.href));
+  window.addEventListener("popstate", () => cinema_fetchCinemas(window.location.href));
 });
 
 // ══════════════════════════════════════════════════════════════
 // Custom Dropdowns (Filters)
 // ══════════════════════════════════════════════════════════════
-function toggleFilterDropdown(panelId, evt) {
-  evt.stopPropagation();
+function cinema_toggleFilterDropdown(panelId, evt) {
+  if (evt) evt.stopPropagation();
   const panel = document.getElementById(panelId);
   if (!panel) return;
   const isHidden = panel.classList.contains("hidden");
-  closeFilterPanels();
+  cinema_closeFilterPanels();
   if (isHidden) {
     panel.classList.remove("hidden");
-    openFilterPanelId = panelId;
+    openCinemaFilterPanelId = panelId;
   }
 }
 
-function selectFilterOpt(panelId, inputId, labelId, value, label, btnElement) {
+function cinema_selectFilterOpt(panelId, inputId, labelId, value, label, btnElement) {
   document.getElementById(inputId).value = value;
 
   // Update trigger label
@@ -162,82 +162,87 @@ function selectFilterOpt(panelId, inputId, labelId, value, label, btnElement) {
     }
   }
 
-  closeFilterPanels();
+  cinema_closeFilterPanels();
 }
 
-function closeFilterPanels() {
-  if (openFilterPanelId) {
-    const panel = document.getElementById(openFilterPanelId);
+function cinema_closeFilterPanels() {
+  if (openCinemaFilterPanelId) {
+    const panel = document.getElementById(openCinemaFilterPanelId);
     if (panel) panel.classList.add("hidden");
-    openFilterPanelId = null;
+    openCinemaFilterPanelId = null;
   }
 }
 
 // ══════════════════════════════════════════════════════════════
 // Action Menus (⋮)
 // ══════════════════════════════════════════════════════════════
-function toggleActionMenu(id, evt) {
+function cinema_toggleActionMenu(id, evt) {
   evt.stopPropagation();
   const menu = document.getElementById(id);
   const isHidden = menu.classList.contains("invisible");
-  closeActionMenus();
+  cinema_closeCinemaActionMenus();
   if (isHidden) {
     menu.classList.remove("invisible", "opacity-0", "scale-95");
-    openActionMenuId = id;
+    openCinemaActionMenuId = id;
   }
 }
 
-function closeActionMenus() {
-  if (openActionMenuId) {
-    const m = document.getElementById(openActionMenuId);
+function cinema_closeCinemaActionMenus() {
+  if (openCinemaActionMenuId) {
+    const m = document.getElementById(openCinemaActionMenuId);
     if (m) m.classList.add("invisible", "opacity-0", "scale-95");
-    openActionMenuId = null;
+    openCinemaActionMenuId = null;
   }
 }
 
 document.addEventListener("click", (e) => {
-  if (!e.target.closest("[data-filter-dropdown]")) closeFilterPanels();
-  if (!e.target.closest("[data-action-root]")) closeActionMenus();
+  if (!e.target.closest("[data-filter-dropdown]")) cinema_closeFilterPanels();
+  if (!e.target.closest("[data-action-root]")) cinema_closeCinemaActionMenus();
 });
 
 // ══════════════════════════════════════════════════════════════
 // Status Modals & Lifecycle
 // ══════════════════════════════════════════════════════════════
-function openStatusModal(type, cinemaId, cinemaName) {
+function cinema_openStatusModal(type, cinemaId, cinemaName) {
   currentCinemaId = cinemaId;
-  const modalId = "modal-" + type;
-  const nameSpanId = type + "-room-name";
-  document.getElementById(nameSpanId).textContent = cinemaName;
-  document.getElementById(modalId).classList.remove("hidden");
+  const modalId = "modal-cinema-" + type;
+  const nameSpanId = "cinema-" + type + "-name";
+  const span = document.getElementById(nameSpanId);
+  if (span) span.textContent = cinemaName;
+  const modal = document.getElementById(modalId);
+  if (modal) modal.classList.remove("hidden");
   document.body.style.overflow = "hidden";
-  closeActionMenus();
+  cinema_closeCinemaActionMenus();
 }
 
-function closeStatusModal(type) {
-  document.getElementById("modal-" + type).classList.add("hidden");
+function cinema_closeStatusModal(type) {
+  const modal = document.getElementById("modal-cinema-" + type);
+  if (modal) modal.classList.add("hidden");
   document.body.style.overflow = "";
 }
 
-async function handleActivateSubmit() {
+async function cinema_handleStatusSubmit(type) {
+  const isActivate = type === "activate";
+  const submitBtn = document.getElementById(isActivate ? "confirmActivateBtn" : "confirmDeactivateBtn");
+  const spinner = document.getElementById(isActivate ? "activateSpinner" : "deactivateSpinner");
+  const btnText = document.getElementById(isActivate ? "activateBtnText" : "deactivateBtnText");
+
+  if (!submitBtn) return;
   if (!currentCinemaId) return;
-  const submitBtn = document.getElementById("confirmActivateBtn");
-  const spinner = document.getElementById("activateSpinner");
-  const btnText = document.getElementById("activateBtnText");
 
   submitBtn.disabled = true;
-  spinner.classList.remove("d-none");
-  btnText.textContent = "Đang xử lý...";
+  if (spinner) spinner.classList.remove("d-none");
+  if (btnText) btnText.textContent = "Đang xử lý...";
 
   try {
     const form = document.getElementById("statusChangeForm");
-    const token = form.querySelector(
-      'input[name="__RequestVerificationToken"]',
-    ).value;
+    const token = form.querySelector('input[name="__RequestVerificationToken"]').value;
     const formData = new FormData();
     formData.append("id", currentCinemaId);
     formData.append("__RequestVerificationToken", token);
 
-    const response = await fetch(`/Cinemas/Activate/${currentCinemaId}`, {
+    const url = isActivate ? `/Cinemas/Activate/${currentCinemaId}` : `/Cinemas/Deactivate/${currentCinemaId}`;
+    const response = await fetch(url, {
       method: "POST",
       body: formData,
       headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -246,108 +251,83 @@ async function handleActivateSubmit() {
     const data = await response.json();
 
     if (response.ok && data.success) {
-      closeStatusModal("activate");
+      cinema_closeStatusModal(isActivate ? "activate" : "deactivate");
       showToast("Thành công", data.message, "success");
-      fetchCinemas(window.location.href);
+      if (document.getElementById("cinema-grid-container")) {
+        cinema_fetchCinemas(window.location.href);
+      } else {
+        setTimeout(() => location.reload(), 1000);
+      }
     } else {
-      showToast("Lỗi", data.message || "Không thể kích hoạt rạp.", "error");
+      showToast("Lỗi", data.message || `Không thể ${isActivate ? 'kích hoạt' : 'ngừng hoạt động'} rạp.`, "error");
     }
   } catch (err) {
+    console.error("Status submit error:", err);
     showToast("Lỗi", "Lỗi hệ thống khi thực hiện yêu cầu.", "error");
   } finally {
-    submitBtn.disabled = false;
-    spinner.classList.add("d-none");
-    btnText.textContent = "Xác nhận";
-  }
-}
-
-async function handleDeactivateSubmit() {
-  if (!currentCinemaId) return;
-  const submitBtn = document.getElementById("confirmDeactivateBtn");
-  const spinner = document.getElementById("deactivateSpinner");
-  const btnText = document.getElementById("deactivateBtnText");
-
-  submitBtn.disabled = true;
-  spinner.classList.remove("d-none");
-  btnText.textContent = "Đang xử lý...";
-
-  try {
-    const form = document.getElementById("statusChangeForm");
-    const token = form.querySelector(
-      'input[name="__RequestVerificationToken"]',
-    ).value;
-    const formData = new FormData();
-    formData.append("id", currentCinemaId);
-    formData.append("__RequestVerificationToken", token);
-
-    const response = await fetch(`/Cinemas/Deactivate/${currentCinemaId}`, {
-      method: "POST",
-      body: formData,
-      headers: { "X-Requested-With": "XMLHttpRequest" },
-    });
-
-    const data = await response.json();
-
-    if (response.ok && data.success) {
-      closeStatusModal("deactivate");
-      showToast("Thành công", data.message, "success");
-      fetchCinemas(window.location.href);
-    } else {
-      showToast("Lỗi", data.message || "Không thể ngừng hoạt động rạp.", "error");
-    }
-  } catch (err) {
-    showToast("Lỗi", "Lỗi hệ thống khi thực hiện yêu cầu.", "error");
-  } finally {
-    submitBtn.disabled = false;
-    spinner.classList.add("d-none");
-    btnText.textContent = "Xác nhận";
+    if (submitBtn) submitBtn.disabled = false;
+    if (spinner) spinner.classList.add("d-none");
+    if (btnText) btnText.textContent = isActivate ? "Kích hoạt" : "Xác nhận";
   }
 }
 
 // ══════════════════════════════════════════════════════════════
 // Edit Cinema (Slide-out Drawer)
 // ══════════════════════════════════════════════════════════════
-const cinemaEditDrawer = document.getElementById("cinemaEditDrawer");
-const cinemaEditPanel = document.getElementById("cinemaEditPanel");
-const cinemaEditBackdrop = document.getElementById("cinemaEditBackdrop");
-const cinemaEditContent = document.getElementById("cinemaEditContent");
+// Edit Cinema (Slide-out Drawer)
+function getCinemaEditDrawer() { return document.getElementById("cinemaEditDrawer"); }
+function getCinemaEditPanel() { return document.getElementById("cinemaEditPanel"); }
+function getCinemaEditBackdrop() { return document.getElementById("cinemaEditBackdrop"); }
+function getCinemaEditContent() { return document.getElementById("cinemaEditContent"); }
 
-function toggleCinemaEdit(show) {
+function cinema_toggleCinemaEdit(show) {
+  const drawer = getCinemaEditDrawer();
+  const panel = getCinemaEditPanel();
+  const backdrop = getCinemaEditBackdrop();
+  const content = getCinemaEditContent();
+
+  if (!drawer || !panel || !backdrop) return;
+
   if (show) {
-    cinemaEditDrawer.classList.remove("invisible");
+    drawer.classList.remove("invisible");
     setTimeout(() => {
-      cinemaEditBackdrop.classList.remove("opacity-0");
-      cinemaEditPanel.classList.remove("translate-x-full");
+      backdrop.classList.remove("opacity-0");
+      panel.classList.remove("translate-x-full");
     }, 10);
     document.body.style.overflow = "hidden";
   } else {
-    cinemaEditBackdrop.classList.add("opacity-0");
-    cinemaEditPanel.classList.add("translate-x-full");
+    backdrop.classList.add("opacity-0");
+    panel.classList.add("translate-x-full");
     setTimeout(() => {
-      cinemaEditDrawer.classList.add("invisible");
-      cinemaEditContent.innerHTML = `<div class="flex h-full items-center justify-center py-20"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div></div>`;
+      drawer.classList.add("invisible");
+      if (content) {
+        content.innerHTML = `<div class="flex h-full items-center justify-center py-20"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div></div>`;
+      }
     }, 500);
     document.body.style.overflow = "";
   }
 }
 
-async function openCinemaEdit(id) {
-  closeActionMenus();
-  toggleCinemaEdit(true);
+async function cinema_openCinemaEdit(id) {
+  const content = getCinemaEditContent();
+  if (!content) return;
+
+  cinema_closeCinemaActionMenus();
+  cinema_toggleCinemaEdit(true);
   try {
     const response = await fetch(`/Cinemas/Edit/${id}`, {
       headers: { "X-Requested-With": "XMLHttpRequest" },
     });
     if (response.ok) {
       const html = await response.text();
-      cinemaEditContent.innerHTML = html;
+      content.innerHTML = html;
       initEditLiveValidation();
     } else {
-      cinemaEditContent.innerHTML =
+      content.innerHTML =
         '<div class="p-8 text-center text-red-500 font-bold">Lỗi không thể tải dữ liệu.</div>';
     }
   } catch (e) {
-    cinemaEditContent.innerHTML =
+    content.innerHTML =
       '<div class="p-8 text-center text-red-500 font-bold">Lỗi hệ thống.</div>';
   }
 }
@@ -395,7 +375,7 @@ function initEditLiveValidation() {
   nameInput.addEventListener("input", (e) => validateName(e.target.value));
 }
 
-async function handleEditSubmit(event) {
+async function cinema_handleEditSubmit(event) {
   event.preventDefault();
   const form = event.target;
   const submitBtn = document.getElementById("submitEditBtn");
@@ -419,9 +399,13 @@ async function handleEditSubmit(event) {
       if (contentType && contentType.indexOf("application/json") !== -1) {
         const data = await response.json();
         if (data.success) {
-          toggleCinemaEdit(false);
+          cinema_toggleCinemaEdit(false);
           showToast("Thành công", data.message, "success");
-          fetchCinemas(window.location.href);
+          if (document.getElementById("cinema-grid-container")) {
+            cinema_fetchCinemas(window.location.href);
+          } else {
+            setTimeout(() => location.reload(), 1000);
+          }
         } else {
           showToast("Lỗi", data.message || "Có lỗi xảy ra", "error");
         }
@@ -445,32 +429,45 @@ async function handleEditSubmit(event) {
 // ══════════════════════════════════════════════════════════════
 // Create Cinema (Slide-out Drawer)
 // ══════════════════════════════════════════════════════════════
-const cinemaCreateDrawer = document.getElementById("cinemaCreateDrawer");
-const cinemaCreatePanel = document.getElementById("cinemaCreatePanel");
-const cinemaCreateBackdrop = document.getElementById("cinemaCreateBackdrop");
-const cinemaCreateContent = document.getElementById("cinemaCreateContent");
+// Create Cinema (Slide-out Drawer)
+function getCinemaCreateDrawer() { return document.getElementById("cinemaCreateDrawer"); }
+function getCinemaCreatePanel() { return document.getElementById("cinemaCreatePanel"); }
+function getCinemaCreateBackdrop() { return document.getElementById("cinemaCreateBackdrop"); }
+function getCinemaCreateContent() { return document.getElementById("cinemaCreateContent"); }
 
-function toggleCinemaCreate(show) {
+function cinema_toggleCinemaCreate(show) {
+  const drawer = getCinemaCreateDrawer();
+  const panel = getCinemaCreatePanel();
+  const backdrop = getCinemaCreateBackdrop();
+  const content = getCinemaCreateContent();
+
+  if (!drawer || !panel || !backdrop) return;
+
   if (show) {
-    cinemaCreateDrawer.classList.remove("invisible");
+    drawer.classList.remove("invisible");
     setTimeout(() => {
-      cinemaCreateBackdrop.classList.remove("opacity-0");
-      cinemaCreatePanel.classList.remove("translate-x-full");
+      backdrop.classList.remove("opacity-0");
+      panel.classList.remove("translate-x-full");
     }, 10);
     document.body.style.overflow = "hidden";
   } else {
-    cinemaCreateBackdrop.classList.add("opacity-0");
-    cinemaCreatePanel.classList.add("translate-x-full");
+    backdrop.classList.add("opacity-0");
+    panel.classList.add("translate-x-full");
     setTimeout(() => {
-      cinemaCreateDrawer.classList.add("invisible");
-      cinemaCreateContent.innerHTML = `<div class="flex h-full items-center justify-center py-20"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div></div>`;
+      drawer.classList.add("invisible");
+      if (content) {
+        content.innerHTML = `<div class="flex h-full items-center justify-center py-20"><div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div></div>`;
+      }
     }, 500);
     document.body.style.overflow = "";
   }
 }
 
-async function openCinemaCreate() {
-  toggleCinemaCreate(true);
+async function cinema_openCinemaCreate() {
+  const content = getCinemaCreateContent();
+  if (!content) return;
+
+  cinema_toggleCinemaCreate(true);
   try {
     const response = await fetch("/Cinemas/Create", {
       headers: { "X-Requested-With": "XMLHttpRequest" },
@@ -532,7 +529,7 @@ function initCreateLiveValidation() {
   nameInput.addEventListener("input", (e) => validateName(e.target.value));
 }
 
-async function handleCreateSubmit(event) {
+async function cinema_handleCreateSubmit(event) {
   event.preventDefault();
   const form = event.target;
   const submitBtn = document.getElementById("submitCreateBtn");
@@ -556,16 +553,19 @@ async function handleCreateSubmit(event) {
       if (contentType && contentType.indexOf("application/json") !== -1) {
         const data = await response.json();
         if (data.success) {
-          toggleCinemaCreate(false);
+          cinema_toggleCinemaCreate(false);
           showToast("Thành công", data.message, "success");
-          fetchCinemas(window.location.href);
+          cinema_fetchCinemas(window.location.href);
         } else {
           showToast("Lỗi", data.message || "Có lỗi xảy ra", "error");
         }
       } else {
         const html = await response.text();
-        cinemaCreateContent.innerHTML = html;
-        initCreateLiveValidation();
+        const content = getCinemaCreateContent();
+        if (content) {
+          content.innerHTML = html;
+          initCreateLiveValidation();
+        }
       }
     } else {
       showToast("Lỗi", "Lỗi hệ thống khi gửi yêu cầu.", "error");

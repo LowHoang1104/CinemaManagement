@@ -74,7 +74,7 @@ namespace CinemaManagement.Services
             };
         }
 
-        public async Task<(bool Success, string Message, int NewStatus)> ToggleStatusAsync(Guid id, int status)
+        public async Task<(bool Success, string Message, int NewStatus)> ToggleStatusAsync(Guid id, int status, Guid? userId = null)
         {
             var room = await _context.Rooms.FindAsync(id);
             if (room == null) return (false, "Không tìm thấy phòng chiếu.", 0);
@@ -97,6 +97,9 @@ namespace CinemaManagement.Services
             }
 
             room.Status = status;
+            room.LastUpdatedAt = DateTime.UtcNow;
+            room.LastUpdatedBy = userId;
+
             try
             {
                 _context.Update(room);

@@ -40,7 +40,9 @@
         </div>
 
         <div class="flex items-center gap-3">
-            <button id="btn-edit-cinema-detail" type="button" class="flex items-center gap-2 rounded-xl border border-warning-200 bg-warning-50 px-4 py-2.5 text-sm font-bold text-warning-700 transition-all hover:bg-warning-100 active:scale-95">
+            <button id="btn-edit-cinema-detail" type="button" 
+                    onclick="cinema_openCinemaEdit('@Model.CinemaId')"
+                    class="flex items-center gap-2 rounded-xl border border-warning-200 bg-warning-50 px-4 py-2.5 text-sm font-bold text-warning-700 transition-all hover:bg-warning-100 active:scale-95">
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
@@ -90,12 +92,13 @@
             <div class="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
                 <div class="flex items-center justify-between border-b border-slate-100 bg-slate-50/50 px-6 py-4">
                     <h2 class="text-sm font-bold uppercase tracking-wider text-slate-500">Danh sách phòng chiếu</h2>
-                    <button type="button" class="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-100 transition-all hover:bg-indigo-700 active:scale-95">
+                    <a href="@Url.Action("Create", "Rooms", new { cinemaId = Model.CinemaId })" 
+                       class="flex items-center gap-2 rounded-xl bg-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-lg shadow-indigo-100 transition-all hover:bg-indigo-700 active:scale-95">
                         <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                         </svg>
                         Thêm phòng mới
-                    </button>
+                    </a>
                 </div>
 
                 <div class="p-0">
@@ -114,13 +117,13 @@
                                 <tbody class="divide-y divide-slate-100">
                                     @foreach (var room in Model.Rooms)
                                     {
-                                        <tr class="group hover:bg-slate-50/50 transition-colors">
+                                        <tr id="room-row-@room.RoomId" class="group hover:bg-slate-50/50 transition-colors">
                                             <td class="px-6 py-4">
                                                 <div class="flex items-center gap-3">
                                                     <div class="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 font-black text-xs">
                                                         @room.Name.Substring(0, Math.Min(2, room.Name.Length)).ToUpper()
                                                     </div>
-                                                    <span class="font-bold text-slate-700">@room.Name</span>
+                                                    <span id="room-name-@room.RoomId" class="font-bold text-slate-700">@room.Name</span>
                                                 </div>
                                             </td>
                                             <td class="px-6 py-4 text-center">
@@ -128,26 +131,24 @@
                                                 <span class="text-[10px] font-bold text-slate-400 uppercase ml-1">Ghế</span>
                                             </td>
                                             <td class="px-6 py-4 text-center">
-                                                @if (room.Status == 1)
-                                                {
-                                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-50 text-[10px] font-black text-emerald-600 border border-emerald-100/50">
-                                                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]"></span>
-                                                        HOẠT ĐỘNG
-                                                    </div>
+                                                @{
+                                                    bool isActive = room.Status == 1;
+                                                    string badgeClass = isActive 
+                                                        ? "bg-emerald-50 text-emerald-600 border-emerald-100/50" 
+                                                        : "bg-rose-50 text-rose-600 border-rose-100/50";
+                                                    string dotClass = isActive ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" : "bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]";
+                                                    string statusText = isActive ? "HOẠT ĐỘNG" : "NGỪNG / BẢO TRÌ";
                                                 }
-                                                else
-                                                {
-                                                    <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-rose-50 text-[10px] font-black text-rose-600 border border-rose-100/50">
-                                                        <span class="h-1.5 w-1.5 rounded-full bg-rose-500 shadow-[0_0_8px_rgba(244,63,94,0.5)]"></span>
-                                                        NGỪNG / BẢO TRÌ
-                                                    </div>
-                                                }
+                                                <div id="status-badge-@room.RoomId" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full @badgeClass text-[10px] font-black border">
+                                                    <span class="h-1.5 w-1.5 rounded-full @dotClass"></span>
+                                                    @statusText
+                                                </div>
                                             </td>
                                             <td class="px-6 py-4 text-right">
                                                 @* 3-Dots Dropdown for Rooms *@
                                                 <div class="relative inline-block text-left" data-action-root>
-                                                    <button type="button" onclick="toggleActionMenu('room-menu-@room.RoomId', event)"
-                                                            class="flex h-10 w-10 items-center justify-center rounded-2xl bg-slate-50 text-slate-400 hover:bg-white hover:text-indigo-600 hover:shadow-md hover:border-indigo-100 border border-transparent transition-all active:scale-90 shadow-sm ml-auto">
+                                                    <button type="button" onclick="room_toggleActionMenu('room-menu-@room.RoomId', event)"
+                                                    class="flex h-10 w-10 items-center justify-center rounded-xl bg-white text-slate-400 border border-slate-200 hover:text-slate-600 hover:border-slate-300 hover:bg-slate-50 transition-all shadow-sm active:scale-95 ml-auto">
                                                         <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                                             <circle cx="12" cy="5" r="1.5"/><circle cx="12" cy="12" r="1.5"/><circle cx="12" cy="19" r="1.5"/>
                                                         </svg>
@@ -157,35 +158,38 @@
                                                     <div id="room-menu-@room.RoomId" class="invisible absolute right-0 z-40 mt-2 w-48 origin-top-right rounded-[1.5rem] border border-slate-100 bg-white/95 backdrop-blur-md p-2 shadow-2xl transition-all opacity-0 scale-95 ring-1 ring-slate-900/5">
                                                         <div class="px-3 py-2 text-[10px] font-black text-slate-400 uppercase tracking-widest">Phòng: @room.Name</div>
                                                         
-                                                        <button type="button" class="group flex w-full items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-700 transition-all text-left">
+                                                        <button type="button" onclick="room_openEditModal('@room.RoomId')" 
+                                                                class="group flex w-full items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-slate-50 text-sm font-bold text-slate-700 transition-all text-left">
                                                             <div class="flex h-7 w-7 items-center justify-center rounded-full bg-slate-50 text-slate-400 group-hover:bg-slate-100 group-hover:text-slate-600 transition-colors border border-slate-100">
                                                                 <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                                             </div>
                                                             Chỉnh sửa
                                                         </button>
 
-                                                        @if (room.Status == 1)
-                                                        {
-                                                            <button type="button" class="group flex w-full items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-rose-50 text-sm font-bold text-rose-600 transition-all text-left">
-                                                                <div class="flex h-7 w-7 items-center justify-center rounded-full bg-rose-50 text-rose-400 group-hover:bg-rose-100 group-hover:text-rose-600 transition-colors border border-rose-100">
-                                                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                                                        <rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>
-                                                                    </svg>
-                                                                </div>
-                                                                Ngừng / Bảo trì
-                                                            </button>
-                                                        }
-                                                        else
-                                                        {
-                                                            <button type="button" class="group flex w-full items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-emerald-50 text-sm font-bold text-emerald-600 transition-all text-left">
-                                                                <div class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-400 group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-colors border border-emerald-100">
-                                                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                                                                        <polygon points="5 3 19 12 5 21 5 3"></polygon>
-                                                                    </svg>
-                                                                </div>
-                                                                Kích hoạt
-                                                            </button>
-                                                        }
+                                                        <div id="status-toggle-container-@room.RoomId">
+                                                            @if (isActive)
+                                                            {
+                                                                <button type="button" class="flex w-full items-center gap-3 px-3 py-2 text-left text-rose-600 hover:bg-rose-50 transition-colors group" onclick="room_openStatusModal('deactivate', '@room.RoomId', '@room.Name')">
+                                                                    <div class="flex h-7 w-7 items-center justify-center rounded-full bg-rose-50 text-rose-400 group-hover:bg-rose-100 group-hover:text-rose-600 transition-colors border border-rose-100">
+                                                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                                            <rect x="6" y="4" width="4" height="16"></rect><rect x="14" y="4" width="4" height="16"></rect>
+                                                                        </svg>
+                                                                    </div>
+                                                                    Ngừng / Bảo trì
+                                                                </button>
+                                                            }
+                                                            else
+                                                            {
+                                                                <button type="button" class="flex w-full items-center gap-3 px-3 py-2 text-left text-emerald-600 hover:bg-emerald-50 transition-colors group" onclick="room_openStatusModal('activate', '@room.RoomId', '@room.Name')">
+                                                                    <div class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-50 text-emerald-400 group-hover:bg-emerald-100 group-hover:text-emerald-600 transition-colors border border-emerald-100">
+                                                                        <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                                                                            <polygon points="5 3 19 12 5 21 5 3"></polygon>
+                                                                        </svg>
+                                                                    </div>
+                                                                    Kích hoạt
+                                                                </button>
+                                                            }
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </td>
@@ -205,12 +209,13 @@
                             </div>
                             <h3 class="text-lg font-black text-slate-900">Chưa có phòng chiếu nào</h3>
                             <p class="mt-1 max-w-[280px] text-sm font-medium text-slate-500 line-clamp-2">Bắt đầu bằng cách thêm phòng chiếu mới cho rạp này để lên lịch chiếu phim.</p>
-                            <button type="button" class="mt-6 flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-100 transition-all hover:bg-indigo-700 active:scale-95">
+                            <a href="@Url.Action("Create", "Rooms", new { cinemaId = Model.CinemaId })" 
+                               class="mt-6 flex items-center gap-2 rounded-xl bg-indigo-600 px-6 py-2.5 text-sm font-bold text-white shadow-lg shadow-indigo-100 transition-all hover:bg-indigo-700 active:scale-95">
                                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
                                 </svg>
                                 Thêm phòng đầu tiên
-                            </button>
+                            </a>
                         </div>
                     }
                 </div>
@@ -219,31 +224,38 @@
     </div>
 </div>
 
+@* Modals & Drawers *@
+<partial name="_EditDrawer" />
+<partial name="_StatusModals" /> @* Cinema status modals *@
+<partial name="../Rooms/_StatusModals" /> @* Room status modals *@
+<partial name="../Rooms/_EditModal" /> @* Room edit modal *@
+
+@* Hidden form for AJAX anti-forgery token *@
+<form id="statusChangeForm" method="post" class="hidden">
+    @Html.AntiForgeryToken()
+    <input type="hidden" id="statusId" name="id" />
+</form>
+
 @section Scripts {
-    <script>
-        let openActionMenuId = null;
+    <script src="~/js/admin/cinema-index.js" asp-append-version="true"></script>
+    <script src="~/js/admin/room-index.js" asp-append-version="true"></script>
 
-        function toggleActionMenu(id, evt) {
-            evt.stopPropagation();
-            const menu = document.getElementById(id);
-            const isHidden = menu.classList.contains('invisible');
-            closeActionMenus();
-            if (isHidden) {
-                menu.classList.remove('invisible', 'opacity-0', 'scale-95');
-                openActionMenuId = id;
-            }
+    <style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
         }
 
-        function closeActionMenus() {
-            if (openActionMenuId) {
-                const m = document.getElementById(openActionMenuId);
-                if (m) m.classList.add('invisible', 'opacity-0', 'scale-95');
-                openActionMenuId = null;
-            }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
         }
 
-        document.addEventListener('click', (e) => {
-            if (!e.target.closest('[data-action-root]')) closeActionMenus();
-        });
-    </script>
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+    </style>
 }

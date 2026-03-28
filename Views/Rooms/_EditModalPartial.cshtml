@@ -158,8 +158,8 @@
                         const data = await response.json();
                         if (data.success) {
                             // 1. Close Modal
-                            if (typeof toggleEditModal === 'function') {
-                                toggleEditModal(false);
+                            if (typeof room_toggleEditModal === 'function') {
+                                room_toggleEditModal(false);
                             }
                             
                             // 2. Show Toast
@@ -167,13 +167,12 @@
                                 showToast('Thành công', data.message, 'success');
                             }
                             
-                            // 3. Update Grid row
-                            const nameCell = document.getElementById(`room-name-${data.roomId}`);
-                            if (nameCell) {
-                                nameCell.textContent = data.updatedName;
-                                // Subtle highlight effect
-                                nameCell.parentElement.classList.add('bg-emerald-50');
-                                setTimeout(() => nameCell.parentElement.classList.remove('bg-emerald-50'), 2000);
+                            // 3. Refresh List or Page
+                            if (typeof room_fetchRooms === 'function' && document.getElementById('room-list-container')) {
+                                room_fetchRooms(window.location.href);
+                            } else {
+                                // Fallback for Details page or situations where AJAX container is missing
+                                setTimeout(() => location.reload(), 800);
                             }
                         } else {
                             // Handling success:false if we decided to send it in JSON
@@ -184,7 +183,7 @@
                     } else {
                         // Re-render modal content on validation error (HTML response)
                         const html = await response.text();
-                        const modalBody = document.getElementById('EditModalBody');
+                        const modalBody = document.getElementById('roomEditModalBody');
                         modalBody.innerHTML = html;
                         // Execute embedded scripts
                         const scripts = modalBody.querySelectorAll('script');
