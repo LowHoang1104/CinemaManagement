@@ -304,5 +304,64 @@
                 <partial name="_StatusModals" />
 
                 @section Scripts {
+                    <script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/7.0.5/signalr.min.js"></script>
                     <script src="~/js/admin/cinema-index.js" asp-append-version="true"></script>
+                    <script>
+                        console.log('[Cinema] InitSignalR script loaded');
+
+                        document.addEventListener('DOMContentLoaded', function() {
+                            console.log('[Cinema] DOM Content Loaded, initialize SignalR');
+
+                            // Initialize SignalR connection
+                            const cinemaConnection = new signalR.HubConnectionBuilder()
+                                .withUrl('/cinemaHub')
+                                .withAutomaticReconnect([0, 1000, 5000, 10000, 30000])
+                                .build();
+
+                            cinemaConnection.on('CinemaChanged', (action, data) => {
+                                console.log('[SignalR] 🔔 Cinema changed event received:', action, data);
+                                console.log('[SignalR] Reloading cinema grid...');
+                                // Use existing cinema_fetchCinemas function
+                                if (typeof cinema_fetchCinemas === 'function') {
+                                    setTimeout(() => {
+                                        cinema_fetchCinemas(window.location.href);
+                                    }, 300);
+                                } else {
+                                    console.warn('[SignalR] cinema_fetchCinemas function not found');
+                                }
+                            });
+
+                            cinemaConnection.onreconnected((connectionId) => {
+                                console.log('[SignalR] ✅ Reconnected:', connectionId);
+                            });
+
+                            cinemaConnection.onreconnecting((error) => {
+                                console.log('[SignalR] ⚠️ Reconnecting:', error);
+                            });
+
+                            cinemaConnection.onclose((error) => {
+                                console.log('[SignalR] ❌ Connection closed:', error);
+                            });
+
+                            cinemaConnection.start()
+                                .then(() => {
+                                    console.log('[SignalR] ✅ Connected successfully to /cinemaHub');
+                                })
+                                .catch(err => {
+                                    console.error('[SignalR] ❌ Connection error:', err);
+                                    // Fallback: try to reconnect after 5 seconds
+                                    setTimeout(() => {
+                                        console.log('[SignalR] Attempting to reconnect...');
+                                        cinemaConnection.start().catch(e => console.error('[SignalR] Retry failed:', e));
+                                    }, 5000);
+                                });
+
+                            // Clean up on page unload
+                            window.addEventListener('beforeunload', () => {
+                                if (cinemaConnection) {
+                                    cinemaConnection.stop();
+                                }
+                            });
+                        });
+                    </script>
                 }

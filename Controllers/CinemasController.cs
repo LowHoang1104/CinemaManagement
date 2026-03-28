@@ -1,18 +1,22 @@
 using CinemaManagement.Extensions;
+using CinemaManagement.Hubs;
 using CinemaManagement.Requests;
 using CinemaManagement.Services;
 using CinemaManagement.ViewModels.Cinema;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 
 namespace CinemaManagement.Controllers
 {
     public class CinemasController : Controller
     {
         private readonly ICinemaService _cinemaService;
+        private readonly IHubContext<CinemaHub> _cinemaHub;
 
-        public CinemasController(ICinemaService cinemaService)
+        public CinemasController(ICinemaService cinemaService, IHubContext<CinemaHub> cinemaHub)
         {
             _cinemaService = cinemaService;
+            _cinemaHub = cinemaHub;
         }
 
         public async Task<IActionResult> Index(string? search, int? status, string? sortBy, string? sortDir, int page = 1, int pageSize = 2)
@@ -67,9 +71,12 @@ namespace CinemaManagement.Controllers
             {
                 // TODO: Khi có hệ thống Auth, thay null bằng ID của User đang đăng nhập
                 // Guid? currentUserId = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-                Guid? currentUserId = null; 
+                Guid? currentUserId = null;
 
                 await _cinemaService.CreateAsync(request, currentUserId);
+
+                // Notify via SignalR
+                await _cinemaHub.Clients.All.SendAsync("CinemaChanged", "created", new { Name = request.Name, Address = request.Address });
 
                 // 3. UX on Success: Nếu là Modal AJAX, trả về JSON để FE tự đóng Modal và hiện Toast
                 if (Request.IsAjaxRequest())
@@ -141,6 +148,9 @@ namespace CinemaManagement.Controllers
 
                 await _cinemaService.UpdateAsync(request, null);
 
+                // Notify via SignalR
+                await _cinemaHub.Clients.All.SendAsync("CinemaChanged", "updated", new { CinemaId = vm.CinemaId, Name = vm.Name, Address = vm.Address });
+
                 if (Request.IsAjaxRequest())
                 {
                     return Json(new { success = true, message = $"Cập nhật rạp {vm.Name} thành công!" });
@@ -164,6 +174,10 @@ namespace CinemaManagement.Controllers
                 var cinema = await _cinemaService.GetByIdAsync(id);
                 // TODO: Lấy User ID từ người dùng đang đăng nhập
                 await _cinemaService.ActivateAsync(id, null);
+
+                // Notify via SignalR
+                await _cinemaHub.Clients.All.SendAsync("CinemaChanged", "activated", new { CinemaId = id, Name = cinema.Name });
+
                 return Json(new { success = true, message = $"Kích hoạt rạp {cinema.Name} thành công!" });
             }
             catch (Exception ex)
@@ -180,6 +194,10 @@ namespace CinemaManagement.Controllers
             {
                 var cinema = await _cinemaService.GetByIdAsync(id);
                 await _cinemaService.DeactivateAsync(id, null);
+
+                // Notify via SignalR
+                await _cinemaHub.Clients.All.SendAsync("CinemaChanged", "deactivated", new { CinemaId = id, Name = cinema.Name });
+
                 return Json(new { success = true, message = $"Ngừng hoạt động rạp {cinema.Name} thành công!" });
             }
             catch (Exception ex)

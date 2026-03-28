@@ -102,6 +102,8 @@ app.MapHub<SeatHub>("/hubs/seat");
 
 // Map SignalR hub
 app.MapHub<SeatHub>("/seatHub");
+app.MapHub<CinemaHub>("/cinemaHub");
+
 
 app.Run();
 
