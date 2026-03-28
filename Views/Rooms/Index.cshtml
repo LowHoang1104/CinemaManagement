@@ -131,6 +131,7 @@
                 @* Row 2: Selects + Buttons *@
                 <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
                     @* ── Cinema custom dropdown ── *@
+                    @* ── Cinema custom dropdown ── *@
                     @{
                         var cinemaCurrent = Model.CinemaIdFilter.HasValue
                             ? (cinemas.FirstOrDefault(c => c.Value == Model.CinemaIdFilter.ToString())?.Text ?? "Tất cả rạp")
@@ -139,7 +140,7 @@
                     <input type="hidden" name="cinemaId" id="cinemaIdInput"
                            value="@(Model.CinemaIdFilter?.ToString() ?? "")" />
                     <div class="relative flex-1" data-filter-dropdown>
-                        <button type="button" id="cinemaTrigger" onclick="toggleFilterDropdown('cinemaPanel', event)"
+                        <button type="button" onclick="room_toggleFilterDropdown('cinemaPanel', event)"
                                 class="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm hover:border-indigo-300 hover:bg-slate-50 transition-colors">
                             <svg class="h-4 w-4 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none"
                                  stroke="currentColor" stroke-width="2">
@@ -169,7 +170,7 @@
                             }
                             <button type="button"
                                     class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
-                                    onclick="selectFilterOpt('cinemaPanel','cinemaIdInput','cinemaLabel','','Tất cả rạp',false, this)">
+                                    onclick="room_selectFilterOpt('cinemaPanel','cinemaIdInput','cinemaLabel','','Tất cả rạp',false, this)">
                                 <span
                                     class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isAllCinema ? "" : "hidden")">
                                     <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
@@ -180,122 +181,122 @@
                                 <span
                                     class="filter-text @(isAllCinema ? "font-semibold text-indigo-700" : "text-slate-600")">Tất
                                     cả rạp</span>
-                                </button>
-                                <div class="h-px bg-slate-100 mx-2"></div>
-                                @foreach (var c in cinemas)
-                                {
-                                    var isSel = c.Value == Model.CinemaIdFilter?.ToString();
-                                    <button type="button"
-                                            class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
-                                            onclick="selectFilterOpt('cinemaPanel','cinemaIdInput','cinemaLabel','@c.Value','@c.Text',true, this)">
-                                        <span
-                                            class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isSel ? "" : "hidden")">
-                                            <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
-                                                 stroke="currentColor" stroke-width="2.5">
-                                                <polyline points="2,6 5,9 10,3" />
-                                            </svg>
-                                        </span>
-                                        <span
-                                        class="filter-text @(isSel ? "font-semibold text-indigo-700" : "text-slate-600")">@c.Text</span>
-                                    </button>
-                                }
-                            </div>
-                        </div>
-
-                        @* ── Status custom dropdown ── *@
-                        @{
-                            var statusCurrent = Model.StatusFilter switch
+                            </button>
+                            <div class="h-px bg-slate-100 mx-2"></div>
+                            @foreach (var c in cinemas)
                             {
-                                RoomStatus.Active => "Hoạt động",
-                                RoomStatus.Inactive => "Ngừng hoạt động",
-                                _ => "Tất cả trạng thái"
-                            };
-                            var statusInputVal = Model.StatusFilter.HasValue ? ((int)Model.StatusFilter.Value).ToString() : "";
-                        }
-                        <input type="hidden" name="status" id="statusInput" value="@statusInputVal" />
-                        <div class="relative sm:w-52" data-filter-dropdown>
-                            <button type="button" id="statusTrigger" onclick="toggleFilterDropdown('statusPanel', event)"
-                                    class="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm hover:border-indigo-300 hover:bg-slate-50 transition-colors">
-                                <svg class="h-4 w-4 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none"
-                                     stroke="currentColor" stroke-width="2">
-                                    <circle cx="12" cy="12" r="9" />
-                                    <path d="M9 12l2 2 4-4" />
-                                </svg>
-                                <span id="statusLabel"
-                                      class="flex-1 truncate text-left @(Model.StatusFilter.HasValue ? "font-medium text-slate-900" : "text-slate-500")">@statusCurrent</span>
-                                @if (Model.StatusFilter.HasValue)
-                                {
-                                    <span class="flex-shrink-0 rounded-full bg-indigo-100 p-0.5">
-                                        <svg class="h-3 w-3 text-indigo-600" viewBox="0 0 12 12" fill="none"
-                                             stroke="currentColor" stroke-width="2">
+                                var isSel = c.Value == Model.CinemaIdFilter?.ToString();
+                                <button type="button"
+                                        class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
+                                        onclick="room_selectFilterOpt('cinemaPanel','cinemaIdInput','cinemaLabel','@c.Value','@c.Text',true, this)">
+                                    <span
+                                        class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isSel ? "" : "hidden")">
+                                        <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                             stroke="currentColor" stroke-width="2.5">
                                             <polyline points="2,6 5,9 10,3" />
                                         </svg>
                                     </span>
-                                }
-                                <svg class="h-3.5 w-3.5 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none"
-                                     stroke="currentColor" stroke-width="2.5">
-                                    <polyline points="6 9 12 15 18 9" />
-                                </svg>
-                            </button>
-                            <div id="statusPanel"
-                                 class="filter-dropdown-panel absolute left-0 top-full z-50 mt-1 hidden w-full min-w-[180px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
-                                @{
-                                    var isAllStatus = !Model.StatusFilter.HasValue;
-                                }
-                                <button type="button"
-                                        class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
-                                        onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','','Tất cả trạng thái',false, this)">
                                     <span
-                                        class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isAllStatus ? "" : "hidden")">
-                                        @if (isAllStatus)
-                                        {
-                                            <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
-                                                 stroke="currentColor" stroke-width="2.5">
-                                                <polyline points="2,6 5,9 10,3" />
-                                            </svg>
-                                        }
-                                    </span>
-                                    <span
-                                        class="filter-text @(isAllStatus ? "font-semibold text-indigo-700" : "text-slate-600")">Tất
-                                        cả trạng thái</span>
-                                    </button>
-                                    <div class="h-px bg-slate-100 mx-2"></div>
-                                    @{
-                                        var isActive = Model.StatusFilter == RoomStatus.Active;
-                                        var isInactive = Model.StatusFilter == RoomStatus.Inactive;
+                                        class="filter-text @(isSel ? "font-semibold text-indigo-700" : "text-slate-600")">@c.Text</span>
+                                </button>
+                            }
+                        </div>
+                    </div>
+
+                    @* ── Status custom dropdown ── *@
+                    @{
+                        var statusCurrent = Model.StatusFilter switch
+                        {
+                            RoomStatus.Active => "Hoạt động",
+                            RoomStatus.Inactive => "Ngừng hoạt động",
+                            _ => "Tất cả trạng thái"
+                        };
+                        var statusInputVal = Model.StatusFilter.HasValue ? ((int)Model.StatusFilter.Value).ToString() : "";
+                    }
+                    <input type="hidden" name="status" id="statusInput" value="@statusInputVal" />
+                    <div class="relative sm:w-52" data-filter-dropdown>
+                        <button type="button" id="statusTrigger" onclick="room_toggleFilterDropdown('statusPanel', event)"
+                                class="flex w-full items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2.5 text-sm text-slate-700 shadow-sm hover:border-indigo-300 hover:bg-slate-50 transition-colors">
+                            <svg class="h-4 w-4 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="9" />
+                                <path d="M9 12l2 2 4-4" />
+                            </svg>
+                            <span id="statusLabel"
+                                  class="flex-1 truncate text-left @(Model.StatusFilter.HasValue ? "font-medium text-slate-900" : "text-slate-500")">@statusCurrent</span>
+                            @if (Model.StatusFilter.HasValue)
+                            {
+                                <span class="flex-shrink-0 rounded-full bg-indigo-100 p-0.5">
+                                    <svg class="h-3 w-3 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                         stroke="currentColor" stroke-width="2">
+                                        <polyline points="2,6 5,9 10,3" />
+                                    </svg>
+                                </span>
+                            }
+                            <svg class="h-3.5 w-3.5 flex-shrink-0 text-slate-400" viewBox="0 0 24 24" fill="none"
+                                 stroke="currentColor" stroke-width="2.5">
+                                <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                        </button>
+                        <div id="statusPanel"
+                             class="filter-dropdown-panel absolute left-0 top-full z-50 mt-1 hidden w-full min-w-[180px] overflow-hidden rounded-xl border border-slate-200 bg-white shadow-xl">
+                            @{
+                                var isAllStatus = !Model.StatusFilter.HasValue;
+                            }
+                            <button type="button"
+                                    class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
+                                    onclick="room_selectFilterOpt('statusPanel', 'statusInput', 'statusLabel', '', 'Tất cả trạng thái', false, this)">
+                                <span
+                                    class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isAllStatus ? "" : "hidden")">
+                                    @if (isAllStatus)
+                                    {
+                                        <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                             stroke="currentColor" stroke-width="2.5">
+                                            <polyline points="2,6 5,9 10,3" />
+                                        </svg>
                                     }
-                                    <button type="button"
-                                            class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
-                                            onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','1','Hoạt động',true, this)">
-                                        <span
-                                            class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isActive ? "" : "hidden")">
-                                            <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
-                                                 stroke="currentColor" stroke-width="2.5">
-                                                <polyline points="2,6 5,9 10,3" />
-                                            </svg>
-                                        </span>
-                                        <span
-                                            class="filter-text flex items-center gap-2 @(isActive ? "font-semibold text-indigo-700" : "text-slate-600")">
-                                            Hoạt động
-                                        </span>
-                                    </button>
-                                    <button type="button"
-                                            class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
-                                            onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','0','Ngừng hoạt động',true, this)">
-                                        <span
-                                            class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isInactive ? "" : "hidden")">
-                                            <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
-                                                 stroke="currentColor" stroke-width="2.5">
-                                                <polyline points="2,6 5,9 10,3" />
-                                            </svg>
-                                        </span>
-                                        <span
-                                            class="filter-text flex items-center gap-2 @(isInactive ? "font-semibold text-indigo-700" : "text-slate-600")">
-                                            Ngừng hoạt động
-                                        </span>
-                                    </button>
-                                </div>
-                            </div>
+                                </span>
+                                <span
+                                    class="filter-text @(isAllStatus ? "font-semibold text-indigo-700" : "text-slate-600")">Tất
+                                    cả trạng thái</span>
+                            </button>
+                            <div class="h-px bg-slate-100 mx-2"></div>
+                            @{
+                                var isActive = Model.StatusFilter == RoomStatus.Active;
+                                var isInactive = Model.StatusFilter == RoomStatus.Inactive;
+                            }
+                            <button type="button"
+                                    class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
+                                    onclick="room_selectFilterOpt('statusPanel', 'statusInput', 'statusLabel', '1', 'Hoạt động', true, this)">
+                                <span
+                                    class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isActive ? "" : "hidden")">
+                                    <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                         stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="2,6 5,9 10,3" />
+                                    </svg>
+                                </span>
+                                <span
+                                    class="filter-text flex items-center gap-2 @(isActive ? "font-semibold text-indigo-700" : "text-slate-600")">
+                                    Hoạt động
+                                </span>
+                            </button>
+                            <button type="button"
+                                    class="relative flex w-full items-center justify-start pl-11 pr-4 py-2.5 text-sm text-left hover:bg-slate-50 transition-colors whitespace-nowrap"
+                                    onclick="room_selectFilterOpt('statusPanel', 'statusInput', 'statusLabel', '0', 'Ngừng hoạt động', true, this)">
+                                <span
+                                    class="absolute left-4 flex h-5 w-5 items-center justify-center filter-tick @(isInactive ? "" : "hidden")">
+                                    <svg class="h-4 w-4 text-indigo-600" viewBox="0 0 12 12" fill="none"
+                                         stroke="currentColor" stroke-width="2.5">
+                                        <polyline points="2,6 5,9 10,3" />
+                                    </svg>
+                                </span>
+                                <span
+                                    class="filter-text flex items-center gap-2 @(isInactive ? "font-semibold text-indigo-700" : "text-slate-600")">
+                                    Ngừng hoạt động
+                                </span>
+                            </button>
+                        </div>
+                    </div>
 
                             @* Action Buttons *@
                             <div class="flex gap-2 sm:flex-shrink-0">
@@ -381,184 +382,10 @@
                     </div>
                 </div>
 
-                @* Hidden form for status toggle *@
-                <form id="statusChangeForm" method="post" asp-action="ToggleStatus" class="hidden">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" id="statusRoomId" name="id" />
-                    <input type="hidden" id="statusTarget" name="status" />
-                </form>
-
-                <!-- MODAL: NGỪNG HOẠT ĐỘNG -->
-                <div id="modal-deactivate" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title" role="dialog"
-                     aria-modal="true">
-                    <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-                        <!-- Overlay -->
-                        <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" aria-hidden="true"
-                             onclick="closeStatusModal('deactivate')"></div>
-
-                        <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
-
-                        <!-- Modal Content -->
-                        <div
-                            class="relative inline-block transform overflow-hidden rounded-[2rem] bg-white px-6 pt-6 pb-6 text-left align-middle shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
-                            <div class="absolute top-4 right-4">
-                                <button type="button" onclick="closeStatusModal('deactivate')"
-                                        class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
-                                    <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                              d="M6 18L18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
-
-                            <div class="flex flex-col items-center text-center mb-6 pt-2">
-                                <div
-                                    class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-rose-50 text-rose-500 border border-rose-100 mb-4 shadow-sm">
-                                    <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                </div>
-                                <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Ngừng hoạt động phòng</h3>
-                                <p class="text-sm text-slate-500 mt-2">
-                                    Xác nhận ngừng hoạt động <span id="deactivate-room-name" class="font-bold text-slate-900"></span>?
-                                </p>
-                            </div>
-
-                            <div class="mb-6 rounded-2xl bg-amber-50/60 p-4 border border-amber-100/50">
-                                <div
-                                    class="flex items-center gap-2 mb-3 text-amber-700 font-bold text-[11px] uppercase tracking-widest">
-                                    <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                                    </svg>
-                                    Lưu ý quan trọng
-                                </div>
-                                <ul class="space-y-2.5">
-                                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug">
-                                        <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>
-                                        Thao tác có thể thất bại nếu đang có lịch chiếu
-                                    </li>
-                                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug">
-                                        <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>
-                                        Sẽ không thể tạo thêm lịch chiếu mới
-                                    </li>
-                                    <li class="flex items-start gap-2.5 text-[13px] text-amber-800/80 leading-snug">
-                                        <span class="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-amber-400"></span>
-                                        Có thể kích hoạt lại bất cứ lúc nào
-                                    </li>
-                                </ul>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3">
-                                <button type="button" onclick="closeStatusModal('deactivate')"
-                                        class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Hủy
-                                    bỏ</button>
-                                    <button type="button" onclick="submitStatusChange()"
-                                            class="rounded-xl bg-rose-600 px-4 py-3 text-[14px] font-bold text-white shadow-lg shadow-rose-200 hover:bg-rose-700 transition-all active:scale-95">Xác
-                                        nhận</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- MODAL: KÍCH HOẠT -->
-                        <div id="modal-activate" class="fixed inset-0 z-50 hidden overflow-y-auto" aria-labelledby="modal-title-activate"
-                             role="dialog" aria-modal="true">
-                            <div class="flex min-h-screen items-center justify-center p-4 text-center sm:p-0">
-                                <!-- Overlay -->
-                                <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm transition-opacity" aria-hidden="true"
-                                     onclick="closeStatusModal('activate')"></div>
-
-                                <span class="hidden sm:inline-block sm:h-screen sm:align-middle" aria-hidden="true">&#8203;</span>
-
-                                <!-- Modal Content -->
-                                <div
-                                    class="relative inline-block transform overflow-hidden rounded-[2rem] bg-white px-6 pt-6 pb-6 text-left align-middle shadow-2xl transition-all sm:my-8 sm:w-full sm:max-w-xl">
-                                    <div class="absolute top-4 right-4">
-                                        <button type="button" onclick="closeStatusModal('activate')"
-                                                class="rounded-full p-2 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-all">
-                                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                      d="M6 18L18 6M6 6l12 12" />
-                                            </svg>
-                                        </button>
-                                    </div>
-
-                                    <div class="flex flex-col items-center text-center mb-6 pt-2">
-                                        <div
-                                            class="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl bg-emerald-50 text-emerald-500 border border-emerald-100 mb-4 shadow-sm">
-                                            <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
-                                                <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
-                                            </svg>
-                                        </div>
-                                        <h3 class="text-xl font-extrabold text-slate-900 tracking-tight">Kích hoạt phòng chiếu</h3>
-                                        <p class="text-sm text-slate-500 mt-2">
-                                            Xác nhận kích hoạt <span id="activate-room-name" class="font-bold text-slate-900"></span>?
-                                        </p>
-                                    </div>
-
-                                    <div class="mb-8 rounded-2xl border border-emerald-100 bg-emerald-50/40 p-5">
-                                        <p class="text-[13px] text-emerald-800/80 leading-relaxed font-medium">
-                                            Phòng sẽ sẵn sàng để tạo lịch chiếu và đặt vé ngay lập tức.
-                                        </p>
-                                    </div>
-
-                                    <div class="grid grid-cols-2 gap-3">
-                                        <button type="button" onclick="closeStatusModal('activate')"
-                                                class="rounded-xl border border-slate-200 bg-white px-4 py-3 text-[14px] font-bold text-slate-600 hover:bg-slate-50 transition-all active:scale-95 shadow-sm">Hủy
-                                            bỏ</button>
-                                            <button type="button" onclick="submitStatusChange()"
-                                                    class="rounded-xl bg-emerald-600 px-4 py-3 text-[14px] font-bold text-white shadow-lg shadow-emerald-200 hover:bg-emerald-700 transition-all active:scale-95">Xác
-                                                nhận</button>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Edit Room Modal -->
-                                <div id="EditModal" class="fixed inset-0 z-[100] hidden opacity-0 transition-opacity duration-300 pointer-events-none"
-                                     aria-labelledby="modal-title" role="dialog" aria-modal="true">
-                                    <div class="fixed inset-0 bg-slate-900/40 backdrop-blur-[2px] transition-opacity pointer-events-auto"
-                                         aria-hidden="true" onclick="toggleEditModal(false)"></div>
-                                    <div class="fixed inset-0 overflow-y-auto pointer-events-none">
-                                        <div class="flex min-h-screen items-center justify-center p-4">
-                                            <div id="EditModalContent"
-                                                 class="relative w-full max-w-2xl transform overflow-hidden rounded-[2rem] bg-white text-left align-middle shadow-2xl transition-all translate-y-0 duration-300 pointer-events-auto flex flex-col max-h-[90vh]">
-                                                <div
-                                                    class="px-8 py-6 border-b border-gray-100 flex justify-between items-center bg-white flex-shrink-0">
-                                                    <div>
-                                                        <h1 class="text-2xl font-extrabold text-slate-900 tracking-tight">Chỉnh sửa phòng chiếu</h1>
-                                                        <p class="text-slate-500 text-xs mt-1">Cập nhật thông tin phòng chiếu</p>
-                                                    </div>
-                                                    <button type="button" onclick="toggleEditModal(false)"
-                                                            class="text-slate-400 hover:text-slate-600 transition-colors p-2 hover:bg-slate-100 rounded-full">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                                                             stroke="currentColor">
-                                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"
-                                                                  d="M6 18L18 6M6 6l12 12" />
-                                                        </svg>
-                                                    </button>
-                                                </div>
-                                                <div id="EditModalBody" class="flex-1 overflow-y-auto custom-scrollbar min-h-[300px]">
-                                                    <div class="flex items-center justify-center py-20">
-                                                        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-slate-900"></div>
-                                                    </div>
-                                                </div>
-                                                <div class="px-8 py-6 border-t border-slate-100 flex justify-end gap-3 bg-white flex-shrink-0">
-                                                    <button type="button" onclick="toggleEditModal(false)"
-                                                            class="px-8 py-3 bg-slate-10 border border-slate-200 text-slate-600 font-bold rounded-xl hover:bg-slate-50 transition-all text-sm shadow-sm active:scale-95">
-                                                        Hủy bỏ
-                                                    </button>
-                                                    <button type="submit" form="EditRoomForm" id="EditSubmitBtn"
-                                                            class="px-8 py-3 bg-slate-900 text-white font-bold rounded-xl hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 text-sm active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed">
-                                                        Cập nhật
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
+                @* Modals for status toggle and edit *@
+                @Html.AntiForgeryToken()
+                <partial name="_StatusModals" />
+                <partial name="_EditModal" />
 
 @section Scripts {
     @await Html.PartialAsync("_ValidationScriptsPartial")

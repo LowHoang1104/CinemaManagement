@@ -42,7 +42,7 @@
                 <h1 class="text-3xl font-bold tracking-tight text-slate-900">Quản lý Rạp chiếu</h1>
                 <p class="mt-1 text-sm text-slate-500">Thông tin chi tiết và trạng thái hoạt động của các rạp</p>
             </div>
-            <button type="button" onclick="openCinemaCreate()"
+            <button type="button" onclick="cinema_openCinemaCreate()"
                     class="inline-flex items-center gap-2 rounded-xl bg-slate-900 px-5 py-3 text-sm font-bold text-white shadow-lg shadow-slate-200 hover:bg-slate-700 transition-all hover:-translate-y-0.5 active:translate-y-0">
                 <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
                     <line x1="12" y1="5" x2="12" y2="19" />
@@ -143,8 +143,9 @@
                             @* Status Dropdown *@
                             <input type="hidden" name="status" id="statusInput" value="@(statusFilter?.ToString() ?? "")" />
                             <div class="relative lg:w-48" data-filter-dropdown>
-                                <button type="button" id="statusTrigger" onclick="toggleFilterDropdown('statusPanel', event)"
-                                        class="flex w-full items-center justify-between px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] hover:border-indigo-300 hover:bg-slate-50 transition-all shadow-sm">
+                                <button type="button" onclick="cinema_toggleFilterDropdown('statusPanel', event)"
+                    class="flex h-11 items-center gap-2.5 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-slate-700 shadow-sm transition-all hover:bg-slate-50 hover:border-slate-300 active:scale-95 disabled:opacity-50"
+                    data-filter-dropdown>
                                     <span id="statusLabel"
                                           class="truncate @(statusFilter.HasValue ? "text-indigo-700 font-bold" : "text-slate-700 font-medium")">
                                         @(statusLabel ?? "Trạng thái (Tất cả)")
@@ -160,19 +161,19 @@
                                         var isAllStatus = !statusFilter.HasValue;
                                     }
                                     <button type="button"
-                                            onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','','Trạng thái (Tất cả)', this)"
+                                            onclick="cinema_selectFilterOpt('statusPanel','statusInput','statusLabel','','Trạng thái (Tất cả)', this)"
                                             class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0
                                         filter-opt-btn @(isAllStatus ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
                                         Tất cả
                                     </button>
                                     <button type="button"
-                                            onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','1','Hoạt động', this)"
+                                            onclick="cinema_selectFilterOpt('statusPanel','statusInput','statusLabel','1','Hoạt động', this)"
                                             class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0
                                         filter-opt-btn @(statusFilter == 1 ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
                                         Hoạt động
                                     </button>
                                     <button type="button"
-                                            onclick="selectFilterOpt('statusPanel','statusInput','statusLabel','0','Ngừng hoạt động', this)"
+                                            onclick="cinema_selectFilterOpt('statusPanel','statusInput','statusLabel','0','Ngừng hoạt động', this)"
                                             class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 
                                         filter-opt-btn @(statusFilter == 0 ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
                                         Ngừng hoạt động
@@ -183,7 +184,7 @@
                             @* Sort Dropdown *@
                             <input type="hidden" name="sortBy" id="sortInput" value="@sortBy" />
                             <div class="relative lg:w-48" data-filter-dropdown>
-                                <button type="button" id="sortTrigger" onclick="toggleFilterDropdown('sortPanel', event)"
+                                <button type="button" id="sortTrigger" onclick="cinema_toggleFilterDropdown('sortPanel', event)"
                                         class="flex w-full items-center justify-between px-4 py-2.5 rounded-lg border border-slate-200 bg-white text-[14px] hover:border-indigo-300 hover:bg-slate-50 transition-all shadow-sm">
                                     <span id="sortLabelDisplay"
                                           class="truncate @(!string.IsNullOrEmpty(sortBy) ? "text-indigo-700 font-bold" : "text-slate-700 font-medium")">
@@ -200,17 +201,17 @@
                                         var isAllSort = string.IsNullOrEmpty(sortBy);
                                     }
                                     <button type="button"
-                                            onclick="selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','','Sắp xếp mặc định', this)"
+                                            onclick="cinema_selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','','Sắp xếp mặc định', this)"
                                             class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 filter-opt-btn @(isAllSort ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
                                         Mặc định
                                     </button>
                                     <button type="button"
-                                            onclick="selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','name','Tên (A-Z)', this)"
+                                            onclick="cinema_selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','name','Tên (A-Z)', this)"
                                             class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 filter-opt-btn @(sortBy == "name" ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
                                         Tên (A-Z)
                                     </button>
                                     <button type="button"
-                                            onclick="selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','rooms','Số phòng', this)"
+                                            onclick="cinema_selectFilterOpt('sortPanel','sortInput','sortLabelDisplay','rooms','Số phòng', this)"
                                             class="relative flex w-full items-center justify-start px-4 py-2.5 text-[13px] text-left hover:bg-slate-50 transition-colors border-b border-slate-50 last:border-0 filter-opt-btn @(sortBy == "rooms" ? "bg-slate-50 font-bold text-indigo-700" : "text-slate-600 font-medium")">
                                         Số phòng
                                     </button>
